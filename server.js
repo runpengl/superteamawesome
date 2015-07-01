@@ -7,8 +7,46 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var debug = require('debug')('superteamawesome:server');
 var http = require('http');
+var passport = require('passport');
+var config = require('./config');
+var StrategyGoogle = require('passport-google-openidconnect').Strategy;
+var session = require('express-session')
 
 var routes = require('./routes');
+
+// Passport session setup.
+//   To support persistent login sessions, Passport needs to be able to
+//   serialize users into and deserialize users out of the session.  Typically,
+//   this will be as simple as storing the user ID when serializing, and finding
+//   the user by ID when deserializing.  However, since this example does not
+//   have a database of user records, the complete Google profile is serialized
+//   and deserialized.
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+passport.use(new StrategyGoogle({
+    clientID: config.GOOGLE_CLIENT_ID,
+    clientSecret: config.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:8080/auth/google/callback"
+  },
+  function(iss, sub, profile, accessToken, refreshToken, done) {
+    return done(false, profile);
+  }
+));
+
+function loggedIn(req, res, next) {
+    console.log('check', req.isAuthenticated());
+    if (req.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
 
 var app = express();
 
@@ -23,9 +61,28 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({secret: 'poofytoo', 
+                 saveUninitialized: true,
+                 resave: true}));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', routes.index);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Routes
+app.get('/', loggedIn, routes.index);
+
+app.get('/login', routes.login);
+app.get('/logout', routes.logout);
+
+app.get('/auth/google', passport.authenticate('google-openidconnect'));
+app.get('/auth/google/callback', 
+  passport.authenticate('google-openidconnect', { failureRedirect: '/login' }),
+  function(req, res) {
+    console.log(req.isAuthenticated());
+    // Successful authentication, redirect home.
+    res.redirect('/');
+  });
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

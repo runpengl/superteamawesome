@@ -31,3 +31,6 @@ public/js/bundle.js
 
 # Macs
 *.DS_Store
+
+# Sensitive bits
+config.js
