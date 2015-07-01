@@ -10,8 +10,8 @@ var http = require('http');
 var passport = require('passport');
 var config = require('./config');
 var StrategyGoogle = require('passport-google-openidconnect').Strategy;
-var session = require('express-session')
-
+var session = require('express-session');
+var models = require("./models");
 var routes = require('./routes');
 
 // Passport session setup.
@@ -35,18 +35,31 @@ passport.use(new StrategyGoogle({
     callbackURL: "http://localhost:8080/auth/google/callback"
   },
   function(iss, sub, profile, accessToken, refreshToken, done) {
-    return done(false, profile);
+    models.User.findOrCreate(
+      {
+        where: {googleID: profile.id},
+        defaults: {
+          googleID: profile.id,
+          lastName: profile.name.familyName,
+          firstName: profile.name.givenName,
+          picture: profile._json.picture
+        }
+      }
+    ).spread(function(user, created) {
+      return done(false, user.get({plain: true}));
+    })
   }
 ));
 
 function loggedIn(req, res, next) {
-    console.log('check', req.isAuthenticated());
     if (req.user) {
         next();
     } else {
         res.redirect('/login');
     }
 }
+
+// App setup
 
 var app = express();
 
@@ -79,7 +92,6 @@ app.get('/auth/google', passport.authenticate('google-openidconnect'));
 app.get('/auth/google/callback', 
   passport.authenticate('google-openidconnect', { failureRedirect: '/login' }),
   function(req, res) {
-    console.log(req.isAuthenticated());
     // Successful authentication, redirect home.
     res.redirect('/');
   });
@@ -123,7 +135,7 @@ var port = parseInt(process.env.PORT, 10) || 8080;
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Create HTTP server and setup database.
  */
 
 var server = http.createServer(app);
@@ -132,9 +144,14 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+// Database setup
+
+models.sequelize.sync().then(function () {
+  console.log('Models synced');
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
+});
 
 /**
  * Event listener for HTTP server "error" event.
