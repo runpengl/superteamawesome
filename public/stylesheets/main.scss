@@ -1,0 +1,83 @@
+/* Mixin */
+@mixin vertical-align {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+/* Colors */
+$googleBlue: #4285f4;
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 0px;
+  padding: 0px;
+  height: 100%;
+}
+
+html {
+  height: 100%;
+}
+
+.login {
+  background: #FFA54D;
+  height: 100%;
+  width: 100%;
+  .login-container {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+    height: 300px;
+    @include vertical-align;
+    .login-image {
+      background-image: url('../img/characters.svg');
+      background-repeat: no-repeat;
+      background-size: 800%;
+      display: inline-block;
+      height: 300px;
+      margin-left: -50px;
+      width: 300px;
+    }
+
+    @for $i from 0 through 7 {
+        $c: $i * -300px;
+        .login-image.person-#{$i} {
+          background-position: $c 0px;
+        }
+    }
+
+    .login-button {
+      background: $googleBlue;
+      display: inline-block;
+      text-decoration: none;
+      color: white;
+      border-radius: 5px;
+      white-space: nowrap;
+      .icon {
+        background: url('../img/google-icon.png') transparent 5px 50% no-repeat;
+        display: inline-block;
+        vertical-align: middle;
+        width: 42px;
+        height: 42px;
+        border-right: #2265d4 1px solid;
+      }
+      .text {
+        display: inline-block;
+        vertical-align: middle;
+        padding: 0px 20px;
+        font-size: 14px;
+      }
+    }
+
+    .login-title {
+      flex-basis: 100%;
+    }
+  }
+}
+
+

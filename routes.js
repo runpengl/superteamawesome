@@ -6,7 +6,8 @@ module.exports = {
     res.render('home', {user: req.user});
   },
   login: function(req, res) {
-    res.render('login', {});
+    var random = Math.floor(Math.random() * 8);
+    res.render('login', {random: random});
   },
   logout: function(req, res) {
     req.logout();
