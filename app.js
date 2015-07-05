@@ -4,6 +4,17 @@ var React = require('react');
 var $ = require('jquery');
 
 $(function() {
+
+  $('.user, .user .name').click(function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    $('.dropdown').toggleClass('active');
+  });
+
+  $('.notification, .chat').click(function(event) {
+    $(this).toggleClass('active');
+  })
+
   // Courtesy of Victor Hung
   var canvas = document.getElementById('poofytoo');
   var context = canvas.getContext('2d');
