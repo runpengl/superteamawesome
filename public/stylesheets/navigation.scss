@@ -234,8 +234,8 @@ header {
           display: none;
           margin-top: 9px;
           position: absolute;
-          right: 8px;
-          width: 200px;
+          right: -28px;
+          width: 240px;
           li {
             background: transparentize($darkBlue, 0.1);
             color: white;
@@ -258,7 +258,7 @@ header {
               &:after {
                 content: "";
                 position: absolute;
-                right: 11px;
+                right: 47px;
                 top: -8px;
                 @include triangle-up(8px, 8px, 8px, $red);
               }

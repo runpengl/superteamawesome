@@ -244,8 +244,8 @@ header {
         display: none;
         margin-top: 9px;
         position: absolute;
-        right: 8px;
-        width: 200px; }
+        right: -28px;
+        width: 240px; }
         header ul.nav-icons li.notification ul li {
           background: rgba(17, 41, 57, 0.9);
           color: white;
@@ -267,7 +267,7 @@ header {
             header ul.nav-icons li.notification ul li.header:after {
               content: "";
               position: absolute;
-              right: 11px;
+              right: 47px;
               top: -8px;
               width: 0;
               height: 0;

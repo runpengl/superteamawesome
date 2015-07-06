@@ -5,24 +5,24 @@ var $ = require('jquery');
 
 $(function() {
 
-  function clearDropdowns() {
-    $('.dropdown, .notification, .chat').removeClass('active');
-  }
-
   $('.user, .user .name').click(function(event) {
     event.stopPropagation();
-    clearDropdowns();
     $('.dropdown').toggleClass('active');
+    $('.notification, .chat').removeClass('active');
   });
 
   $('.notification, .chat').click(function(event) {
     event.stopPropagation();
-    clearDropdowns();
     $(this).toggleClass('active');
+    if ($(this).hasClass('notification')) {
+      $('.chat, .dropdown').removeClass('active');
+    } else {
+      $('.notification, .dropdown').removeClass('active');
+    }
   });
 
   $('body').click(function(event) {
-    clearDropdowns();
+    $('.dropdown, .notification, .chat').removeClass('active');
   })
 
   // Courtesy of Victor Hung
