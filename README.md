@@ -1,6 +1,16 @@
 # superteamawesome
 MIT ATS Mystery Hunt Puzzle Organizer
 
+For the lazy with a Mac and MAMP installed:
+
+Run the following commands:
+
+./setup.sh
+./run.sh
+
+
+For the non lazy or non macs or non MAMP-installers:
+
 To run, first run npm install (may need sudo), and then run npm start.
 You might need to install nodemon (npm install --global nodemon) first.
 
