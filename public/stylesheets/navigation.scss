@@ -130,7 +130,7 @@ header {
         .slack {
           background: $grey1;
           display: none;
-          width: 220px;
+          width: 256px;
           @include calc-height(100%, 75px);
           line-height: 1.2em;
           margin-top: 9px;
@@ -196,7 +196,7 @@ header {
               display: block;
               margin: 0px;
               padding: 5px 8px;
-              width: 200px;
+              width: 240px;
               word-wrap: break-word;
               .sender {
                 .name {

@@ -5,14 +5,24 @@ var $ = require('jquery');
 
 $(function() {
 
+  function clearDropdowns() {
+    $('.dropdown, .notification, .chat').removeClass('active');
+  }
+
   $('.user, .user .name').click(function(event) {
     event.stopPropagation();
-    event.preventDefault();
+    clearDropdowns();
     $('.dropdown').toggleClass('active');
   });
 
   $('.notification, .chat').click(function(event) {
+    event.stopPropagation();
+    clearDropdowns();
     $(this).toggleClass('active');
+  });
+
+  $('body').click(function(event) {
+    clearDropdowns();
   })
 
   // Courtesy of Victor Hung
@@ -49,9 +59,9 @@ $(function() {
 
     var DIA_WIDTH = 100
     var DIA_HEIGHT = 190
-    var rA = 255, rB = 210
-    var gA = 100, gB = 160
-    var bA = 10, bB = 110
+    var rA = 254, rB = 210
+    var gA = 255, gB = 220
+    var bA = 255, bB = 205
 
     w = canvas.width;
     h = canvas.height;
@@ -61,9 +71,9 @@ $(function() {
 
     for (j = 0; j < cy; ++j) {
       for (i = 0; i < cx; ++i) {
-        rOffset = Math.round((rB - rA) / cx) * i
-        gOffset = Math.round(((gB - gA) / cy) * j) + Math.floor(Math.sin(elapsedTime-i*0.8)*20)
-        bOffset = Math.round((bB - bA) / cx) * i
+        rOffset = Math.round(((rB - rA) / cx) * i) + Math.floor(Math.sin(elapsedTime-i*0.8)*20)
+        gOffset = Math.round(((gB - gA) / cy) * j) 
+        bOffset = Math.round(((bB - bA) / cx) * j)
         drawDiamond(
           i*DIA_WIDTH+(j%2)*(DIA_WIDTH/2), 
           j*(DIA_HEIGHT/2)-DIA_HEIGHT/2,
