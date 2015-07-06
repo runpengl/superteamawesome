@@ -27,8 +27,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   margin: 0px;
   padding: 0px;
-  height: 100%;
-  overflow: hidden; }
+  height: 100%; }
 
 html {
   height: 100%; }
@@ -48,247 +47,257 @@ h1, h2, h3, h4, h5, h6 {
 .container {
   background-image: url("../img/crossword.png");
   background-repeat: repeat;
-  height: 100%;
-  padding: 30px;
-  width: calc(100% - 60px);
-  width: -webkit-calc(100% - 60px); }
+  height: 100%; }
+
+.content {
+  margin-top: 90px;
+  padding: 0px 30px 30px; }
 
 header {
-  border-bottom: 2px solid #b9b9b9;
-  padding-bottom: 10px; }
-  header .title, header ul.nav, header ul.nav-icons {
-    line-height: 30px;
-    vertical-align: middle; }
-  header .title {
-    color: #656565;
-    display: inline-block;
-    font-size: 1.2em;
-    font-weight: 600; }
-  header ul.nav {
-    display: inline-block;
-    float: right;
-    margin: 0px;
-    padding: 0px; }
-    header ul.nav li {
-      cursor: pointer;
+  background-image: url("../img/crossword.png");
+  background-repeat: repeat;
+  padding: 30px 30px 0px 30px;
+  position: fixed;
+  top: 0;
+  width: calc(100% - 60px);
+  width: -webkit-calc(100% - 60px); }
+  header .header-container {
+    border-bottom: 2px solid #b9b9b9;
+    margin-bottom: 20px;
+    padding-bottom: 10px; }
+    header .header-container .title, header .header-container ul.nav, header .header-container ul.nav-icons {
+      line-height: 30px;
+      vertical-align: middle; }
+    header .header-container .title {
+      color: #656565;
       display: inline-block;
-      list-style: none;
-      margin: 0px 3px;
-      padding: 0px 5px; }
-      header ul.nav li:hover {
-        background: #ebebeb; }
-      header ul.nav li a {
-        color: #323232;
-        font-size: 0.8em;
-        font-weight: 600;
-        text-decoration: none; }
-      header ul.nav li.user {
-        position: relative; }
-        header ul.nav li.user:hover {
-          background: none; }
-          header ul.nav li.user:hover a.name {
-            border-bottom: 1px solid #e88714; }
-        header ul.nav li.user a.name {
-          color: #e88714;
-          text-transform: uppercase; }
-          header ul.nav li.user a.name:after {
-            content: "";
-            display: inline-block;
-            line-height: 30px;
-            margin-left: 5px;
-            vertical-align: middle;
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 6px solid #e88714; }
-      header ul.nav li ul.dropdown {
-        background: #ebebeb;
-        border-top: 5px solid #e88714;
-        display: none;
-        margin: 0px;
-        margin-top: 9px;
-        padding: 0px;
-        position: absolute;
-        right: 5px;
-        width: 100%;
-        -webkit-box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67);
-        -moz-box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67);
-        box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67); }
-        header ul.nav li ul.dropdown.active {
-          display: block; }
-        header ul.nav li ul.dropdown li {
-          display: block;
-          padding: 5px; }
-          header ul.nav li ul.dropdown li:hover a {
-            text-decoration: underline; }
-  header ul.nav-icons {
-    border-left: 1px solid #b9b9b9;
-    display: inline-block;
-    float: right;
-    margin: 0px;
-    padding: 0px;
-    padding-left: 4px;
-    vertical-align: top; }
-    header ul.nav-icons li {
+      font-size: 1.2em;
+      font-weight: 600; }
+    header .header-container ul.nav {
       display: inline-block;
-      list-style: none;
-      margin: 0px 10px;
-      position: relative; }
-      header ul.nav-icons li span {
-        cursor: pointer; }
-        header ul.nav-icons li span:before {
-          color: #656565;
-          font-size: 14px; }
-      header ul.nav-icons li .counter {
-        color: white;
-        font-size: 10px;
-        position: absolute;
-        right: -6px;
-        top: 1px;
-        height: 13px;
+      float: right;
+      margin: 0px;
+      padding: 0px; }
+      header .header-container ul.nav li {
+        cursor: pointer;
         display: inline-block;
-        line-height: 12px;
-        vertical-align: middle; }
-        header ul.nav-icons li .counter .number {
-          padding: 0px 3px; }
-      header ul.nav-icons li.chat .counter {
-        background: #1bbeb8; }
-      header ul.nav-icons li.chat .slack {
-        background: #ebebeb;
-        display: none;
-        width: 256px;
-        height: calc(100% - 75px);
-        height: -webkit-calc(100% - 75px);
-        line-height: 1.2em;
-        margin-top: 9px;
-        position: fixed;
-        right: 30px; }
-        header ul.nav-icons li.chat .slack .header {
-          background: #1bbeb8;
-          padding: 8px;
+        list-style: none;
+        margin: 0px 3px;
+        padding: 0px 5px; }
+        header .header-container ul.nav li:hover {
+          background: #ebebeb; }
+        header .header-container ul.nav li a {
+          color: #323232;
+          font-size: 0.8em;
+          font-weight: 600;
+          text-decoration: none; }
+        header .header-container ul.nav li.user {
           position: relative; }
-          header ul.nav-icons li.chat .slack .header:after {
-            content: "";
-            position: absolute;
-            right: 11px;
-            top: -8px;
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 8px solid #1bbeb8; }
-          header ul.nav-icons li.chat .slack .header h3 {
-            color: white;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: 400; }
-          header ul.nav-icons li.chat .slack .header .channel {
-            color: #323232;
-            float: right;
-            font-size: 12px;
-            font-weight: 600; }
-            header ul.nav-icons li.chat .slack .header .channel:after {
+          header .header-container ul.nav li.user:hover {
+            background: none; }
+            header .header-container ul.nav li.user:hover a.name {
+              border-bottom: 1px solid #e88714; }
+          header .header-container ul.nav li.user a.name {
+            color: #e88714;
+            text-transform: uppercase; }
+            header .header-container ul.nav li.user a.name:after {
               content: "";
               display: inline-block;
-              margin-left: 2px;
+              line-height: 30px;
+              margin-left: 5px;
+              vertical-align: middle;
               width: 0;
               height: 0;
               border-left: 4px solid transparent;
               border-right: 4px solid transparent;
-              border-top: 6px solid #323232; }
-            header ul.nav-icons li.chat .slack .header .channel:hover {
-              text-decoration: underline; }
-        header ul.nav-icons li.chat .slack input[type=text] {
-          border: 0;
-          border-bottom: 1px solid #ebebeb;
-          border-left: 1px solid #ebebeb;
-          border-right: 1px solid #ebebeb;
-          font-size: 12px;
-          height: 30px;
-          outline: 0;
-          padding: 3px;
-          position: absolute;
-          bottom: 0px;
-          width: calc(100% - 7px);
-          width: -webkit-calc(100% - 7px); }
-        header ul.nav-icons li.chat .slack ul.messages {
-          position: absolute;
-          bottom: 43px;
-          font-size: 12px;
-          height: calc(100% - 78px);
-          height: -webkit-calc(100% - 78px);
-          overflow-y: scroll; }
-          header ul.nav-icons li.chat .slack ul.messages li {
-            display: block;
-            margin: 0px;
-            padding: 5px 8px;
-            width: 240px;
-            word-wrap: break-word; }
-            header ul.nav-icons li.chat .slack ul.messages li .sender .name {
-              color: #323232;
-              font-weight: 600;
-              display: inline-block;
-              margin-right: 5px; }
-            header ul.nav-icons li.chat .slack ul.messages li .sender .time {
-              color: #656565;
-              display: inline-block;
-              font-size: 10px; }
-      header ul.nav-icons li.chat.active span:before {
-        color: #1bbeb8; }
-      header ul.nav-icons li.chat.active .slack {
-        display: block; }
-      header ul.nav-icons li.notification .counter {
-        background: #e12548; }
-      header ul.nav-icons li.notification ul {
-        display: none;
-        margin-top: 9px;
-        position: absolute;
-        right: -28px;
-        width: 240px; }
-        header ul.nav-icons li.notification ul li {
-          background: rgba(17, 41, 57, 0.9);
-          color: white;
-          cursor: pointer;
-          font-family: 'Gentium Basic', serif;
+              border-top: 6px solid #e88714; }
+        header .header-container ul.nav li ul.dropdown {
+          background: #ebebeb;
+          border-top: 5px solid #e88714;
+          display: none;
           margin: 0px;
-          padding: 14px 10px 0px;
-          width: 100%; }
-          header ul.nav-icons li.notification ul li:hover {
-            background: rgba(17, 41, 57, 0.8); }
-          header ul.nav-icons li.notification ul li.header {
-            background: #e12548;
-            border-bottom: 0;
-            font-family: 'Open Sans', sans-serif;
-            font-weight: 400;
-            font-size: 0.8em;
-            margin: 0px;
-            padding: 8px 10px; }
-            header ul.nav-icons li.notification ul li.header:after {
+          margin-top: 9px;
+          padding: 0px;
+          position: absolute;
+          right: 5px;
+          width: 100%;
+          -webkit-box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67);
+          -moz-box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67);
+          box-shadow: 2px 3px 2px 1px rgba(186, 186, 186, 0.67); }
+          header .header-container ul.nav li ul.dropdown.active {
+            display: block; }
+          header .header-container ul.nav li ul.dropdown li {
+            display: block;
+            padding: 5px; }
+            header .header-container ul.nav li ul.dropdown li:hover a {
+              text-decoration: underline; }
+    header .header-container ul.nav-icons {
+      border-left: 1px solid #b9b9b9;
+      display: inline-block;
+      float: right;
+      margin: 0px;
+      padding: 0px;
+      padding-left: 4px;
+      vertical-align: top; }
+      header .header-container ul.nav-icons li {
+        display: inline-block;
+        list-style: none;
+        margin: 0px 10px;
+        position: relative; }
+        header .header-container ul.nav-icons li span {
+          cursor: pointer; }
+          header .header-container ul.nav-icons li span:before {
+            color: #656565;
+            font-size: 14px; }
+        header .header-container ul.nav-icons li .counter {
+          color: white;
+          font-size: 10px;
+          position: absolute;
+          right: -6px;
+          top: 1px;
+          height: 13px;
+          display: inline-block;
+          line-height: 12px;
+          vertical-align: middle; }
+          header .header-container ul.nav-icons li .counter .number {
+            padding: 0px 3px; }
+        header .header-container ul.nav-icons li.chat .counter {
+          background: #1bbeb8; }
+        header .header-container ul.nav-icons li.chat .slack {
+          background: #ebebeb;
+          display: none;
+          width: 256px;
+          height: calc(100% - 75px);
+          height: -webkit-calc(100% - 75px);
+          line-height: 1.2em;
+          margin-top: 9px;
+          position: fixed;
+          right: 30px; }
+          header .header-container ul.nav-icons li.chat .slack .header {
+            background: #1bbeb8;
+            padding: 8px;
+            position: relative; }
+            header .header-container ul.nav-icons li.chat .slack .header:after {
               content: "";
               position: absolute;
-              right: 47px;
+              right: 11px;
               top: -8px;
               width: 0;
               height: 0;
               border-left: 8px solid transparent;
               border-right: 8px solid transparent;
-              border-bottom: 8px solid #e12548; }
-          header ul.nav-icons li.notification ul li:last-child {
-            padding-bottom: 14px; }
-          header ul.nav-icons li.notification ul li .message {
+              border-bottom: 8px solid #1bbeb8; }
+            header .header-container ul.nav-icons li.chat .slack .header h3 {
+              color: white;
+              display: inline-block;
+              font-size: 14px;
+              font-weight: 400; }
+            header .header-container ul.nav-icons li.chat .slack .header .channel {
+              color: #323232;
+              float: right;
+              font-size: 12px;
+              font-weight: 600; }
+              header .header-container ul.nav-icons li.chat .slack .header .channel:after {
+                content: "";
+                display: inline-block;
+                margin-left: 2px;
+                width: 0;
+                height: 0;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 6px solid #323232; }
+              header .header-container ul.nav-icons li.chat .slack .header .channel:hover {
+                text-decoration: underline; }
+          header .header-container ul.nav-icons li.chat .slack input[type=text] {
+            border: 0;
+            border-bottom: 1px solid #ebebeb;
+            border-left: 1px solid #ebebeb;
+            border-right: 1px solid #ebebeb;
             font-size: 12px;
-            line-height: 12px; }
-          header ul.nav-icons li.notification ul li .date {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.7);
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 10px;
-            line-height: 13px;
-            padding: 3px 0px 8px; }
-      header ul.nav-icons li.notification.active ul {
-        display: block; }
-      header ul.nav-icons li.notification.active .flaticon-notification:before {
-        color: #e12548; }
+            height: 30px;
+            outline: 0;
+            padding: 3px;
+            position: absolute;
+            bottom: 0px;
+            width: calc(100% - 7px);
+            width: -webkit-calc(100% - 7px); }
+          header .header-container ul.nav-icons li.chat .slack ul.messages {
+            position: absolute;
+            bottom: 43px;
+            font-size: 12px;
+            height: calc(100% - 78px);
+            height: -webkit-calc(100% - 78px);
+            overflow-y: scroll; }
+            header .header-container ul.nav-icons li.chat .slack ul.messages li {
+              display: block;
+              margin: 0px;
+              padding: 5px 8px;
+              width: 240px;
+              word-wrap: break-word; }
+              header .header-container ul.nav-icons li.chat .slack ul.messages li .sender .name {
+                color: #323232;
+                font-weight: 600;
+                display: inline-block;
+                margin-right: 5px; }
+              header .header-container ul.nav-icons li.chat .slack ul.messages li .sender .time {
+                color: #656565;
+                display: inline-block;
+                font-size: 10px; }
+        header .header-container ul.nav-icons li.chat.active span:before {
+          color: #1bbeb8; }
+        header .header-container ul.nav-icons li.chat.active .slack {
+          display: block; }
+        header .header-container ul.nav-icons li.notification .counter {
+          background: #e12548; }
+        header .header-container ul.nav-icons li.notification ul {
+          display: none;
+          margin-top: 9px;
+          position: absolute;
+          right: -28px;
+          width: 240px; }
+          header .header-container ul.nav-icons li.notification ul li {
+            background: rgba(17, 41, 57, 0.9);
+            color: white;
+            cursor: pointer;
+            font-family: 'Gentium Basic', serif;
+            margin: 0px;
+            padding: 14px 10px 0px;
+            width: 100%; }
+            header .header-container ul.nav-icons li.notification ul li:hover {
+              background: rgba(17, 41, 57, 0.8); }
+            header .header-container ul.nav-icons li.notification ul li.header {
+              background: #e12548;
+              border-bottom: 0;
+              font-family: 'Open Sans', sans-serif;
+              font-weight: 400;
+              font-size: 0.8em;
+              margin: 0px;
+              padding: 8px 10px; }
+              header .header-container ul.nav-icons li.notification ul li.header:after {
+                content: "";
+                position: absolute;
+                right: 47px;
+                top: -8px;
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-bottom: 8px solid #e12548; }
+            header .header-container ul.nav-icons li.notification ul li:last-child {
+              padding-bottom: 14px; }
+            header .header-container ul.nav-icons li.notification ul li .message {
+              font-size: 12px;
+              line-height: 12px; }
+            header .header-container ul.nav-icons li.notification ul li .date {
+              border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+              color: rgba(255, 255, 255, 0.7);
+              font-size: 10px;
+              line-height: 13px;
+              padding: 3px 0px 8px; }
+        header .header-container ul.nav-icons li.notification.active ul {
+          display: block; }
+        header .header-container ul.nav-icons li.notification.active .flaticon-notification:before {
+          color: #e12548; }
 
 .login {
   height: 100%;
@@ -331,10 +340,10 @@ header {
     .login .login-container .login-image.person-7 {
       background-position: -2100px 0px; }
     .login .login-container .login-button {
-      border: 2px solid #656565;
+      border: 2px solid #b9b9b9;
       display: inline-block;
       text-decoration: none;
-      color: #656565;
+      color: #b9b9b9;
       border-radius: 5px;
       white-space: nowrap;
       transition: all 250ms ease-in;
@@ -343,7 +352,7 @@ header {
       .login .login-container .login-button:hover {
         background: rgba(0, 0, 0, 0.05); }
       .login .login-container .login-button .flaticon-google {
-        border-right: #656565 2px solid;
+        border-right: #b9b9b9 2px solid;
         display: inline-block;
         height: 42px;
         line-height: 42px;
@@ -356,15 +365,125 @@ header {
         padding: 0px 20px;
         font-size: 14px; }
     .login .login-container .login-title {
-      color: #323232;
+      color: #656565;
       display: block;
       font-size: 1.5em;
       font-weight: 300;
       margin: -20px 0 5px 0px; }
     .login .login-container .login-subtitle {
-      color: #323232;
+      color: #656565;
       font-size: 1.2em;
       font-weight: 100;
       margin-bottom: 30px;
       opacity: 0.6;
       font-family: 'Muli', sans-serif; }
+
+.puzzle-rounds li {
+  list-style: none;
+  margin: 30px 0px; }
+  .puzzle-rounds li .puzzle-round {
+    width: 100%; }
+    .puzzle-rounds li .puzzle-round .header {
+      background: #112939;
+      color: white;
+      cursor: pointer;
+      line-height: 30px;
+      padding: 5px;
+      vertical-align: middle; }
+      .puzzle-rounds li .puzzle-round .header:before {
+        content: "";
+        display: inline-block;
+        margin: 0px 3px;
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid white; }
+      .puzzle-rounds li .puzzle-round .header .progress {
+        display: inline-block;
+        float: right;
+        font-size: 12px;
+        font-weight: 300; }
+        .puzzle-rounds li .puzzle-round .header .progress .solved {
+          color: #07b05a;
+          padding-right: 5px; }
+        .puzzle-rounds li .puzzle-round .header .progress .unlocked {
+          border-left: 1px solid white;
+          padding-left: 8px; }
+    .puzzle-rounds li .puzzle-round table {
+      border: 1px solid #112939;
+      width: 100%; }
+      .puzzle-rounds li .puzzle-round table thead tr {
+        background: #dfdfdf;
+        font-family: "Open Sans", sans-serif; }
+        .puzzle-rounds li .puzzle-round table thead tr th {
+          font-weight: 600;
+          font-size: 13px;
+          padding: 8px 5px; }
+      .puzzle-rounds li .puzzle-round table tbody tr {
+        background: white;
+        font-family: "Gentium Basic", serif; }
+        .puzzle-rounds li .puzzle-round table tbody tr td {
+          border-top: 1px solid #112939;
+          font-size: 13px;
+          padding: 8px 5px; }
+          .puzzle-rounds li .puzzle-round table tbody tr td.answer {
+            font-weight: bold; }
+          .puzzle-rounds li .puzzle-round table tbody tr td .status {
+            background: #dfdfdf;
+            height: 15px;
+            width: 100px; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .identification {
+              background: #e12548;
+              height: 100%;
+              width: 25%; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .needsclosing {
+              background: #e88714;
+              height: 100%;
+              width: 80%; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .groundwork {
+              background: #1bbeb8;
+              height: 100%;
+              width: 50%; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .interaction {
+              background: #1bbeb8;
+              height: 100%;
+              width: 95%; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .solved {
+              background: #07b05a;
+              height: 100%;
+              width: 100%; }
+            .puzzle-rounds li .puzzle-round table tbody tr td .status .interaction, .puzzle-rounds li .puzzle-round table tbody tr td .status .solved {
+              color: white;
+              font-family: "Open Sans", sans-serif;
+              font-size: 10px;
+              text-align: center; }
+  .puzzle-rounds li .metameta .header {
+    background: #1c71b9; }
+  .puzzle-rounds li .metameta table {
+    border: 1px solid #1c71b9; }
+    .puzzle-rounds li .metameta table tbody tr td {
+      border-top: 1px solid #1c71b9; }
+  .puzzle-rounds li .solved .header {
+    background: #07b05a; }
+    .puzzle-rounds li .solved .header .solved-tag {
+      background: #112939;
+      color: white;
+      font-size: 10px;
+      padding: 3px 8px;
+      margin-left: 10px; }
+    .puzzle-rounds li .solved .header .progress .solved {
+      color: white; }
+  .puzzle-rounds li .solved table {
+    border-color: #07b05a; }
+    .puzzle-rounds li .solved table tbody tr td {
+      border-color: #07b05a; }
+  .puzzle-rounds li .closed .header:before {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-left: 5px solid white;
+    border-bottom: 5px solid transparent;
+    margin-right: 0px; }
+  .puzzle-rounds li .closed table {
+    display: none; }
