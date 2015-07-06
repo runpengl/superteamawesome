@@ -1,6 +1,8 @@
 # superteamawesome
 MIT ATS Mystery Hunt Puzzle Organizer
 
+Before you can do anything, you'll need a config.js file with Google Auth and your database connection information. Email styu314@gmail.com for a sample.
+
 **For the lazy with a Mac and MAMP installed:**
 
 Run the following commands:
