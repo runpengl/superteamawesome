@@ -55,6 +55,7 @@ function loggedIn(req, res, next) {
     if (req.user) {
         next();
     } else {
+        req.session.returnPath = req.route.path;
         res.redirect('/login');
     }
 }
@@ -84,6 +85,7 @@ app.use(passport.session());
 
 // Routes
 app.get('/', loggedIn, routes.index);
+app.get('/admin', loggedIn, routes.admin);
 
 app.get('/login', routes.login);
 app.get('/logout', routes.logout);
@@ -93,7 +95,10 @@ app.get('/auth/google/callback',
   passport.authenticate('google-openidconnect', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    if (req.session.returnPath)
+      res.redirect(req.session.returnPath);
+    else
+      res.redirect('/');
   });
 
 // catch 404 and forward to error handler

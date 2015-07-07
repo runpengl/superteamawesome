@@ -7,10 +7,13 @@ module.exports = {
   },
   login: function(req, res) {
     var random = Math.floor(Math.random() * 8);
-    res.render('login', {random: random});
+    res.render('login', {random: random, layout: 'login_layout.handlebars'});
   },
   logout: function(req, res) {
     req.logout();
     res.redirect('/');
+  },
+  admin: function(req, res) {
+    res.render('admin', {user: req.user});
   }
 }
