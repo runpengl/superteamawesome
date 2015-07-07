@@ -3,7 +3,7 @@ MIT ATS Mystery Hunt Puzzle Organizer
 
 Before you can do anything, you'll need a config.js file with Google Auth and your database connection information. Email styu314@gmail.com for a sample.
 
-**For the lazy with a Mac and MAMP installed:**
+**Quick setup for those with a Mac and MAMP installed:**
 
 Run the following commands:
 
@@ -12,7 +12,7 @@ Run the following commands:
 ./run.sh
 ```
 
-**For the non lazy or non macs or non MAMP-installers:**
+**Extended setup or for those with non macs or non MAMP-installers:**
 
 To run, first run `npm install` (may need `sudo`), and then run `npm start`.
 You might need to install nodemon (`npm install --global nodemon`) first.
