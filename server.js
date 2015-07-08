@@ -9,7 +9,7 @@ var debug = require('debug')('superteamawesome:server');
 var http = require('http');
 var passport = require('passport');
 var config = require('./config');
-var StrategyGoogle = require('passport-google-openidconnect').Strategy;
+var StrategyGoogle = require('passport-google-oauth').OAuth2Strategy;
 var session = require('express-session');
 var models = require("./models");
 var routes = require('./routes');
@@ -34,7 +34,7 @@ passport.use(new StrategyGoogle({
     clientSecret: config.GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:8080/auth/google/callback"
   },
-  function(iss, sub, profile, accessToken, refreshToken, done) {
+  function(accessToken, refreshToken, profile, done) {
     models.User.findOrCreate(
       {
         where: {googleID: profile.id},
@@ -90,9 +90,9 @@ app.get('/admin', loggedIn, routes.admin);
 app.get('/login', routes.login);
 app.get('/logout', routes.logout);
 
-app.get('/auth/google', passport.authenticate('google-openidconnect'));
+app.get('/auth/google', passport.authenticate('google', {scope: 'https://www.googleapis.com/auth/plus.login'}));
 app.get('/auth/google/callback', 
-  passport.authenticate('google-openidconnect', { failureRedirect: '/login' }),
+  passport.authenticate('google', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
     if (req.session.returnPath)

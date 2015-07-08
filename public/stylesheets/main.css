@@ -32,6 +32,10 @@ body {
 html {
   height: 100%; }
 
+a {
+  text-decoration: none;
+  color: #323232; }
+
 em {
   color: #e88714;
   font-style: normal; }

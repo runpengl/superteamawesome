@@ -21,6 +21,10 @@ $(function() {
     }
   });
 
+  $('.chat .slack input[type=text]').click(function(event) {
+    event.stopPropagation();
+  })
+
   $('.puzzle-round .header').click(function(event) {
     $(this).parent().toggleClass('closed');
   })
