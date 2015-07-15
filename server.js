@@ -7,58 +7,29 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var debug = require('debug')('superteamawesome:server');
 var http = require('http');
+
 var passport = require('passport');
 var config = require('./config');
 var StrategyGoogle = require('passport-google-oauth').OAuth2Strategy;
 var session = require('express-session');
+
 var models = require("./models");
 var routes = require('./routes');
+var auth = require("./auth");
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
 //   serialize users into and deserialize users out of the session.  Typically,
 //   this will be as simple as storing the user ID when serializing, and finding
-//   the user by ID when deserializing.  However, since this example does not
-//   have a database of user records, the complete Google profile is serialized
-//   and deserialized.
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
+//   the user by ID when deserializing.
+passport.serializeUser(auth.serializeUser);
+passport.deserializeUser(auth.deserializeUser);
 
 passport.use(new StrategyGoogle({
     clientID: config.GOOGLE_CLIENT_ID,
     clientSecret: config.GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:8080/auth/google/callback"
-  },
-  function(accessToken, refreshToken, profile, done) {
-    models.User.findOrCreate(
-      {
-        where: {googleID: profile.id},
-        defaults: {
-          googleID: profile.id,
-          lastName: profile.name.familyName,
-          firstName: profile.name.givenName,
-          picture: profile._json.picture
-        }
-      }
-    ).spread(function(user, created) {
-      return done(false, user.get({plain: true}));
-    })
-  }
-));
-
-function loggedIn(req, res, next) {
-    if (req.user) {
-        next();
-    } else {
-        req.session.returnPath = req.route.path;
-        res.redirect('/login');
-    }
-}
+  }, auth.googleLogin));
 
 // App setup
 
@@ -84,22 +55,19 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
-app.get('/', loggedIn, routes.index);
-app.get('/admin', loggedIn, routes.admin);
+app.get('/', auth.loggedIn, routes.index);
+app.get('/admin', auth.loggedIn, routes.admin);
 
 app.get('/login', routes.login);
 app.get('/logout', routes.logout);
 
-app.get('/auth/google', passport.authenticate('google', {scope: 'https://www.googleapis.com/auth/plus.login'}));
+app.get('/auth/google', passport.authenticate('google', {scope: auth.googleScope}));
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    if (req.session.returnPath)
-      res.redirect(req.session.returnPath);
-    else
-      res.redirect('/');
-  });
+  auth.loginCallback);
+
+// Data routes
+app.post('/data/folders', auth.loggedIn, routes.listFolders);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

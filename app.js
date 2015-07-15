@@ -1,10 +1,12 @@
 /** @jsx React.DOM */
 
 var React = require('react');
+var Admin = require('./components/admin.react');
 var $ = require('jquery');
 
 $(function() {
 
+  // Behavior stuff
   $('.user, .user .name').click(function(event) {
     event.stopPropagation();
     $('.dropdown').toggleClass('active');
@@ -27,11 +29,27 @@ $(function() {
 
   $('.puzzle-round .header').click(function(event) {
     $(this).parent().toggleClass('closed');
-  })
+  });
+
+  // $('.tabs li').click(function(event) {
+  //   var tab = $(this).attr('data-tab');
+  //   $('.tab-content li').removeClass('active');
+  //   $(tab).addClass('active');
+  // });
 
   $('body').click(function(event) {
     $('.dropdown, .notification, .chat').removeClass('active');
-  })
+  });
+
+  // React components
+  if (document.getElementById('content')) {
+    var initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
+
+    React.render(
+      <Admin hunt={initialState.hunt} activeTab={initialState.activeTab} folders={initialState.folders}/>,
+      document.getElementById('content')
+    );
+  }
 
   // Courtesy of Victor Hung
   var canvas = document.getElementById('poofytoo');

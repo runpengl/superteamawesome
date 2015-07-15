@@ -112,6 +112,10 @@
       }
     }
 
+    &:first-child {
+      margin-top: 0px;
+    }
+
     .metameta {
       .header {
         background: $blue;

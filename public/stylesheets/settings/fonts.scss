@@ -17,14 +17,25 @@
   font-style: normal;
 }
 
-.flaticon-notification:before {
+.flaticon-add:before {
   content: "\e000";
 }
-
-.flaticon-google:before {
+.flaticon-notification:before {
   content: "\e001";
 }
-
-.flaticon-chat:before {
+.flaticon-folder:before {
   content: "\e002";
 }
+.flaticon-google:before {
+  content: "\e003";
+}
+.flaticon-edit:before {
+  content: "\e004";
+}
+.flaticon-folder-shared:before {
+  content: "\e005";
+}
+.flaticon-chat:before {
+  content: "\e006";
+}
+

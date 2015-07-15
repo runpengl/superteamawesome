@@ -8,6 +8,11 @@ body {
   padding: 0px;
   height: 100%;
   // overflow: hidden;
+  &.main {
+    background-image: url('../img/crossword.png');
+    background-repeat: repeat;
+    height: 100%;
+  }
 }
 
 html {
@@ -30,21 +35,190 @@ ul {
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
   margin: 0px;
   padding: 0px;
+}
+
+h3 {
+  color: $grey5;
+  font-weight: 600;
+  font-size: 1em;
+  margin: 5px 0px;
+}
+
+h4 {
+  font-size: 0.8em;
 }
 
 .container {
   background-image: url('../img/crossword.png');
   background-repeat: repeat;
   height: 100%;
-  // padding: 30px;
-  // @include calc-width(100%, 60px);
+}
+
+.content-container {
+  height: 100%;
 }
 
 .content {
-  margin-top: 90px;
-  padding: 0px 30px 30px;
+  padding: 90px 30px 30px;
+}
+
+.admin-content {
+  @include calc-height(100%, 100px);
+  overflow-y: hidden;
+  padding-bottom: 10px;
+}
+
+.side-nav {
+  background: transparentize($grey1, 0.5);
+  display: inline-block;
+  height: 100%; 
+  width: 250px;
+  $nav-padding: 10px;
+
+  h3 {
+    padding: 10px;
+    padding-bottom: 0px;
+  }
+
+  h4 {
+    padding: $nav-padding $nav-padding 0px $nav-padding;
+  }
+
+  ul {
+    margin-top: 15px;
+    padding-bottom: $nav-padding;
+    li {
+      cursor: pointer;
+      font-size: 0.8em;
+      list-style: none;
+      margin: 4px 0px;
+      padding: 7px $nav-padding;
+      &:hover {
+        background: $teal;
+        color: white;
+      }
+    }
+  }
+}
+
+.side-content {
+  display: inline-block;
+  height: 100%;
+  margin-left: 10px;
+  padding: 10px;
+  vertical-align: top;
+  @include calc-width(100%, 290px);
+
+  .tab-content {
+    height: 100%;
+    position: relative;
+    li {
+      display: none;
+      &.active {
+        display: block;
+      }
+
+      ul li {
+        display: block;
+      }
+    }
+  }
+}
+
+form {
+  margin: 20px 0px;
+  label {
+    color: $grey4;
+    font-size: 12px;
+    display: block;
+    font-weight: 600;
+    margin: 5px 0px;
+  }
+
+  input[type=text] {
+    border: 1px solid $grey2;
+    font-size: 13px;
+    height: 25px;
+    min-width: 200px;
+    &:focus, &:active {
+      outline: 0;
+    }
+  }
+
+  input[type=checkbox] {
+    font-size: 12px;
+  }
+
+  .form-element {
+    font-size: 12px;
+    margin: 10px 0px;
+  }
+}
+
+.folder-list-container {
+  position: absolute;
+  height: 100%;
+  margin-top: 10px;
+  width: 100%;
+
+  .folder-title {
+    background: white;
+    border-bottom: 2px solid $teal;
+    font-weight: 600;
+    padding: 10px 20px 10px 10px;
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    @include calc-width(100%, 30px);
+    &:before {
+      content: "\e002";
+      color: $grey4;
+      font-family: Flaticon;
+      font-size: 14px;
+      font-style: normal;
+      margin-right: 10px;
+    }
+    &.shared:before {
+      content: "\e005";
+    }
+  }
+
+  ul.folder-list {
+    background: white;
+    cursor: pointer;
+    @include calc-height(100%, 252px);
+    overflow: scroll;
+    position: absolute;
+    top: 39px;
+    width: 100%;
+    li {
+      border-bottom: 1px solid $grey1;
+      padding: 10px;
+      padding-right: 20px;
+      &:hover {
+        background: $teal;
+        border-bottom: 1px solid $teal;
+        color: white;
+        &:before {
+          color: white;
+        }
+      }
+      &:before {
+        content: "\e002";
+        color: $grey4;
+        font-family: Flaticon;
+        font-size: 14px;
+        font-style: normal;
+        margin-right: 10px;
+      }
+      &.shared:before {
+        content: "\e005";
+      }
+    }
+  }
 }
 
 @import "includes/navigation.scss";
