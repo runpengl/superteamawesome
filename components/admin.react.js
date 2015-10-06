@@ -1,6 +1,5 @@
 var React = require('react');
-var Folders = require('./driveFolders.react');
-var $ = require('jquery');
+var CreateHunt = require('./admin/createHunt.react');
 
 module.exports = React.createClass({
 
@@ -11,7 +10,12 @@ module.exports = React.createClass({
       activeTab: props.activeTab,
       folders: props.folders,
       userFirstName: props.userFirstName,
-      rootFolder: props.rootFolder
+      rootFolder: props.rootFolder,
+      createHunt: {
+        name: '',
+        active: true,
+        folderID: 'root'
+      }
     };
   },
 
@@ -32,7 +36,7 @@ module.exports = React.createClass({
   },
 
   // Render the component
-  render: function(){
+  render: function() {
     return (
       <div className='content admin-content'>
         <nav className="side-nav">
@@ -55,21 +59,7 @@ module.exports = React.createClass({
               {(this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit")}
             </li>
             <li id="create" className={(this.state.activeTab == "create" ? "active": "")}>
-              <h3>Create New Hunt</h3>
-              <form>
-                <div className='form-element'>
-                  <label htmlFor='name'>Name</label>
-                  <input type='text' name='name' />
-                </div>
-                <div className='form-element'>
-                  <input type='checkbox' checked='checked' /> Active
-                </div>
-                <div className='form-element'>
-                  <label htmlFor='folder'>Google Drive Folder</label>
-                  <span className='help-text'>Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:</span>
-                  <Folders folders={this.state.folders} rootFolder={this.state.rootFolder} />
-                </div>
-              </form>
+              <CreateHunt hunt={this.state.createHunt} folders={this.state.folders} rootFolder={this.state.rootFolder}></CreateHunt>
             </li>
             <li id="puzzlers" className={(this.state.activeTab == "puzzlers" ? "active": "")}>
               Puzzlers

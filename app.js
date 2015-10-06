@@ -46,7 +46,7 @@ $(function() {
     var initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 
     React.render(
-      <Admin hunt={initialState.hunt} activeTab={initialState.activeTab} folders={initialState.folders}/>,
+      <Admin hunt={initialState.hunt} activeTab={initialState.activeTab} folders={initialState.folders} rootFolder={initialState.rootFolder} userFirstName={initialState.userFirstName} />,
       document.getElementById('content')
     );
   }

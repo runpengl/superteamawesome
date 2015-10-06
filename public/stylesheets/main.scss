@@ -164,25 +164,55 @@ form {
   margin-top: 10px;
   width: 100%;
 
-  .folder-title {
+  ul.breadcrumbs {
     background: white;
     border-bottom: 2px solid $teal;
-    font-weight: 600;
-    padding: 10px 20px 10px 10px;
+    padding: 10px 0px;
     position: absolute;
     top: 0px;
     width: 100%;
-    @include calc-width(100%, 30px);
-    &:before {
-      content: "\e002";
-      color: $grey4;
-      font-family: Flaticon;
-      font-size: 14px;
-      font-style: normal;
-      margin-right: 10px;
-    }
-    &.shared:before {
-      content: "\e005";
+
+    li.folder-title {
+      cursor: pointer;
+      display: inline-block;
+      font-weight: 600;
+      margin-left: 8px;
+      padding-left: 10px;
+
+      &:before {
+        content: "\e002";
+        color: $grey4;
+        font-family: Flaticon;
+        font-size: 14px;
+        font-style: normal;
+        margin-right: 7px;
+      }
+
+      &.shared:before {
+        content: "\e005";
+      }
+
+      &:after {
+        content: "/";
+        color: $grey4;
+        font-size: 15px;
+        font-weight: 400;
+        position: absolute;
+        margin-left: 5px;
+        margin-top: -1px;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+
+      &:first-child {
+        margin-left: 0px;
+      }
+
+      &:last-child:after {
+        content: "";
+      }
     }
   }
 
@@ -212,10 +242,22 @@ form {
         font-family: Flaticon;
         font-size: 14px;
         font-style: normal;
-        margin-right: 10px;
+        margin-right: 7px;
       }
       &.shared:before {
         content: "\e005";
+      }
+      &.selected {
+        background: $blue;
+        border-bottom: 1px solid $blue;
+        color: white;
+        &:before {
+          color: white;
+        }
+      }
+
+      span:hover {
+        text-decoration: underline;
       }
     }
   }

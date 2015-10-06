@@ -158,25 +158,42 @@ form {
   height: 100%;
   margin-top: 10px;
   width: 100%; }
-  .folder-list-container .folder-title {
+  .folder-list-container ul.breadcrumbs {
     background: white;
     border-bottom: 2px solid #1bbeb8;
-    font-weight: 600;
-    padding: 10px 20px 10px 10px;
+    padding: 10px 0px;
     position: absolute;
     top: 0px;
-    width: 100%;
-    width: calc(100% - 30px);
-    width: -webkit-calc(100% - 30px); }
-    .folder-list-container .folder-title:before {
-      content: "\e002";
-      color: #656565;
-      font-family: Flaticon;
-      font-size: 14px;
-      font-style: normal;
-      margin-right: 10px; }
-    .folder-list-container .folder-title.shared:before {
-      content: "\e005"; }
+    width: 100%; }
+    .folder-list-container ul.breadcrumbs li.folder-title {
+      cursor: pointer;
+      display: inline-block;
+      font-weight: 600;
+      margin-left: 8px;
+      padding-left: 10px; }
+      .folder-list-container ul.breadcrumbs li.folder-title:before {
+        content: "\e002";
+        color: #656565;
+        font-family: Flaticon;
+        font-size: 14px;
+        font-style: normal;
+        margin-right: 7px; }
+      .folder-list-container ul.breadcrumbs li.folder-title.shared:before {
+        content: "\e005"; }
+      .folder-list-container ul.breadcrumbs li.folder-title:after {
+        content: "/";
+        color: #656565;
+        font-size: 15px;
+        font-weight: 400;
+        position: absolute;
+        margin-left: 5px;
+        margin-top: -1px; }
+      .folder-list-container ul.breadcrumbs li.folder-title:hover span {
+        text-decoration: underline; }
+      .folder-list-container ul.breadcrumbs li.folder-title:first-child {
+        margin-left: 0px; }
+      .folder-list-container ul.breadcrumbs li.folder-title:last-child:after {
+        content: ""; }
   .folder-list-container ul.folder-list {
     background: white;
     cursor: pointer;
@@ -202,9 +219,17 @@ form {
         font-family: Flaticon;
         font-size: 14px;
         font-style: normal;
-        margin-right: 10px; }
+        margin-right: 7px; }
       .folder-list-container ul.folder-list li.shared:before {
         content: "\e005"; }
+      .folder-list-container ul.folder-list li.selected {
+        background: #1c71b9;
+        border-bottom: 1px solid #1c71b9;
+        color: white; }
+        .folder-list-container ul.folder-list li.selected:before {
+          color: white; }
+      .folder-list-container ul.folder-list li span:hover {
+        text-decoration: underline; }
 
 header {
   background-image: url("../img/crossword.png");
