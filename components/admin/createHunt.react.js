@@ -67,6 +67,7 @@ module.exports = React.createClass({
       return;
     }
     $.post("/admin/createhunt", { name: name }).success(function() {
+      // TODO
     }.bind(this));
     var newState = React.addons.update(this.state, {
       hunt: {
