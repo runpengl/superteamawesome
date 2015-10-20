@@ -69,13 +69,6 @@ module.exports = React.createClass({
     $.post("/admin/createhunt", { name: name }).success(function() {
       // TODO
     }.bind(this));
-    var newState = React.addons.update(this.state, {
-      hunt: {
-        name: {
-          $set: e.target.value
-        }
-      }
-    });
     this.setHuntName('');
   },
 
