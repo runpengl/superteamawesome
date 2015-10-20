@@ -12,6 +12,8 @@ var passport = require('passport');
 var config = require('./config');
 var StrategyGoogle = require('passport-google-oauth').OAuth2Strategy;
 var session = require('express-session');
+var Sequelize = require('sequelize');
+var SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 var models = require("./models");
 var routes = require('./routes');
@@ -46,28 +48,39 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(session({secret: 'poofytoo', 
-                 saveUninitialized: true,
-                 resave: true}));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({
+  secret: 'poofytoo',
+  saveUninitialized: true,
+  resave: false,
+  store: new SequelizeStore({
+    db: models.sequelize
+  })
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
-app.get('/', auth.loggedIn, routes.index);
-app.get('/admin', auth.loggedIn, routes.admin);
+// Configure Routes
+app.get('/', routes.loggedIn, routes.index);
+app.get('/admin', routes.loggedIn, routes.admin);
 
 app.get('/login', routes.login);
 app.get('/logout', routes.logout);
 
-app.get('/auth/google', passport.authenticate('google', {scope: auth.googleScope}));
+app.get('/auth/google', passport.authenticate('google', {
+  scope: auth.googleScope
+}));
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
-  auth.loginCallback);
+  routes.loginCallback);
 
 // Data routes
-app.post('/data/folders', auth.loggedIn, routes.listFolders);
+app.post('/data/folders', routes.loggedIn, routes.listFolders);
+
+// Admin routes
+app.post('/admin/createhunt', routes.loggedIn, routes.createHunt);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -85,7 +98,8 @@ if (app.get('env') === 'development') {
         res.status(err.status || 500);
         res.render('error', {
             message: err.message,
-            error: err
+            error: err,
+            stack: err.stack
         });
     });
 }
@@ -93,10 +107,12 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
+    var status = err.status || 500;
+    res.status(status);
     res.render('error', {
         message: err.message,
-        error: {}
+        error: status,
+        stack: ''
     });
 });
 
