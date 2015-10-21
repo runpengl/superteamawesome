@@ -1,5 +1,5 @@
 var $ = require('jquery');
-var React = require('react');
+var React = require('react/addons');
 var Folder = require('../driveFolder.react');
 var Folders = require('../driveFolders.react');
 
@@ -11,11 +11,10 @@ module.exports = React.createClass({
   getInitialState: function(props) {
     props = props || this.props;
     return {
+      hunt: props.hunt,
       breadcrumbs: [props.rootFolder],
       folders: props.folders,
-      hunt: props.hunt,
-      rootFolder: props.rootFolder,
-      huntFolder: null
+      rootFolder: props.rootFolder
     };
   },
 
@@ -35,17 +34,58 @@ module.exports = React.createClass({
     });
   },
 
+  setHuntName: function(name) {
+    var newState = React.addons.update(this.state, {
+      hunt: {
+        name: {
+          $set: name
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  handleNameChange: function(e) {
+    this.setHuntName(e.target.value);
+  },
+
+  handleActiveChange: function(e) {
+    var newState = React.addons.update(this.state, {
+      hunt: {
+        active: {
+          $set: !!e.target.value
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  handleSubmit: function(e) {
+    e.preventDefault();
+    var name = this.state.hunt.name.trim();
+    if (!name) {
+      return;
+    }
+    $.post("/admin/createhunt", { name: name }).success(function() {
+      // TODO
+    }.bind(this));
+    this.setHuntName('');
+  },
+
   render: function() {
     return (
       <div>
         <h3>Create New Hunt</h3>
-        <form>
+        <form onSubmit={this.handleSubmit}>
           <div className='form-element'>
             <label htmlFor='name'>Name</label>
-            <input type='text' name='name' value={this.state.hunt.name} />
+            <input type='text' name='name' value={this.state.hunt.name} onChange={this.handleNameChange} defaultValue="" />
           </div>
           <div className='form-element'>
-            <input type='checkbox' checked={this.state.hunt.active} /> Active
+            <input type='checkbox' onChange={this.state.handleActiveChange} defaultChecked="true" /> Active
+          </div>
+          <div className='form-element'>
+            <input type="submit" value="Create Hunt" />
           </div>
           <div className='form-element'>
             <label htmlFor='folder'>Google Drive Folder</label>

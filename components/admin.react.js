@@ -59,7 +59,10 @@ module.exports = React.createClass({
               {(this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit")}
             </li>
             <li id="create" className={(this.state.activeTab == "create" ? "active": "")}>
-              <CreateHunt hunt={this.state.createHunt} folders={this.state.folders} rootFolder={this.state.rootFolder}></CreateHunt>
+              <CreateHunt hunt={this.state.createHunt}
+                  folders={this.state.folders}
+                  rootFolder={this.state.rootFolder}
+              ></CreateHunt>
             </li>
             <li id="puzzlers" className={(this.state.activeTab == "puzzlers" ? "active": "")}>
               Puzzlers
