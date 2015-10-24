@@ -1,4 +1,5 @@
 var React = require('react');
+var update = require('react-addons-update');
 var _ = require('lodash');
 var $ = require('jquery');
 
@@ -12,7 +13,7 @@ module.exports = React.createClass({
     return {
       folders: props.folders,
       rootFolder: props.rootFolder,
-      selectedFolder: null
+      selectedFolder: props.selectedFolder
     };
   },
 
@@ -27,13 +28,9 @@ module.exports = React.createClass({
 
   selectFolder: function(folder) {
     if (this.state.selectedFolder && this.state.selectedFolder.props.index === folder.props.index) {
-      this.setState({
-        selectedFolder: null
-      });
+      this.props.selectHuntFolder(null);
     } else {
-      this.setState({
-        selectedFolder: folder
-      });
+      this.props.selectHuntFolder(folder);
     }
   },
 

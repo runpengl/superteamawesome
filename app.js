@@ -1,6 +1,7 @@
 /** @jsx React.DOM */
 
 var React = require('react');
+var ReactDOM = require('react-dom');
 var Admin = require('./components/admin.react');
 var $ = require('jquery');
 
@@ -45,7 +46,7 @@ $(function() {
   if (document.getElementById('content')) {
     var initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 
-    React.render(
+    ReactDOM.render(
       <Admin hunt={initialState.hunt} activeTab={initialState.activeTab} folders={initialState.folders} rootFolder={initialState.rootFolder} userFirstName={initialState.userFirstName} />,
       document.getElementById('content')
     );

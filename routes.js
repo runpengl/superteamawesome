@@ -62,6 +62,11 @@ module.exports = {
         markup: markup,
         state: JSON.stringify(state)
       });
+    }).catch(function(error) {
+      if (error.errors[0].message === "Invalid Credentials") {
+        req.session.returnPath = req.route.path;
+        res.redirect("/login");
+      }
     });
   },
 

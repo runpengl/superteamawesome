@@ -16,7 +16,7 @@ module.exports = {
     }, function(err, response) {
       if (err) {
         console.log('The API returned an error: ' + err);
-        defer.reject(null);
+        defer.reject(err);
       } else {
         defer.resolve(response.items);
       }

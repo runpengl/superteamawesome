@@ -67,16 +67,18 @@ h4 {
 
 .admin-content {
   @include calc-height(100%, 100px);
+
   overflow-y: hidden;
   padding-bottom: 10px;
 }
 
 .side-nav {
+  $nav-padding: 10px;
+
   background: transparentize($grey1, 0.5);
   display: inline-block;
   height: 100%; 
   width: 250px;
-  $nav-padding: 10px;
 
   h3 {
     padding: 10px;
@@ -90,12 +92,14 @@ h4 {
   ul {
     margin-top: 15px;
     padding-bottom: $nav-padding;
+
     li {
       cursor: pointer;
       font-size: 0.8em;
       list-style: none;
       margin: 4px 0px;
       padding: 7px $nav-padding;
+
       &:hover {
         background: $teal;
         color: white;
@@ -105,18 +109,21 @@ h4 {
 }
 
 .side-content {
+  @include calc-width(100%, 290px);
+
   display: inline-block;
   height: 100%;
   margin-left: 10px;
   padding: 10px;
   vertical-align: top;
-  @include calc-width(100%, 290px);
 
   .tab-content {
     height: 100%;
     position: relative;
+
     li {
       display: none;
+
       &.active {
         display: block;
       }
@@ -130,10 +137,11 @@ h4 {
 
 form {
   margin: 20px 0px;
+
   label {
     color: $grey4;
-    font-size: 12px;
     display: block;
+    font-size: 12px;
     font-weight: 600;
     margin: 5px 0px;
   }
@@ -143,6 +151,7 @@ form {
     font-size: 13px;
     height: 25px;
     min-width: 200px;
+
     &:focus, &:active {
       outline: 0;
     }
@@ -152,16 +161,52 @@ form {
     font-size: 12px;
   }
 
+  input[type=submit] {
+    @include transition-ease;
+
+    background: $teal;
+    border: 0px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    margin: 5px 0px;
+    padding: 5px 12px;
+
+    &:hover {
+      background: darken($teal, 5%);
+    }
+  }
+
   .form-element {
     font-size: 12px;
     margin: 10px 0px;
   }
 }
 
+.create-hunt-form {
+  .form-element {
+    .folder-title {
+      &:before {
+        content: "\e002";
+        color: $grey4;
+        font-family: Flaticon;
+        font-size: 14px;
+        font-style: normal;
+        margin-right: 7px;
+      }
+
+      &.shared:before {
+        content: "\e005";
+      }
+    }
+  }
+}
+
 .folder-list-container {
-  position: absolute;
-  height: 100%;
+  @include calc-height(100%, 95px);
+
   margin-top: 10px;
+  position: absolute;
   width: 100%;
 
   ul.breadcrumbs {
@@ -217,25 +262,30 @@ form {
   }
 
   ul.folder-list {
+    @include calc-height(100%, 252px);
+
     background: white;
     cursor: pointer;
-    @include calc-height(100%, 252px);
     overflow: scroll;
     position: absolute;
     top: 39px;
     width: 100%;
+
     li {
       border-bottom: 1px solid $grey1;
       padding: 10px;
       padding-right: 20px;
+
       &:hover {
         background: $teal;
         border-bottom: 1px solid $teal;
         color: white;
+
         &:before {
           color: white;
         }
       }
+
       &:before {
         content: "\e002";
         color: $grey4;
@@ -244,13 +294,16 @@ form {
         font-style: normal;
         margin-right: 7px;
       }
+
       &.shared:before {
         content: "\e005";
       }
+
       &.selected {
         background: $blue;
         border-bottom: 1px solid $blue;
         color: white;
+
         &:before {
           color: white;
         }

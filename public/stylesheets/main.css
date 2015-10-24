@@ -115,13 +115,13 @@ h4 {
         color: white; }
 
 .side-content {
+  width: calc(100% - 290px);
+  width: -webkit-calc(100% - 290px);
   display: inline-block;
   height: 100%;
   margin-left: 10px;
   padding: 10px;
-  vertical-align: top;
-  width: calc(100% - 290px);
-  width: -webkit-calc(100% - 290px); }
+  vertical-align: top; }
   .side-content .tab-content {
     height: 100%;
     position: relative; }
@@ -136,8 +136,8 @@ form {
   margin: 20px 0px; }
   form label {
     color: #656565;
-    font-size: 12px;
     display: block;
+    font-size: 12px;
     font-weight: 600;
     margin: 5px 0px; }
   form input[type=text] {
@@ -149,14 +149,39 @@ form {
       outline: 0; }
   form input[type=checkbox] {
     font-size: 12px; }
+  form input[type=submit] {
+    transition: all 250ms ease-in;
+    -moz-transition: all 250ms ease-in;
+    -webkit-transition: all 250ms ease-in;
+    background: #1bbeb8;
+    border: 0px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    margin: 5px 0px;
+    padding: 5px 12px; }
+    form input[type=submit]:hover {
+      background: #18a8a2; }
   form .form-element {
     font-size: 12px;
     margin: 10px 0px; }
 
+.create-hunt-form .form-element .folder-title:before {
+  content: "\e002";
+  color: #656565;
+  font-family: Flaticon;
+  font-size: 14px;
+  font-style: normal;
+  margin-right: 7px; }
+
+.create-hunt-form .form-element .folder-title.shared:before {
+  content: "\e005"; }
+
 .folder-list-container {
-  position: absolute;
-  height: 100%;
+  height: calc(100% - 95px);
+  height: -webkit-calc(100% - 95px);
   margin-top: 10px;
+  position: absolute;
   width: 100%; }
   .folder-list-container ul.breadcrumbs {
     background: white;
@@ -195,10 +220,10 @@ form {
       .folder-list-container ul.breadcrumbs li.folder-title:last-child:after {
         content: ""; }
   .folder-list-container ul.folder-list {
-    background: white;
-    cursor: pointer;
     height: calc(100% - 252px);
     height: -webkit-calc(100% - 252px);
+    background: white;
+    cursor: pointer;
     overflow: scroll;
     position: absolute;
     top: 39px;
