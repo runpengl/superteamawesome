@@ -14,7 +14,7 @@ module.exports = React.createClass({
     return {
       hunt: props.hunt,
       breadcrumbs: [props.rootFolder],
-      selectedFolder: null,
+      selectedFolder: props.rootFolder,
       folders: props.folders,
       rootFolder: props.rootFolder
     };
@@ -22,8 +22,8 @@ module.exports = React.createClass({
 
   getSelectedFolderIcon: function() {
     var isShared = false;
-    if (this.state.selectedFolder == null) {
-      isShared = this.state.breadcrumbs[this.state.breadcrumbs.length - 1].shared;
+    if (this.state.selectedFolder.props == null) {
+      isShared = this.state.selectedFolder.shared;
     } else {
       isShared = this.state.selectedFolder.props.folder.shared;
     }
@@ -31,8 +31,8 @@ module.exports = React.createClass({
   },
 
   getSelectedFolderName: function() {
-    if (this.state.selectedFolder == null) {
-      return this.state.breadcrumbs[this.state.breadcrumbs.length - 1].title;
+    if (this.state.selectedFolder.props == null) {
+      return this.state.selectedFolder.title;
     } else {
       return this.state.selectedFolder.props.folder.title;
     }
@@ -50,18 +50,27 @@ module.exports = React.createClass({
         driveFolder: { $set: null },
         rootFolder: { $set: folder },
         folders: { $set: folders },
-        selectedFolder: { $set: null }
+        selectedFolder: { $set: folder }
       });
       _this.setState(newState);
     });
   },
 
   selectHuntFolder: function(folder) {
-    var newState = update(this.state, {
-      selectedFolder: {
-        $set: folder
-      }
-    });
+    var newState;
+    if (folder == null) {
+      newState = update(this.state, {
+        selectedFolder: {
+          $set: this.state.breadcrumbs[this.state.breadcrumbs.length - 1]
+        }
+      });
+    } else {
+      newState = update(this.state, {
+        selectedFolder: {
+          $set: folder
+        }
+      });
+    }
     this.setState(newState);
   },
 
@@ -97,8 +106,16 @@ module.exports = React.createClass({
     if (!name) {
       return;
     }
-    $.post("/admin/createhunt", { name: name }).success(function() {
-      // TODO
+    var folder = this.state.selectedFolder;
+    var folderID = (folder.props == null) ? folder.id : folder.props.id;
+    $.post("/admin/createhunt",
+      {
+        name: name,
+        active: this.state.hunt.active,
+        parentID: folderID
+      }
+    ).success(function(hunt) {
+      window.location.href="/admin";
     }.bind(this));
     this.setHuntName('');
   },

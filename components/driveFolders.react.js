@@ -27,7 +27,7 @@ module.exports = React.createClass({
   },
 
   selectFolder: function(folder) {
-    if (this.state.selectedFolder && this.state.selectedFolder.props.index === folder.props.index) {
+    if (this.state.selectedFolder.props && this.state.selectedFolder.props.index === folder.props.index) {
       this.props.selectHuntFolder(null);
     } else {
       this.props.selectHuntFolder(folder);
@@ -35,7 +35,7 @@ module.exports = React.createClass({
   },
 
   render: function() {
-    var selectedKey = (this.state.selectedFolder && this.state.selectedFolder.props.index) || null;
+    var selectedKey = (this.state.selectedFolder.props && this.state.selectedFolder.props.index) || null;
     var children = this.props.children.map(function(folder, key) {
       var isSelected = folder.props.index === selectedKey;
       return React.cloneElement(folder, {

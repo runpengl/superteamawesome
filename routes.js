@@ -1,5 +1,6 @@
 var JSX = require('node-jsx').install(),
     React = require('react'),
+    ReactDOMServer = require('react-dom/server'),
     auth = require('./auth'),
     gapi = require('./gapi'),
     admin = require('./admin'),
@@ -53,7 +54,7 @@ module.exports = {
         userFirstName: req.user.firstName,
         rootFolder: {'title': req.user.firstName + "'s Drive", 'id': 'root'}
       }
-      var markup = React.renderToString(
+      var markup = ReactDOMServer.renderToString(
         adminFactory(state)
       );
 
@@ -63,16 +64,20 @@ module.exports = {
         state: JSON.stringify(state)
       });
     }).catch(function(error) {
-      if (error.errors[0].message === "Invalid Credentials") {
+      if (error.errors && error.errors[0].message === "Invalid Credentials") {
         req.session.returnPath = req.route.path;
         res.redirect("/login");
+      } else {
+        res.render("error", {error: error});
       }
     });
   },
 
   createHunt: function(req, res) {
-    admin.createHunt(req.body.name, req.body.active).then(function(hunt) {
-      res.send(hunt);
+    admin.createHunt(req.user.id, req.body.name, req.body.active, req.body.parentID).then(function(response) {
+      res.send(response);
+    }).catch(function(error) {
+      res.send(error);
     });
   },
   listFolders: function(req, res) {
