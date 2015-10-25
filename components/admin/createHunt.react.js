@@ -115,7 +115,7 @@ module.exports = React.createClass({
         parentID: folderID
       }
     ).success(function(hunt) {
-      window.location.href="/admin";
+      window.location.href="/admin/edit";
     }.bind(this));
     this.setHuntName('');
   },

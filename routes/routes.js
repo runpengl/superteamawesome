@@ -1,0 +1,42 @@
+var auth = require('../auth'),
+    gapi = require('../gapi'),
+    models = require('../models');
+
+module.exports = {
+  index: function(req, res) {
+    res.render('home', {user: req.user});
+  },
+
+  loggedIn: function(req, res, next) {
+    if (req.user) {
+        next();
+    } else {
+        req.session.returnPath = req.route.path;
+        res.redirect('/login');
+    }
+  },
+
+  login: function(req, res) {
+    var random = Math.floor(Math.random() * 8);
+    res.render('login', {random: random, layout: 'login_layout.handlebars'});
+  },
+  logout: function(req, res) {
+    req.logout();
+    req.session.save(function() {
+      res.redirect('/');
+    });
+  },
+  loginCallback: function(req, res) {
+    // Successful authentication, redirect home.
+    if (req.session.returnPath)
+      res.redirect(req.session.returnPath);
+    else
+      res.redirect('/');
+  },
+
+  listFolders: function(req, res) {
+    gapi.listFiles(req.body.fileId).then(function(folders) {
+      res.send(folders);
+    });
+  }
+}

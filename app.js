@@ -32,12 +32,6 @@ $(function() {
     $(this).parent().toggleClass('closed');
   });
 
-  // $('.tabs li').click(function(event) {
-  //   var tab = $(this).attr('data-tab');
-  //   $('.tab-content li').removeClass('active');
-  //   $(tab).addClass('active');
-  // });
-
   $('body').click(function(event) {
     $('.dropdown, .notification, .chat').removeClass('active');
   });
@@ -47,7 +41,11 @@ $(function() {
     var initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 
     ReactDOM.render(
-      <Admin hunt={initialState.hunt} activeTab={initialState.activeTab} folders={initialState.folders} rootFolder={initialState.rootFolder} userFirstName={initialState.userFirstName} />,
+      <Admin hunt={initialState.hunt}
+             activeTab={initialState.activeTab}
+             folders={initialState.folders}
+             rootFolder={initialState.rootFolder}
+             userFirstName={initialState.userFirstName} />,
       document.getElementById('content')
     );
   }

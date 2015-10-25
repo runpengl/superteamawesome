@@ -16,8 +16,11 @@ var Sequelize = require('sequelize');
 var SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 var models = require("./models");
-var routes = require('./routes');
 var auth = require("./auth");
+
+// routes
+var routes = require('./routes/routes');
+var admin = require('./routes/admin');
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -64,7 +67,6 @@ app.use(passport.session());
 
 // Configure Routes
 app.get('/', routes.loggedIn, routes.index);
-app.get('/admin', routes.loggedIn, routes.admin);
 
 app.get('/login', routes.login);
 app.get('/logout', routes.logout);
@@ -80,7 +82,13 @@ app.get('/auth/google/callback',
 app.post('/data/folders', routes.loggedIn, routes.listFolders);
 
 // Admin routes
-app.post('/admin/createhunt', routes.loggedIn, routes.createHunt);
+app.get('/admin', routes.loggedIn, admin.index);
+app.get('/admin/create', routes.loggedIn, admin.create);
+app.get('/admin/edit', routes.loggedIn, admin.edit);
+app.get('/admin/add', routes.loggedIn, admin.add);
+app.get('/admin/announcement', routes.loggedIn, admin.announcement);
+app.get('/admin/switch', routes.loggedIn, admin.switch);
+app.post('/admin/createhunt', routes.loggedIn, admin.createHunt);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

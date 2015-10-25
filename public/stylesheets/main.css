@@ -111,8 +111,9 @@ h4 {
       margin: 4px 0px;
       padding: 7px 10px; }
       .side-nav ul li:hover {
-        background: #1bbeb8;
-        color: white; }
+        background: #1bbeb8; }
+        .side-nav ul li:hover a {
+          color: white; }
 
 .side-content {
   width: calc(100% - 290px);

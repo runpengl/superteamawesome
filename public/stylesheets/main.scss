@@ -102,7 +102,9 @@ h4 {
 
       &:hover {
         background: $teal;
-        color: white;
+        a {
+          color: white;
+        }
       }
     }
   }

@@ -31,10 +31,6 @@ module.exports = React.createClass({
     this.setState(this.getInitialState(newProps));
   },
 
-  switchTab: function(tab) {
-    this.setState({activeTab: tab});
-  },
-
   // Render the component
   render: function() {
     return (
@@ -46,11 +42,11 @@ module.exports = React.createClass({
             <em>{this.state.hunt.name}</em>
           </h4>
           <ul className="tabs">
-            <li onClick={this.switchTab.bind(this, 'edit')}>Edit Hunt</li>
-            <li onClick={this.switchTab.bind(this, 'create')}>Create Hunt</li>
-            <li onClick={this.switchTab.bind(this, 'puzzlers')}>Add Puzzlers</li>
-            <li onClick={this.switchTab.bind(this, 'announcement')}>Make Announcement</li>
-            <li onClick={this.switchTab.bind(this, 'switch')}>Switch Hunt</li>
+            <li><a href="/admin/edit">Edit Hunt</a></li>
+            <li><a href="/admin/create">Create Hunt</a></li>
+            <li><a href="/admin/add">Add Puzzlers</a></li>
+            <li><a href="/admin/announcement">Make Announcement</a></li>
+            <li><a href="/admin/switch">Switch Hunt</a></li>
           </ul>
         </nav>
         <div className="side-content">
@@ -64,7 +60,7 @@ module.exports = React.createClass({
                   rootFolder={this.state.rootFolder}
               ></CreateHunt>
             </li>
-            <li id="puzzlers" className={(this.state.activeTab == "puzzlers" ? "active": "")}>
+            <li id="add" className={(this.state.activeTab == "add" ? "active": "")}>
               Puzzlers
             </li>
             <li id="announcement" className={(this.state.activeTab == "announcement" ? "active": "")}>
