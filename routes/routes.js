@@ -8,7 +8,7 @@ module.exports = {
   },
 
   loggedIn: function(req, res, next) {
-    if (req.user) {
+    if (req.isAuthenticated()) {
         next();
     } else {
         req.session.returnPath = req.route.path;
@@ -27,11 +27,13 @@ module.exports = {
     });
   },
   loginCallback: function(req, res) {
-    // Successful authentication, redirect home.
-    if (req.session.returnPath)
-      res.redirect(req.session.returnPath);
-    else
-      res.redirect('/');
+    req.session.save(function() {
+      // Successful authentication, redirect home.
+      if (req.session.returnPath)
+        res.redirect(req.session.returnPath);
+      else
+        res.redirect('/');
+    });
   },
 
   listFolders: function(req, res) {

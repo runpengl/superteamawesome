@@ -50,13 +50,16 @@ app.set('view engine', 'handlebars');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(cookieParser());
 app.use(session({
+  cookie: {
+    maxAge: 604800
+  },
   secret: 'poofytoo',
-  saveUninitialized: true,
+  saveUninitialized: false,
   resave: false,
   store: new SequelizeStore({
     db: models.sequelize

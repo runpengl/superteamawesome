@@ -48,16 +48,17 @@ module.exports = {
   ].join(' '),
 
   serializeUser: function(user, done) {
-    done(null, user.googleID);
+    return done(null, user.googleID);
   },
 
   deserializeUser: function(id, done) {
     models.User.findOne({ where: { googleID: id } }).then(function(user) {
-      done(null, user.get({plain: true}));
+      var u = user.get({plain: true});
       oauth2Client.setCredentials({
-        access_token: user.accessToken,
-        refresh_token: user.refreshToken
+        access_token: u.accessToken,
+        refresh_token: u.refreshToken
       });
+      return done(null, u);
     })
   }
 };
