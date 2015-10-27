@@ -14,12 +14,12 @@ Run the following commands:
 
 **Extended setup or for those with non macs or non MAMP-installers:**
 
-1. First run:  
-```
-npm install -g gulp
-npm install -g nodemon
-npm install
-```
+1. First run:
+   ```
+   npm install -g gulp
+   npm install -g nodemon
+   npm install
+   ```
 
 2. `npm run migrate` will run necessary database migrations
 3. `gulp &` will compile the scss files and start a watcher to recompile scss on change
