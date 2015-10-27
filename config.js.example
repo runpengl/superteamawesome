@@ -1,20 +1,18 @@
 module.exports = {
     GOOGLE_CLIENT_ID: "",
     GOOGLE_CLIENT_SECRET: "",
-    ENV: {
+    development: {
         database: "superteamawesome",
         username: "root",
         password: "",
-        config: {
-            port: '3306',
-            host: 'localhost',
-            dialect: 'mysql',
+        port: "3306",
+        host: "localhost",
+        dialect: "mysql",
 
-            pool: {
-                max: 5,
-                min: 0,
-                idle: 10000
-            }
+        pool: {
+            max: 5,
+            min: 0,
+            idle: 10000
         }
     }
 }

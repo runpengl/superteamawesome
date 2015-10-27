@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
 module.exports = function(sequelize, DataTypes) {
-  var Puzzle = sequelize.define("Puzzle", {
+  var Puzzle = sequelize.define('Puzzle', {
     name: DataTypes.TEXT,
     sheetID: DataTypes.TEXT,
     slackID: DataTypes.TEXT,

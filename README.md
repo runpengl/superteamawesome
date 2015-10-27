@@ -14,11 +14,15 @@ Run the following commands:
 
 **Extended setup or for those with non macs or non MAMP-installers:**
 
-To run, first run `npm install` (may need `sudo`), and then run `npm start`.
-You might need to install nodemon (`npm install --global nodemon`) first.
+1. First run:  
+```
+npm install -g gulp
+npm install -g nodemon
+npm install
+```
 
-To dev, you'll need to install gulp (`npm install --global gulp`) and run `gulp` to compile the scss files
-
-`npm start` will auto compile the jsx and bundle all the js into a bundle.js in public/js
-
-Navigate to http://localhost:8080/!
+2. `npm run migrate` will run necessary database migrations
+3. `gulp &` will compile the scss files and start a watcher to recompile scss on change
+4. `npm start` will auto compile the jsx and bundle all the js into a bundle.js in public/js  
+OR `npm run debug` will run a debug version that you can use node-inspector to debug
+5. Navigate to http://localhost:8080/

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = function(sequelize, DataTypes) {
-  var User = sequelize.define("User", {
+  var User = sequelize.define('User', {
     googleID: DataTypes.TEXT,
     username: DataTypes.TEXT,
     firstName: DataTypes.TEXT,
@@ -9,6 +9,12 @@ module.exports = function(sequelize, DataTypes) {
     picture: DataTypes.TEXT,
     accessToken: DataTypes.TEXT,
     refreshToken: DataTypes.TEXT
+  }, {
+    classMethods: {
+      associate: function(models) {
+        User.belongsToMany(models.Role, {through: "UserRole"});
+      }
+    }
   });
   return User;
 };
