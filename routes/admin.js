@@ -138,7 +138,8 @@ module.exports = {
         name: req.body.name,
         folderID: newHuntFolder.id,
         createdBy: req.user.id,
-        isActive: req.body.active
+        isActive: req.body.active,
+        parentFolderID: req.body.parentID
       });
     }).then(function(hunt) {
       res.send(hunt);
