@@ -12,6 +12,8 @@ Run the following commands:
 ./run.sh
 ```
 
+For debug mode, add the `--debug` flag when running `run.sh`.
+
 **Extended setup or for those with non macs or non MAMP-installers:**
 
 1. First run:
@@ -24,5 +26,5 @@ Run the following commands:
 2. `npm run migrate` will run necessary database migrations
 3. `gulp &` will compile the scss files and start a watcher to recompile scss on change
 4. `npm start` will auto compile the jsx and bundle all the js into a bundle.js in public/js  
-OR `npm run debug` will run a debug version that you can use node-inspector to debug
+OR `npm run debug` will run a debug version that you can use node-inspector to debug; having the `DEBUG` environment variable set will cause debug statements to be logged as well.
 5. Navigate to http://localhost:8080/
