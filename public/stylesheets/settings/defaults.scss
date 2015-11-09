@@ -1,0 +1,64 @@
+@import "settings/colors.scss";
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+
+  &.main {
+    background-image: url('../img/crossword.png');
+    background-repeat: repeat;
+    height: 100%;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+a {
+  color: $grey5;
+  text-decoration: none;
+}
+
+em {
+  color: $orange;
+  font-style: normal;
+}
+
+ul {
+  margin: 0px;
+  padding: 0px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin: 0px;
+  padding: 0px;
+}
+
+h3 {
+  color: $grey5;
+  font-size: 1em;
+  font-weight: 600;
+  margin: 5px 0px;
+}
+
+h4 {
+  font-size: 0.8em;
+}
+
+.container {
+  background-image: url('../img/crossword.png');
+  background-repeat: repeat;
+  height: 100%;
+}
+
+.content-container {
+  height: 100%;
+}
+
+.content {
+  padding: 90px 30px 30px;
+}
