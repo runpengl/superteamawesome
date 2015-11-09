@@ -42,11 +42,16 @@ module.exports = React.createClass({
             <em>{this.state.hunt.name}</em>
           </h4>
           <ul className="tabs">
-            <li><a href="/admin/edit">Edit Hunt</a></li>
-            <li><a href="/admin/create">Create Hunt</a></li>
-            <li><a href="/admin/add">Add Puzzlers</a></li>
-            <li><a href="/admin/announcement">Make Announcement</a></li>
-            <li><a href="/admin/switch">Switch Hunt</a></li>
+            <li className={(this.state.activeTab == "edit" ? "active": "")}><a href="/admin/edit">Edit Hunt</a>
+              <ul className='submenu'>
+                <li><a href="/admin/edit/round">Add Round</a></li>
+                <li><a href="/admin/edit/puzzle">Add Puzzles</a></li>
+              </ul>
+            </li>
+            <li className={(this.state.activeTab == "create" ? "active": "")}><a href="/admin/create">Create Hunt</a></li>
+            <li className={(this.state.activeTab == "add" ? "active": "")}><a href="/admin/add">Add Puzzlers</a></li>
+            <li className={(this.state.activeTab == "announcement" ? "active": "")}><a href="/admin/announcement">Make Announcement</a></li>
+            <li className={(this.state.activeTab == "switch" ? "active": "")}><a href="/admin/switch">Switch Hunt</a></li>
           </ul>
         </nav>
         <div className="side-content">
