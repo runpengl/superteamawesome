@@ -1,4 +1,5 @@
-var JSX = require('node-jsx').install(),
+var debug = require('debug')('superteamawesome:server'),
+    JSX = require('node-jsx').install(),
     Q = require('q'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
@@ -9,11 +10,19 @@ var JSX = require('node-jsx').install(),
 function getAdminState(user, activeTab) {
   var deferred = Q.defer();
   var hunt = {name: 'None'};
+  var rootFolderId = 'root';
+  var rootFolder;
   models.Hunt.findOne({where: {isActive: true}}).then(function(h) {
     if (h) {
       hunt = h.get({plain: true});
+      if (activeTab === 'edit') {
+        rootFolderId = hunt.parentFolderID;
+      }
     }
-    return gapi.listFiles('root');
+    return gapi.getFolder(rootFolderId);
+  }).then(function(folder) {
+    rootFolder = folder;
+    return gapi.listFiles(rootFolder.id);
   }).then(function(files) {
     var adminFactory = React.createFactory(AdminComponent);
     var state = {
@@ -21,7 +30,7 @@ function getAdminState(user, activeTab) {
       activeTab: activeTab,
       folders: files,
       userFirstName: user.firstName,
-      rootFolder: {'title': user.firstName + "'s Drive", 'id': 'root'}
+      rootFolder: rootFolder
     }
     var markup = ReactDOMServer.renderToString(
       adminFactory(state)

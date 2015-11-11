@@ -1,5 +1,6 @@
 var React = require('react');
 var CreateHunt = require('./admin/createHunt.react');
+var EditHunt = require('./admin/editHunt.react');
 
 module.exports = React.createClass({
 
@@ -33,6 +34,13 @@ module.exports = React.createClass({
 
   // Render the component
   render: function() {
+    var editHunt;
+    if (this.state.hunt.id) {
+      editHunt = <EditHunt folders={this.state.folders} hunt={this.state.hunt} />;
+    } else {
+      editHunt = <h3>{(this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit")}</h3>;
+    }
+
     return (
       <div className='content admin-content'>
         <nav className="side-nav">
@@ -46,6 +54,7 @@ module.exports = React.createClass({
               <ul className='submenu'>
                 <li><a href="/admin/edit/round">Add Round</a></li>
                 <li><a href="/admin/edit/puzzle">Add Puzzles</a></li>
+                <li><a href="/admin/edit/settings">Settings</a></li>
               </ul>
             </li>
             <li className={(this.state.activeTab == "create" ? "active": "")}><a href="/admin/create">Create Hunt</a></li>
@@ -57,7 +66,7 @@ module.exports = React.createClass({
         <div className="side-content">
           <ul className="tab-content">
             <li id="edit" className={(this.state.activeTab == "edit" ? "active": "")}>
-              {(this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit")}
+              {editHunt}
             </li>
             <li id="create" className={(this.state.activeTab == "create" ? "active": "")}>
               <CreateHunt hunt={this.state.createHunt}
