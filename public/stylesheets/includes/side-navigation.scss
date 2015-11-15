@@ -50,6 +50,10 @@
         li {
           font-size: 1em;
 
+          &.active a {
+            border-color: $teal;
+          }
+
           a {
             border-left: 3px solid transparent;
             color: inherit;
@@ -91,6 +95,20 @@
 
       ul li {
         display: block;
+      }
+
+      .sub-tab-content {
+        li {
+          display: none;
+
+          &.active {
+            display: block;
+          }
+
+          ul li {
+            display: block;
+          }
+        }
       }
     }
   }

@@ -445,6 +445,8 @@ header {
         margin: 5px 0px 5px 15px; }
         .side-nav ul li ul.submenu li {
           font-size: 1em; }
+          .side-nav ul li ul.submenu li.active a {
+            border-color: #1bbeb8; }
           .side-nav ul li ul.submenu li a {
             border-left: 3px solid transparent;
             color: inherit;
@@ -473,6 +475,24 @@ header {
         display: block; }
       .side-content .tab-content li ul li {
         display: block; }
+      .side-content .tab-content li .sub-tab-content li {
+        display: none; }
+        .side-content .tab-content li .sub-tab-content li.active {
+          display: block; }
+        .side-content .tab-content li .sub-tab-content li ul li {
+          display: block; }
+
+table {
+  border-spacing: 0; }
+
+.card .details table {
+  width: 100%; }
+  .card .details table tbody tr td {
+    border-bottom: 1px solid #677d8b; }
+  .card .details table thead tr th {
+    border-bottom: 1px solid #677d8b;
+    color: #656565;
+    padding: 5px 0px; }
 
 .puzzle-rounds li {
   list-style: none;
@@ -629,7 +649,7 @@ header {
   overflow-y: hidden;
   padding-bottom: 10px; }
   .admin-content .side-content .tab-content .card {
-    margin: 10px 0; }
+    margin: 10px 0 20px; }
     .admin-content .side-content .tab-content .card .details {
       background: white;
       font-size: 12px;
@@ -658,10 +678,10 @@ header {
           .admin-content .side-content .tab-content .card .details ul li .info.folder.shared:before {
             content: "\e005"; }
           .admin-content .side-content .tab-content .card .details ul li .info.folder a:hover {
-            color: #1bbeb8;
+            color: #1c71b9;
             text-decoration: underline; }
     .admin-content .side-content .tab-content .card .header {
-      background: #1bbeb8;
+      background: #1c71b9;
       color: white;
       padding: 5px 8px;
       width: 100%; }

@@ -21,6 +21,7 @@ var auth = require("./auth");
 // routes
 var routes = require('./routes/routes');
 var admin = require('./routes/admin');
+var hunt = require('./routes/hunt');
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -87,11 +88,19 @@ app.post('/data/folders', routes.loggedIn, routes.listFolders);
 // Admin routes
 app.get('/admin', routes.loggedIn, admin.index);
 app.get('/admin/create', routes.loggedIn, admin.create);
-app.get('/admin/edit', routes.loggedIn, admin.edit);
 app.get('/admin/add', routes.loggedIn, admin.add);
 app.get('/admin/announcement', routes.loggedIn, admin.announcement);
 app.get('/admin/switch', routes.loggedIn, admin.switch);
 app.post('/admin/createhunt', routes.loggedIn, admin.createHunt);
+
+// Admin edit routes
+app.get('/admin/edit', routes.loggedIn, admin.edit);
+app.get('/admin/edit/round', routes.loggedIn, admin.editRound);
+app.get('/admin/edit/puzzle', routes.loggedIn, admin.editPuzzle);
+app.get('/admin/edit/settings', routes.loggedIn, admin.editSettings);
+
+// Hunt routes
+app.get('/hunt/puzzles', routes.loggedIn, hunt.puzzles);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

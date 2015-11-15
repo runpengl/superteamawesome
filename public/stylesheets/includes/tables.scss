@@ -1,3 +1,21 @@
+table {
+  border-spacing: 0;
+}
+
+.card .details table {
+  width: 100%;
+
+  tbody tr td {
+    border-bottom: 1px solid $greyBlue;
+  }
+
+  thead tr th {
+    border-bottom: 1px solid $greyBlue;
+    color: $grey4;
+    padding: 5px 0px;
+  }
+}
+
 .puzzle-rounds {
   li {
     list-style: none;

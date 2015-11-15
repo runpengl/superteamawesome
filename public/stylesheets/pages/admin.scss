@@ -11,7 +11,7 @@
   .side-content .tab-content {
     $side-padding: 8px;
     .card {
-      margin: 10px 0;
+      margin: 10px 0 20px;
 
       .details {
         background: white;
@@ -53,7 +53,7 @@
               }
 
               a:hover {
-                color: $teal;
+                color: $blue;
                 text-decoration: underline;
               }
             }
@@ -62,7 +62,7 @@
       }
 
       .header {
-        background: $teal;
+        background: $blue;
         color: white;
         padding: 5px $side-padding;
         width: 100%;
