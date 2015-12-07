@@ -1,4 +1,5 @@
-var JSX = require('node-jsx').install(),
+var debug = require('debug')('superteamawesome:server'),
+    JSX = require('node-jsx').install(),
     Q = require('q'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
@@ -9,11 +10,19 @@ var JSX = require('node-jsx').install(),
 function getAdminState(user, activeTab) {
   var deferred = Q.defer();
   var hunt = {name: 'None'};
+  var rootFolderId = 'root';
+  var rootFolder;
   models.Hunt.findOne({where: {isActive: true}}).then(function(h) {
     if (h) {
       hunt = h.get({plain: true});
+      if (activeTab !== 'create') {
+        rootFolderId = hunt.parentFolderID;
+      }
     }
-    return gapi.listFiles('root');
+    return gapi.getFolder(rootFolderId);
+  }).then(function(folder) {
+    rootFolder = folder;
+    return gapi.listFiles(rootFolder.id);
   }).then(function(files) {
     var adminFactory = React.createFactory(AdminComponent);
     var state = {
@@ -21,7 +30,7 @@ function getAdminState(user, activeTab) {
       activeTab: activeTab,
       folders: files,
       userFirstName: user.firstName,
-      rootFolder: {'title': user.firstName + "'s Drive", 'id': 'root'}
+      rootFolder: rootFolder
     }
     var markup = ReactDOMServer.renderToString(
       adminFactory(state)
@@ -38,6 +47,19 @@ function getAdminState(user, activeTab) {
   return deferred.promise;
 }
 
+function renderAdmin(req, res, page) {
+  getAdminState(req.user, page).then(function(state) {
+      res.render('admin', state);
+    }).catch(function(error) {
+      if (error.errors && error.errors[0].message === "Invalid Credentials") {
+        req.session.returnPath = req.route.path;
+        res.redirect("/login");
+      } else {
+        res.render("error", {error: error});
+      }
+    });
+}
+
 module.exports = {
   index: function(req, res) {
     models.Hunt.findOne({where: {isActive: true}}).then(function(hunt) {
@@ -50,68 +72,36 @@ module.exports = {
   },
 
   create: function(req, res) {
-    getAdminState(req.user, "create").then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    renderAdmin(req, res, "create");
   },
 
   edit: function(req, res) {
-    getAdminState(req.user, "edit").then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    renderAdmin(req, res, "edit");
+  },
+
+  editRound: function(req, res) {
+    debug("editing round");
+    renderAdmin(req, res, "round");
+  },
+
+  editPuzzle: function(req, res) {
+    renderAdmin(req, res, "puzzle");
+  },
+
+  editSettings: function(req, res) {
+    renderAdmin(req, res, "settings");
   },
 
   add: function(req, res) {
-    getAdminState(req.user, "add").then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    renderAdmin(req, res, "add");
   },
 
   announcement: function(req, res) {
-    getAdminState(req.user, "announcement").then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    renderAdmin(req, res, "announcement");
   },
 
   switch: function(req, res) {
-    getAdminState(req.user, "switch").then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    renderAdmin(req, res, "switch");
   },
 
   createHunt: function(req, res) {
@@ -138,7 +128,8 @@ module.exports = {
         name: req.body.name,
         folderID: newHuntFolder.id,
         createdBy: req.user.id,
-        isActive: req.body.active
+        isActive: req.body.active,
+        parentFolderID: req.body.parentID
       });
     }).then(function(hunt) {
       res.send(hunt);

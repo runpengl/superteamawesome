@@ -1,0 +1,205 @@
+@import "settings/mixins.scss";
+@import "settings/fonts.scss";
+@import "settings/colors.scss";
+
+.admin-content {
+  @include calc-height(100%, 100px);
+
+  overflow-y: hidden;
+  padding-bottom: 10px;
+
+  .side-content .tab-content {
+    $side-padding: 8px;
+    .card {
+      margin: 10px 0 20px;
+
+      .details {
+        background: white;
+        font-size: 12px;
+        padding: 5px $side-padding;
+        width: 100%;
+
+        ul li {
+          border-bottom: 1px dotted $grey2;
+          padding: 8px 0;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .label {
+            color: $grey4;
+            display: inline-block;
+            font-weight: 600;
+            width: 40%;
+          }
+
+          .info {
+            display: inline-block;
+            width: 60%;
+
+            &.folder {
+              &:before {
+                content: "\e002";
+                color: $grey4;
+                font-family: Flaticon;
+                font-size: 14px;
+                font-style: normal;
+                margin-right: 7px;
+              }
+
+              &.shared:before {
+                content: "\e005";
+              }
+
+              a:hover {
+                color: $blue;
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+      }
+
+      .header {
+        background: $blue;
+        color: white;
+        padding: 5px $side-padding;
+        width: 100%;
+      }
+    }
+
+    .create-hunt-form {
+      .form-element {
+        .folder-title {
+          &:before {
+            content: "\e002";
+            color: $grey4;
+            font-family: Flaticon;
+            font-size: 14px;
+            font-style: normal;
+            margin-right: 7px;
+          }
+
+          &.shared:before {
+            content: "\e005";
+          }
+        }
+      }
+    }
+
+    .folder-list-container {
+      @include calc-height(100%, 95px);
+
+      margin-top: 10px;
+      position: absolute;
+      width: 100%;
+
+      ul.breadcrumbs {
+        background: white;
+        border-bottom: 2px solid $teal;
+        padding: 10px 0px;
+        position: absolute;
+        top: 0px;
+        width: 100%;
+
+        li.folder-title {
+          cursor: pointer;
+          display: inline-block;
+          font-weight: 600;
+          margin-left: 8px;
+          padding-left: 10px;
+
+          &:before {
+            content: "\e002";
+            color: $grey4;
+            font-family: Flaticon;
+            font-size: 14px;
+            font-style: normal;
+            margin-right: 7px;
+          }
+
+          &.shared:before {
+            content: "\e005";
+          }
+
+          &:after {
+            content: "/";
+            color: $grey4;
+            font-size: 15px;
+            font-weight: 400;
+            position: absolute;
+            margin-left: 5px;
+            margin-top: -1px;
+          }
+
+          &:hover span {
+            text-decoration: underline;
+          }
+
+          &:first-child {
+            margin-left: 0px;
+          }
+
+          &:last-child:after {
+            content: "";
+          }
+        }
+      }
+
+      ul.folder-list {
+        @include calc-height(100%, 252px);
+
+        background: white;
+        cursor: pointer;
+        overflow: scroll;
+        position: absolute;
+        top: 39px;
+        width: 100%;
+
+        li {
+          border-bottom: 1px solid $grey1;
+          padding: 10px;
+          padding-right: 20px;
+
+          &:hover {
+            background: $teal;
+            border-bottom: 1px solid $teal;
+            color: white;
+
+            &:before {
+              color: white;
+            }
+          }
+
+          &:before {
+            content: "\e002";
+            color: $grey4;
+            font-family: Flaticon;
+            font-size: 14px;
+            font-style: normal;
+            margin-right: 7px;
+          }
+
+          &.shared:before {
+            content: "\e005";
+          }
+
+          &.selected {
+            background: $blue;
+            border-bottom: 1px solid $blue;
+            color: white;
+
+            &:before {
+              color: white;
+            }
+          }
+
+          span:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
