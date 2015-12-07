@@ -66,6 +66,21 @@ form {
     min-width: 200px; }
     form input[type=text]:focus, form input[type=text]:active {
       outline: 0; }
+    form input[type=text] + .delete {
+      background: #e12548;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 18px;
+      height: 12px;
+      line-height: 8px;
+      margin-left: 5px;
+      text-align: center;
+      vertical-align: middle;
+      width: 12px; }
+      form input[type=text] + .delete:hover {
+        background: #b91a37; }
   form input[type=checkbox] {
     font-size: 12px; }
   form input[type=submit] {
@@ -84,6 +99,13 @@ form {
   form .form-element {
     font-size: 12px;
     margin: 10px 0px; }
+    form .form-element .extra-text {
+      color: #1bbeb8;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-top: 3px; }
+      form .form-element .extra-text:hover {
+        color: #15918d; }
 
 .login {
   height: 100%;

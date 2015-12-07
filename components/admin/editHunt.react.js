@@ -6,6 +6,17 @@ var _ = require('lodash'),
     update = require('react-addons-update');
 
 module.exports = React.createClass({
+  addRoundName: function() {
+    var newState = update(this.state, {
+      newRound: {
+        names: {
+          $set: this.state.newRound.names.concat({val: '', key: this.state.newRound.names.length})
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
   componentWillReceiveProps: function(newProps, oldProps) {
     this.setState(this.getInitialState(newProps));
   },
@@ -13,10 +24,18 @@ module.exports = React.createClass({
   componentDidMount: function() {
     $.get("/hunt/puzzles", { huntID: this.state.hunt.id }, function(puzzles) {
       if (this.isMounted()) {
-        var newState = update(this.state, { puzzles: puzzles });
+        var newState = update(this.state, {
+          puzzles: {
+            $set: puzzles
+          }
+        });
         this.setState(newState);
       }
     }.bind(this));
+  },
+
+  createRound: function() {
+    // do something
   },
 
   getFolderIcon: function() {
@@ -34,11 +53,43 @@ module.exports = React.createClass({
       driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
       folders: props.folders,
       hunt: props.hunt,
+      newRound: {
+        names: [{
+          val: '',
+          key: 0 // static key that doesn't rely on position in array for React rendering
+        }]
+      },
       puzzles: []
     };
   },
 
+  handleRoundNameChange: function(index, event) {
+    var names = this.state.newRound.names;
+    names[index].val = event.target.value;
+    var newState = update(this.state, {
+      newRound: {
+        names: {
+          $set: names
+        }
+      }
+    });
+  },
+
+  removeRoundName: function(index) {
+    var names = this.state.newRound.names;
+    names.splice(index, 1);
+    var newState = update(this.state, {
+      newRound: {
+        names: {
+          $set: names
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
   render: function() {
+    var _this = this;
     return (
       <div>
         <h3>Edit {this.state.hunt.name}</h3>
@@ -78,12 +129,43 @@ module.exports = React.createClass({
                       <th>Created At</th>
                     </tr>
                   </thead>
+                  // add list of puzzles here
                 </table>
               </div>
             </div>
           </li>
           <li className={(this.props.activeTab == "round" ? "active": "")}>
-            Add Rounds
+            <h4>Add Rounds</h4>
+            <form onSubmit={this.createRound}>
+              <div className='form-element'>
+                <label htmlFor='parent-round'>Parent Round</label>
+                <select value="">
+                  <option value=""></option>
+                  // add list of rounds from hunt here
+                </select>
+              </div>
+              <div className='form-element'>
+                <label htmlFor='name'>Round Name</label>
+              </div>
+              {this.state.newRound.names.map(function(name, index) {
+                var deleteButton = '';
+                if (index > 0) {
+                  deleteButton = <span className='delete' onClick={_this.removeRoundName.bind(_this, index)}>-</span>
+                }
+                return (
+                  <div className='form-element' key={"add.round." + name.key} >
+                    <input defaultValue='' type='text' onChange={_this.handleRoundNameChange.bind(_this, index)} />
+                    {deleteButton}
+                  </div>
+                );
+              })}
+              <div className='form-element'>
+                <div className='extra-text' onClick={this.addRoundName}>Add Another..</div>
+              </div>
+              <div className='form-element'>
+                <input type='submit' value={(this.state.newRound.names.length > 1) ? "Create Rounds" : "Create Round"} />
+              </div>
+            </form>
           </li>
           <li className={(this.props.activeTab == "puzzle" ? "active": "")}>
             Add Puzzle
