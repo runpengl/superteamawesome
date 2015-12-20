@@ -25,9 +25,6 @@ if (!global.hasOwnProperty('db')) {
     }
   });
 
-  // Define Model relationships
-  global.db["Round"].hasMany(db["Puzzle"], {as: "Puzzles", foreignKey: "roundID"});
-
   global.db.sequelize = sequelize;
   global.db.Sequelize = Sequelize;
 }
