@@ -57,7 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(session({
   cookie: {
-    maxAge: 604800
+    maxAge: 604800000
   },
   secret: 'poofytoo',
   saveUninitialized: false,
