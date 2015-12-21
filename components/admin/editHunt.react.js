@@ -22,14 +22,15 @@ module.exports = React.createClass({
   },
 
   componentDidMount: function() {
-    $.get("/hunt/puzzles", { huntID: this.state.hunt.id }, function(puzzles) {
+    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
-          puzzles: {
-            $set: puzzles
+          rounds: {
+            $set: rounds
           }
         });
         this.setState(newState);
+        console.log(this.state.rounds);
       }
     }.bind(this));
   },
@@ -40,11 +41,15 @@ module.exports = React.createClass({
       newRound.parentRound = {
         folderID: this.props.hunt.folderID
       };
+    } else {
+      var roundIndex = parseInt(newRound.parentRound.split("-")[1]);
+      newRound.parentRound = this.state.rounds[roundIndex];
     }
 
     $.post("/admin/create/round",
       {
-        newRound: newRound
+        newRound: newRound,
+        huntID: this.state.hunt.id
       }
     ).success(function(rounds) {
       window.location.href = "/admin/edit";
@@ -75,7 +80,7 @@ module.exports = React.createClass({
         }],
         parentRound: "None"
       },
-      puzzles: []
+      rounds: []
     };
   },
 
@@ -178,6 +183,11 @@ module.exports = React.createClass({
                 <label htmlFor='parent-round'>Parent Round</label>
                 <select value={this.state.newRound.parentRound} onChange={this.handleParentRoundChange}>
                   <option value="None">None</option>
+                  {this.state.rounds.map(function(round, index) {
+                    return (
+                      <option key={"round-" + index} value={"round-" + index}>{round.name}</option>
+                    );
+                  })}
                 </select>
               </div>
               <div className='form-element'>

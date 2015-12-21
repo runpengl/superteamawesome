@@ -153,6 +153,7 @@ module.exports = {
         rounds.push({
           name: newRound.names[index].val,
           folderID: folder.id,
+          huntID: req.body.huntID,
           parentID: newRound.parentRound.id
         });
       });

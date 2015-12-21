@@ -102,7 +102,7 @@ app.get('/admin/edit/puzzle', routes.loggedIn, admin.editPuzzle);
 app.get('/admin/edit/settings', routes.loggedIn, admin.editSettings);
 
 // Hunt routes
-app.get('/hunt/puzzles', routes.loggedIn, hunt.puzzles);
+app.get('/hunt/rounds', routes.loggedIn, hunt.rounds);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
