@@ -124,12 +124,15 @@ module.exports = {
         return tempDeferred.promise;
       }
     }).then(function() {
+      return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
+    }).then(function(sheet) {
       return models.Hunt.create({
         name: req.body.name,
         folderID: newHuntFolder.id,
         createdBy: req.user.id,
         isActive: req.body.active,
-        parentFolderID: req.body.parentID
+        parentFolderID: req.body.parentID,
+        templateSheet: sheet.id
       });
     }).then(function(hunt) {
       res.send(hunt);

@@ -32,6 +32,10 @@ module.exports = React.createClass({
     return "https://drive.google.com/drive/folders/" + id;
   },
 
+  getSheetUrl: function(id) {
+    return "https://docs.google.com/spreadsheets/d/" + id;
+  },
+
   getInitialState: function(props) {
     props = props || this.props;
 
@@ -75,6 +79,10 @@ module.exports = React.createClass({
                   <li>
                     <div className='label'>Google Drive</div>
                     <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl(this.state.driveFolder.id)}>{this.state.driveFolder.title}</a></div>
+                  </li>
+                  <li>
+                    <div className='label'>Puzzle Template</div>
+                    <div className='info sheet'><a target='blank' href={this.getSheetUrl(this.state.hunt.templateSheet)}>Puzzle Template</a></div>
                   </li>
                 </ul>
               </div>

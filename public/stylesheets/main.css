@@ -661,23 +661,26 @@ table {
 .flaticon-add:before {
   content: "\e000"; }
 
-.flaticon-notification:before {
+.flaticon-sheet:before {
   content: "\e001"; }
 
-.flaticon-folder:before {
+.flaticon-edit:before {
   content: "\e002"; }
 
-.flaticon-google:before {
+.flaticon-folder:before {
   content: "\e003"; }
 
-.flaticon-edit:before {
+.flaticon-google:before {
   content: "\e004"; }
 
-.flaticon-folder-shared:before {
+.flaticon-notification:before {
   content: "\e005"; }
 
-.flaticon-chat:before {
+.flaticon-folder-shared:before {
   content: "\e006"; }
+
+.flaticon-chat:before {
+  content: "\e007"; }
 
 /* Colors */
 .admin-content {
@@ -706,31 +709,38 @@ table {
           display: inline-block;
           width: 60%; }
           .admin-content .side-content .tab-content .card .details ul li .info.folder:before {
-            content: "\e002";
+            content: "\e003";
             color: #656565;
             font-family: Flaticon;
             font-size: 14px;
             font-style: normal;
             margin-right: 7px; }
           .admin-content .side-content .tab-content .card .details ul li .info.folder.shared:before {
-            content: "\e005"; }
+            content: "\e006"; }
           .admin-content .side-content .tab-content .card .details ul li .info.folder a:hover {
             color: #1c71b9;
             text-decoration: underline; }
+          .admin-content .side-content .tab-content .card .details ul li .info.sheet::before {
+            color: #656565;
+            content: "\e001";
+            font-family: Flaticon;
+            font-size: 14px;
+            font-style: normal;
+            margin-right: 7px; }
     .admin-content .side-content .tab-content .card .header {
       background: #1c71b9;
       color: white;
       padding: 5px 8px;
       width: 100%; }
   .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title:before {
-    content: "\e002";
+    content: "\e003";
     color: #656565;
     font-family: Flaticon;
     font-size: 14px;
     font-style: normal;
     margin-right: 7px; }
   .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title.shared:before {
-    content: "\e005"; }
+    content: "\e006"; }
   .admin-content .side-content .tab-content .folder-list-container {
     height: calc(100% - 95px);
     height: -webkit-calc(100% - 95px);
@@ -751,14 +761,14 @@ table {
         margin-left: 8px;
         padding-left: 10px; }
         .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:before {
-          content: "\e002";
+          content: "\e003";
           color: #656565;
           font-family: Flaticon;
           font-size: 14px;
           font-style: normal;
           margin-right: 7px; }
         .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title.shared:before {
-          content: "\e005"; }
+          content: "\e006"; }
         .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:after {
           content: "/";
           color: #656565;
@@ -793,14 +803,14 @@ table {
           .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:hover:before {
             color: white; }
         .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:before {
-          content: "\e002";
+          content: "\e003";
           color: #656565;
           font-family: Flaticon;
           font-size: 14px;
           font-style: normal;
           margin-right: 7px; }
         .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.shared:before {
-          content: "\e005"; }
+          content: "\e006"; }
         .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.selected {
           background: #1c71b9;
           border-bottom: 1px solid #1c71b9;

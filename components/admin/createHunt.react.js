@@ -100,6 +100,16 @@ module.exports = React.createClass({
     this.setState(newState);
   },
 
+  handleTemplateChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        template: {
+          $set: e.target.value
+        }
+      }
+    }));
+  },
+
   handleSubmit: function(e) {
     e.preventDefault();
     var name = this.state.hunt.name.trim();
@@ -112,10 +122,15 @@ module.exports = React.createClass({
       {
         name: name,
         active: this.state.hunt.active,
-        parentID: folderID
+        parentID: folderID,
+        templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
-      window.location.href="/admin/edit";
+      if (hunt.error) {
+        console.error(hunt.error);
+      } else {
+        window.location.href="/admin/edit";
+      }
     }.bind(this));
     this.setHuntName('');
   },
@@ -133,6 +148,10 @@ module.exports = React.createClass({
           <div className='form-element'>
             <label htmlFor='name'>Name</label>
             <input type='text' name='name' value={this.state.hunt.name} onChange={this.handleNameChange} defaultValue="" />
+          </div>
+          <div className='form-element'>
+            <label htmlFor='template'>Template Puzzle Sheet</label>
+            <input type='text' name='template' value={this.state.hunt.template} onChange={this.handleTemplateChange} defaultvalue="" />
           </div>
           <div className='form-element'>
             <label htmlFor='googleDrive'>Parent Folder</label>
