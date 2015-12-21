@@ -108,7 +108,7 @@ module.exports = React.createClass({
     }
     var folder = this.state.selectedFolder;
     var folderID = (folder.props == null) ? folder.id : folder.props.id;
-    $.post("/admin/createhunt",
+    $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,

@@ -34,8 +34,22 @@ module.exports = React.createClass({
     }.bind(this));
   },
 
-  createRound: function() {
-    // do something
+  createRound: function(event) {
+    var newRound = this.state.newRound;
+    if (newRound.parentRound === "None") {
+      newRound.parentRound = {
+        folderID: this.props.hunt.folderID
+      };
+    }
+
+    $.post("/admin/create/round",
+      {
+        newRound: newRound
+      }
+    ).success(function(rounds) {
+      window.location.href = "/admin/edit";
+    }.bind(this));
+    event.preventDefault();
   },
 
   getFolderIcon: function() {
@@ -54,13 +68,36 @@ module.exports = React.createClass({
       folders: props.folders,
       hunt: props.hunt,
       newRound: {
+        meta: '',
         names: [{
           val: '',
           key: 0 // static key that doesn't rely on position in array for React rendering
-        }]
+        }],
+        parentRound: "None"
       },
       puzzles: []
     };
+  },
+
+  handleParentRoundChange: function(event) {
+    this.setState(update(this.state, {
+      newRound: {
+        parentRound: {
+          $set: event.target.value
+        }
+      }
+    }));
+  },
+
+  handleRoundMetaLinkChange: function(event) {
+    var newState = update(this.state, {
+      newRound: {
+        meta: {
+          $set: event.target.value
+        }
+      }
+    });
+    this.setState(newState);
   },
 
   handleRoundNameChange: function(index, event) {
@@ -73,6 +110,7 @@ module.exports = React.createClass({
         }
       }
     });
+    this.setState(newState);
   },
 
   removeRoundName: function(index) {
@@ -129,7 +167,6 @@ module.exports = React.createClass({
                       <th>Created At</th>
                     </tr>
                   </thead>
-                  // add list of puzzles here
                 </table>
               </div>
             </div>
@@ -139,10 +176,13 @@ module.exports = React.createClass({
             <form onSubmit={this.createRound}>
               <div className='form-element'>
                 <label htmlFor='parent-round'>Parent Round</label>
-                <select value="">
-                  <option value=""></option>
-                  // add list of rounds from hunt here
+                <select value={this.state.newRound.parentRound} onChange={this.handleParentRoundChange}>
+                  <option value="None">None</option>
                 </select>
+              </div>
+              <div className='form-element'>
+                <label htmlFor='meta-link'>Meta Puzzle Link</label>
+                <input defaultValue='' type='text' onChange={_this.handleRoundMetaLinkChange} />
               </div>
               <div className='form-element'>
                 <label htmlFor='name'>Round Name</label>

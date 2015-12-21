@@ -7,7 +7,7 @@ var debug = require('debug')('superteamawesome:server');
 module.exports = {
 
   // Google Drive functions
-  createHunt: function(title, parentID) {
+  createFolder: function(title, parentID) {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     service.files.insert({
