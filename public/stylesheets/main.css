@@ -504,13 +504,28 @@ header {
         .side-content .tab-content li .sub-tab-content li ul li {
           display: block; }
 
+/* Colors */
 table {
   border-spacing: 0; }
 
 .card .details table {
   width: 100%; }
+  .card .details table tbody tr:last-child td {
+    border-bottom: none; }
   .card .details table tbody tr td {
-    border-bottom: 1px solid #677d8b; }
+    border-bottom: 1px solid #dfdfdf;
+    padding: 10px 0px; }
+    .card .details table tbody tr td .folder:before {
+      content: "\e002";
+      color: #656565;
+      font-family: Flaticon;
+      font-size: 14px;
+      font-style: normal;
+      margin-right: 7px; }
+    .card .details table tbody tr td .folder a {
+      color: #1c71b9; }
+      .card .details table tbody tr td .folder a:hover {
+        text-decoration: underline; }
   .card .details table thead tr th {
     border-bottom: 1px solid #677d8b;
     color: #656565;

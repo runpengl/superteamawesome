@@ -61,8 +61,8 @@ module.exports = React.createClass({
     return this.state.driveFolder.shared ? "shared folder info" : "folder info";
   },
 
-  getFolderUrl: function() {
-    return "https://drive.google.com/drive/folders/" + this.state.driveFolder.id;
+  getFolderUrl: function(id) {
+    return "https://drive.google.com/drive/folders/" + id;
   },
 
   getInitialState: function(props) {
@@ -154,24 +154,51 @@ module.exports = React.createClass({
                   </li>
                   <li>
                     <div className='label'>Google Drive</div>
-                    <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl()}>{this.state.driveFolder.title}</a></div>
+                    <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl(this.state.driveFolder.id)}>{this.state.driveFolder.title}</a></div>
                   </li>
                 </ul>
               </div>
             </div>
             <div className='card'>
               <div className='header'>
-                <h4>Puzzles</h4>
+                <h4>Rounds</h4>
               </div>
               <div className='details'>
                 <table cellSpacing="0" cellPadding="0">
                   <thead>
                     <tr>
-                      <th>Puzzle Name</th>
-                      <th>Created By</th>
-                      <th>Created At</th>
+                      <th>Round Name</th>
+                      <th>Drive Folder</th>
+                      <th>Solved Folder</th>
+                      <th># Puzzles</th>
+                      <th>Meta Solved</th>
                     </tr>
                   </thead>
+                  <tbody>
+                    {_this.state.rounds.map(function(round) {
+                      return (
+                        <tr>
+                          <td>{round.name}</td>
+                          <td>
+                            <div className='folder'>
+                              <a href={_this.getFolderUrl(round.folderID)} target='blank'>{round.name}</a>
+                            </div>
+                          </td>
+                          <td>
+                            <div className='folder'>
+                              <a href={_this.getFolderUrl(round.solvedFolderID)} target='blank'>Solved Folder</a>
+                            </div>
+                          </td>
+                          <td>
+                            {round.Puzzles.length}
+                          </td>
+                          <td>
+                            No
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
                 </table>
               </div>
             </div>
