@@ -43,6 +43,14 @@ module.exports = React.createClass({
     };
   },
 
+  getParentRound: function(roundID) {
+    var round = _.find(this.state.rounds, { id: roundID });
+    if (round != null) {
+      return round.name;
+    }
+    return "";
+  },
+
   render: function() {
     var _this = this;
     return (
@@ -80,6 +88,7 @@ module.exports = React.createClass({
                   <thead>
                     <tr>
                       <th>Round Name</th>
+                      <th>Parent Round</th>
                       <th>Drive Folder</th>
                       <th>Solved Folder</th>
                       <th># Puzzles</th>
@@ -91,6 +100,7 @@ module.exports = React.createClass({
                       return (
                         <tr key={"round-row-" + round.id}>
                           <td>{round.name}</td>
+                          <td>{_this.getParentRound(round.parentID)}</td>
                           <td>
                             <div className='folder'>
                               <a href={_this.getFolderUrl(round.folderID)} target='blank'>{round.name}</a>
