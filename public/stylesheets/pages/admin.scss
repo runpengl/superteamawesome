@@ -10,6 +10,15 @@
 
   .side-content .tab-content {
     $side-padding: 8px;
+    height: 100%;
+
+    > li {
+      height: 100%;
+      > div {
+        height: 100%;
+      }
+    }
+
     .card {
       margin: 10px 0 20px;
 
@@ -81,6 +90,16 @@
     }
 
     .create-hunt-form {
+      height: 100%;
+
+      .form-element-container, .folder-container {
+        display: inline-block;
+        height: 100%;
+        position: relative;
+        vertical-align: top;
+        width: 49%;
+      }
+
       .form-element {
         .folder-title {
           &:before {
@@ -159,7 +178,7 @@
       }
 
       ul.folder-list {
-        @include calc-height(100%, 252px);
+        @include calc-height(100%, 100px);
 
         background: white;
         cursor: pointer;

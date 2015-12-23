@@ -688,134 +688,148 @@ table {
   height: -webkit-calc(100% - 100px);
   overflow-y: hidden;
   padding-bottom: 10px; }
-  .admin-content .side-content .tab-content .card {
-    margin: 10px 0 20px; }
-    .admin-content .side-content .tab-content .card .details {
-      background: white;
-      font-size: 12px;
-      padding: 5px 8px;
+  .admin-content .side-content .tab-content {
+    height: 100%; }
+    .admin-content .side-content .tab-content > li {
+      height: 100%; }
+      .admin-content .side-content .tab-content > li > div {
+        height: 100%; }
+    .admin-content .side-content .tab-content .card {
+      margin: 10px 0 20px; }
+      .admin-content .side-content .tab-content .card .details {
+        background: white;
+        font-size: 12px;
+        padding: 5px 8px;
+        width: 100%; }
+        .admin-content .side-content .tab-content .card .details ul li {
+          border-bottom: 1px dotted #dfdfdf;
+          padding: 8px 0; }
+          .admin-content .side-content .tab-content .card .details ul li:last-child {
+            border-bottom: none; }
+          .admin-content .side-content .tab-content .card .details ul li .label {
+            color: #656565;
+            display: inline-block;
+            font-weight: 600;
+            width: 40%; }
+          .admin-content .side-content .tab-content .card .details ul li .info {
+            display: inline-block;
+            width: 60%; }
+            .admin-content .side-content .tab-content .card .details ul li .info.folder:before {
+              content: "\e003";
+              color: #656565;
+              font-family: Flaticon;
+              font-size: 14px;
+              font-style: normal;
+              margin-right: 7px; }
+            .admin-content .side-content .tab-content .card .details ul li .info.folder.shared:before {
+              content: "\e006"; }
+            .admin-content .side-content .tab-content .card .details ul li .info.folder a:hover {
+              color: #1c71b9;
+              text-decoration: underline; }
+            .admin-content .side-content .tab-content .card .details ul li .info.sheet::before {
+              color: #656565;
+              content: "\e001";
+              font-family: Flaticon;
+              font-size: 14px;
+              font-style: normal;
+              margin-right: 7px; }
+      .admin-content .side-content .tab-content .card .header {
+        background: #1c71b9;
+        color: white;
+        padding: 5px 8px;
+        width: 100%; }
+    .admin-content .side-content .tab-content .create-hunt-form {
+      height: 100%; }
+      .admin-content .side-content .tab-content .create-hunt-form .form-element-container, .admin-content .side-content .tab-content .create-hunt-form .folder-container {
+        display: inline-block;
+        height: 100%;
+        position: relative;
+        vertical-align: top;
+        width: 49%; }
+      .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title:before {
+        content: "\e003";
+        color: #656565;
+        font-family: Flaticon;
+        font-size: 14px;
+        font-style: normal;
+        margin-right: 7px; }
+      .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title.shared:before {
+        content: "\e006"; }
+    .admin-content .side-content .tab-content .folder-list-container {
+      height: calc(100% - 95px);
+      height: -webkit-calc(100% - 95px);
+      margin-top: 10px;
+      position: absolute;
       width: 100%; }
-      .admin-content .side-content .tab-content .card .details ul li {
-        border-bottom: 1px dotted #dfdfdf;
-        padding: 8px 0; }
-        .admin-content .side-content .tab-content .card .details ul li:last-child {
-          border-bottom: none; }
-        .admin-content .side-content .tab-content .card .details ul li .label {
-          color: #656565;
+      .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs {
+        background: white;
+        border-bottom: 2px solid #1bbeb8;
+        padding: 10px 0px;
+        position: absolute;
+        top: 0px;
+        width: 100%; }
+        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title {
+          cursor: pointer;
           display: inline-block;
           font-weight: 600;
-          width: 40%; }
-        .admin-content .side-content .tab-content .card .details ul li .info {
-          display: inline-block;
-          width: 60%; }
-          .admin-content .side-content .tab-content .card .details ul li .info.folder:before {
+          margin-left: 8px;
+          padding-left: 10px; }
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:before {
             content: "\e003";
             color: #656565;
             font-family: Flaticon;
             font-size: 14px;
             font-style: normal;
             margin-right: 7px; }
-          .admin-content .side-content .tab-content .card .details ul li .info.folder.shared:before {
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title.shared:before {
             content: "\e006"; }
-          .admin-content .side-content .tab-content .card .details ul li .info.folder a:hover {
-            color: #1c71b9;
-            text-decoration: underline; }
-          .admin-content .side-content .tab-content .card .details ul li .info.sheet::before {
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:after {
+            content: "/";
             color: #656565;
-            content: "\e001";
+            font-size: 15px;
+            font-weight: 400;
+            position: absolute;
+            margin-left: 5px;
+            margin-top: -1px; }
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:hover span {
+            text-decoration: underline; }
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:first-child {
+            margin-left: 0px; }
+          .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:last-child:after {
+            content: ""; }
+      .admin-content .side-content .tab-content .folder-list-container ul.folder-list {
+        height: calc(100% - 100px);
+        height: -webkit-calc(100% - 100px);
+        background: white;
+        cursor: pointer;
+        overflow: scroll;
+        position: absolute;
+        top: 39px;
+        width: 100%; }
+        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li {
+          border-bottom: 1px solid #ebebeb;
+          padding: 10px;
+          padding-right: 20px; }
+          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:hover {
+            background: #1bbeb8;
+            border-bottom: 1px solid #1bbeb8;
+            color: white; }
+            .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:hover:before {
+              color: white; }
+          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:before {
+            content: "\e003";
+            color: #656565;
             font-family: Flaticon;
             font-size: 14px;
             font-style: normal;
             margin-right: 7px; }
-    .admin-content .side-content .tab-content .card .header {
-      background: #1c71b9;
-      color: white;
-      padding: 5px 8px;
-      width: 100%; }
-  .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title:before {
-    content: "\e003";
-    color: #656565;
-    font-family: Flaticon;
-    font-size: 14px;
-    font-style: normal;
-    margin-right: 7px; }
-  .admin-content .side-content .tab-content .create-hunt-form .form-element .folder-title.shared:before {
-    content: "\e006"; }
-  .admin-content .side-content .tab-content .folder-list-container {
-    height: calc(100% - 95px);
-    height: -webkit-calc(100% - 95px);
-    margin-top: 10px;
-    position: absolute;
-    width: 100%; }
-    .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs {
-      background: white;
-      border-bottom: 2px solid #1bbeb8;
-      padding: 10px 0px;
-      position: absolute;
-      top: 0px;
-      width: 100%; }
-      .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title {
-        cursor: pointer;
-        display: inline-block;
-        font-weight: 600;
-        margin-left: 8px;
-        padding-left: 10px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:before {
-          content: "\e003";
-          color: #656565;
-          font-family: Flaticon;
-          font-size: 14px;
-          font-style: normal;
-          margin-right: 7px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title.shared:before {
-          content: "\e006"; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:after {
-          content: "/";
-          color: #656565;
-          font-size: 15px;
-          font-weight: 400;
-          position: absolute;
-          margin-left: 5px;
-          margin-top: -1px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:hover span {
-          text-decoration: underline; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:first-child {
-          margin-left: 0px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.breadcrumbs li.folder-title:last-child:after {
-          content: ""; }
-    .admin-content .side-content .tab-content .folder-list-container ul.folder-list {
-      height: calc(100% - 252px);
-      height: -webkit-calc(100% - 252px);
-      background: white;
-      cursor: pointer;
-      overflow: scroll;
-      position: absolute;
-      top: 39px;
-      width: 100%; }
-      .admin-content .side-content .tab-content .folder-list-container ul.folder-list li {
-        border-bottom: 1px solid #ebebeb;
-        padding: 10px;
-        padding-right: 20px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:hover {
-          background: #1bbeb8;
-          border-bottom: 1px solid #1bbeb8;
-          color: white; }
-          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:hover:before {
+          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.shared:before {
+            content: "\e006"; }
+          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.selected {
+            background: #1c71b9;
+            border-bottom: 1px solid #1c71b9;
             color: white; }
-        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li:before {
-          content: "\e003";
-          color: #656565;
-          font-family: Flaticon;
-          font-size: 14px;
-          font-style: normal;
-          margin-right: 7px; }
-        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.shared:before {
-          content: "\e006"; }
-        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.selected {
-          background: #1c71b9;
-          border-bottom: 1px solid #1c71b9;
-          color: white; }
-          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.selected:before {
-            color: white; }
-        .admin-content .side-content .tab-content .folder-list-container ul.folder-list li span:hover {
-          text-decoration: underline; }
+            .admin-content .side-content .tab-content .folder-list-container ul.folder-list li.selected:before {
+              color: white; }
+          .admin-content .side-content .tab-content .folder-list-container ul.folder-list li span:hover {
+            text-decoration: underline; }

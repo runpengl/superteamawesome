@@ -105,8 +105,23 @@ module.exports = {
   },
 
   createHunt: function(req, res) {
+    debug("hey");
+    debug(req.body.createNewFolder);
     var newHuntFolder;
-    gapi.createFolder(req.body.name, req.body.parentID).then(function(folder) {
+    function getFolder() {
+      var deferFolder = Q.defer();
+      if (req.body.createNewFolder === "false") {
+        deferFolder.resolve({id: req.body.parentID});
+        return deferFolder.promise;
+      } else {
+        console.log(req.body.parentID);
+        return gapi.createFolder(req.body.name, req.body.parentID);
+      }
+    }
+
+    getFolder().then(function(folder) {
+      debug("folder");
+      debug(folder);
       newHuntFolder = folder;
       var deferred = Q.defer();
       if (req.body.active) {
@@ -121,11 +136,20 @@ module.exports = {
         });
       } else {
         deferred.resolve(true);
-        return tempDeferred.promise;
+        return deferred.promise;
       }
     }).then(function() {
-      return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
+      debug("active changed");
+      var deferred = Q.defer();
+      if (req.body.templateSheet != null && req.body.templateSheet.length > 0) {
+        deferred.resolve({});
+        return deferred.promise;
+      } else {
+        return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
+      }
     }).then(function(sheet) {
+      debug("sheet");
+      debug(sheet);
       return models.Hunt.create({
         name: req.body.name,
         folderID: newHuntFolder.id,
@@ -135,6 +159,7 @@ module.exports = {
         templateSheet: sheet.id
       });
     }).then(function(hunt) {
+      debug(hunt);
       res.send(hunt);
     }).catch(function(error) {
       res.send({ error: error });
