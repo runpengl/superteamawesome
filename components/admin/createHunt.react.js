@@ -93,11 +93,21 @@ module.exports = React.createClass({
     var newState = update(this.state, {
       hunt: {
         active: {
-          $set: !!e.target.value
+          $set: e.checked
         }
       }
     });
     this.setState(newState);
+  },
+
+  handleCreateNewFolderChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        createNewFolder: {
+          $set: e.checked
+        }
+      }
+    }));
   },
 
   handleTemplateChange: function(e) {
@@ -117,7 +127,7 @@ module.exports = React.createClass({
       return;
     }
     var folder = this.state.selectedFolder;
-    var folderID = (folder.props == null) ? folder.id : folder.props.id;
+    var folderID = (folder.props == null) ? folder.id : folder.props.folder.id;
     $.post("/admin/create/hunt",
       {
         name: name,
@@ -143,6 +153,9 @@ module.exports = React.createClass({
           <div className='form-element'>
             <label htmlFor='active'>
               <input type='checkbox' onChange={this.state.handleActiveChange} defaultChecked="true" /> Active
+            </label>
+            <label htmlFor='createNewFolder'>
+              <input type='checkbox' onChange={this.state.handleCreateNewFolderChange} defaultChecked={false} /> Create New Folder
             </label>
           </div>
           <div className='form-element'>

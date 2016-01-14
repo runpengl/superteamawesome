@@ -108,7 +108,7 @@ module.exports = {
     var newHuntFolder;
     function getFolder() {
       var deferFolder = Q.defer();
-      if (req.body.createNewFolder === "false") {
+      if (req.body.createNewFolder === "false" || req.body.createNewFolder === undefined) {
         deferFolder.resolve({id: req.body.parentID});
         return deferFolder.promise;
       } else {
