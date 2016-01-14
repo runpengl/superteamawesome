@@ -11,7 +11,9 @@ module.exports = {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     var regex = /https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g;
+    debug(sheetLink, destinationFolder);
     var fileId = regex.exec(sheetLink)[1];
+    debug("SHEET" + fileId);
     service.files.copy({
       fileId: fileId,
       resource: {

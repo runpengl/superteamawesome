@@ -105,8 +105,6 @@ module.exports = {
   },
 
   createHunt: function(req, res) {
-    debug("hey");
-    debug(req.body.createNewFolder);
     var newHuntFolder;
     function getFolder() {
       var deferFolder = Q.defer();
@@ -120,8 +118,6 @@ module.exports = {
     }
 
     getFolder().then(function(folder) {
-      debug("folder");
-      debug(folder);
       newHuntFolder = folder;
       var deferred = Q.defer();
       if (req.body.active) {
@@ -139,17 +135,14 @@ module.exports = {
         return deferred.promise;
       }
     }).then(function() {
-      debug("active changed");
       var deferred = Q.defer();
-      if (req.body.templateSheet != null && req.body.templateSheet.length > 0) {
+      if (req.body.templateSheet == null || req.body.templateSheet.length === 0) {
         deferred.resolve({});
         return deferred.promise;
       } else {
         return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
       }
     }).then(function(sheet) {
-      debug("sheet");
-      debug(sheet);
       return models.Hunt.create({
         name: req.body.name,
         folderID: newHuntFolder.id,
