@@ -95,9 +95,10 @@ module.exports = {
       q: '"' + folderID + '" in parents and mimeType = "application/vnd.google-apps.folder"'
     }, function(err, response) {
       if (err) {
-        console.log('The API returned an error: ' + err);
+        debug('The API returned an error: ' + err);
         defer.reject(err);
       } else {
+        debug(_.filter(response.items, { labels: { trashed: false }}));
         defer.resolve(_.filter(response.items, { labels: { trashed: false }}));
       }
     });

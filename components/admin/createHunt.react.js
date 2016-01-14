@@ -93,7 +93,7 @@ module.exports = React.createClass({
     var newState = update(this.state, {
       hunt: {
         active: {
-          $set: e.checked
+          $set: e.target.checked
         }
       }
     });
@@ -104,7 +104,7 @@ module.exports = React.createClass({
     this.setState(update(this.state, {
       hunt: {
         createNewFolder: {
-          $set: e.checked
+          $set: e.target.checked
         }
       }
     }));
@@ -127,12 +127,19 @@ module.exports = React.createClass({
       return;
     }
     var folder = this.state.selectedFolder;
-    var folderID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    var folderID = null;
+    var parentID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    if (this.state.hunt.createNewFolder == null || !this.state.hunt.createNewFolder) {
+      folderID = parentID;
+      parentID = folder.props.folder.parents[0].id;
+    }
     $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,
-        parentID: folderID,
+        createNewFolder: this.state.hunt.createNewFolder,
+        folderID: folderID,
+        parentID: parentID,
         templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
@@ -152,10 +159,10 @@ module.exports = React.createClass({
         <form className='create-hunt-form' onSubmit={this.handleSubmit}>
           <div className='form-element'>
             <label htmlFor='active'>
-              <input type='checkbox' onChange={this.state.handleActiveChange} defaultChecked="true" /> Active
+              <input name='active' type='checkbox' onChange={this.handleActiveChange} defaultChecked="true" /> Active
             </label>
             <label htmlFor='createNewFolder'>
-              <input type='checkbox' onChange={this.state.handleCreateNewFolderChange} defaultChecked={false} /> Create New Folder
+              <input name='createNewFolder' type='checkbox' onChange={this.handleCreateNewFolderChange} defaultChecked="" /> Create New Folder
             </label>
           </div>
           <div className='form-element'>

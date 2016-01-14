@@ -109,10 +109,9 @@ module.exports = {
     function getFolder() {
       var deferFolder = Q.defer();
       if (req.body.createNewFolder === "false" || req.body.createNewFolder === undefined) {
-        deferFolder.resolve({id: req.body.parentID});
+        deferFolder.resolve({id: req.body.folderID});
         return deferFolder.promise;
       } else {
-        console.log(req.body.parentID);
         return gapi.createFolder(req.body.name, req.body.parentID);
       }
     }
@@ -148,7 +147,7 @@ module.exports = {
         folderID: newHuntFolder.id,
         createdBy: req.user.id,
         isActive: req.body.active,
-        parentFolderID: req.body.parentID,
+        parentFolderID: req.body.parentID, // needs to be parent
         templateSheet: sheet.id
       });
     }).then(function(hunt) {
