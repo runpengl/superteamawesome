@@ -10,6 +10,15 @@
 
   .side-content .tab-content {
     $side-padding: 8px;
+    height: 100%;
+
+    > li {
+      height: 100%;
+      > div {
+        height: 100%;
+      }
+    }
+
     .card {
       margin: 10px 0 20px;
 
@@ -40,7 +49,7 @@
 
             &.folder {
               &:before {
-                content: "\e002";
+                content: "\e003";
                 color: $grey4;
                 font-family: Flaticon;
                 font-size: 14px;
@@ -49,12 +58,23 @@
               }
 
               &.shared:before {
-                content: "\e005";
+                content: "\e006";
               }
 
               a:hover {
                 color: $blue;
                 text-decoration: underline;
+              }
+            }
+
+            &.sheet {
+              &::before {
+                color: $grey4;
+                content: "\e001";
+                font-family: Flaticon;
+                font-size: 14px;
+                font-style: normal;
+                margin-right: 7px;
               }
             }
           }
@@ -70,10 +90,20 @@
     }
 
     .create-hunt-form {
+      height: 100%;
+
+      .form-element-container, .folder-container {
+        display: inline-block;
+        height: 100%;
+        position: relative;
+        vertical-align: top;
+        width: 49%;
+      }
+
       .form-element {
         .folder-title {
           &:before {
-            content: "\e002";
+            content: "\e003";
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -82,7 +112,7 @@
           }
 
           &.shared:before {
-            content: "\e005";
+            content: "\e006";
           }
         }
       }
@@ -111,7 +141,7 @@
           padding-left: 10px;
 
           &:before {
-            content: "\e002";
+            content: "\e003";
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -120,7 +150,7 @@
           }
 
           &.shared:before {
-            content: "\e005";
+            content: "\e006";
           }
 
           &:after {
@@ -148,7 +178,7 @@
       }
 
       ul.folder-list {
-        @include calc-height(100%, 252px);
+        @include calc-height(100%, 100px);
 
         background: white;
         cursor: pointer;
@@ -173,7 +203,7 @@
           }
 
           &:before {
-            content: "\e002";
+            content: "\e003";
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -182,7 +212,7 @@
           }
 
           &.shared:before {
-            content: "\e005";
+            content: "\e006";
           }
 
           &.selected {

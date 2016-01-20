@@ -50,7 +50,7 @@ app.set('view engine', 'handlebars');
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -86,12 +86,14 @@ app.get('/auth/google/callback',
 app.post('/data/folders', routes.loggedIn, routes.listFolders);
 
 // Admin routes
+app.post('/admin/create/hunt', routes.loggedIn, admin.createHunt);
+app.post('/admin/create/round', routes.loggedIn, admin.createRound);
+
 app.get('/admin', routes.loggedIn, admin.index);
 app.get('/admin/create', routes.loggedIn, admin.create);
 app.get('/admin/add', routes.loggedIn, admin.add);
 app.get('/admin/announcement', routes.loggedIn, admin.announcement);
 app.get('/admin/switch', routes.loggedIn, admin.switch);
-app.post('/admin/createhunt', routes.loggedIn, admin.createHunt);
 
 // Admin edit routes
 app.get('/admin/edit', routes.loggedIn, admin.edit);
@@ -100,7 +102,7 @@ app.get('/admin/edit/puzzle', routes.loggedIn, admin.editPuzzle);
 app.get('/admin/edit/settings', routes.loggedIn, admin.editSettings);
 
 // Hunt routes
-app.get('/hunt/puzzles', routes.loggedIn, hunt.puzzles);
+app.get('/hunt/rounds', routes.loggedIn, hunt.rounds);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

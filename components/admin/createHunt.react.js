@@ -93,11 +93,31 @@ module.exports = React.createClass({
     var newState = update(this.state, {
       hunt: {
         active: {
-          $set: !!e.target.value
+          $set: e.target.checked
         }
       }
     });
     this.setState(newState);
+  },
+
+  handleCreateNewFolderChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        createNewFolder: {
+          $set: e.target.checked
+        }
+      }
+    }));
+  },
+
+  handleTemplateChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        template: {
+          $set: e.target.value
+        }
+      }
+    }));
   },
 
   handleSubmit: function(e) {
@@ -107,15 +127,27 @@ module.exports = React.createClass({
       return;
     }
     var folder = this.state.selectedFolder;
-    var folderID = (folder.props == null) ? folder.id : folder.props.id;
-    $.post("/admin/createhunt",
+    var folderID = null;
+    var parentID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    if (this.state.hunt.createNewFolder == null || !this.state.hunt.createNewFolder) {
+      folderID = parentID;
+      parentID = folder.props.folder.parents[0].id;
+    }
+    $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,
-        parentID: folderID
+        createNewFolder: this.state.hunt.createNewFolder,
+        folderID: folderID,
+        parentID: parentID,
+        templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
-      window.location.href="/admin/edit";
+      if (hunt.error) {
+        console.error(hunt.error);
+      } else {
+        window.location.href="/admin/edit";
+      }
     }.bind(this));
     this.setHuntName('');
   },
@@ -127,12 +159,19 @@ module.exports = React.createClass({
         <form className='create-hunt-form' onSubmit={this.handleSubmit}>
           <div className='form-element'>
             <label htmlFor='active'>
-              <input type='checkbox' onChange={this.state.handleActiveChange} defaultChecked="true" /> Active
+              <input name='active' type='checkbox' onChange={this.handleActiveChange} defaultChecked="true" /> Active
+            </label>
+            <label htmlFor='createNewFolder'>
+              <input name='createNewFolder' type='checkbox' onChange={this.handleCreateNewFolderChange} defaultChecked="" /> Create New Folder
             </label>
           </div>
           <div className='form-element'>
             <label htmlFor='name'>Name</label>
             <input type='text' name='name' value={this.state.hunt.name} onChange={this.handleNameChange} defaultValue="" />
+          </div>
+          <div className='form-element'>
+            <label htmlFor='template'>Template Puzzle Sheet</label>
+            <input type='text' name='template' value={this.state.hunt.template} onChange={this.handleTemplateChange} defaultvalue="" />
           </div>
           <div className='form-element'>
             <label htmlFor='googleDrive'>Parent Folder</label>

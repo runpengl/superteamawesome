@@ -3,17 +3,17 @@ var debug = require('debug')('superteamawesome:server'),
     models = require('../models');
 
 module.exports = {
-  puzzles: function(req, res) {
+  rounds: function(req, res) {
     models.Round.findAll({
       include: [{
         model: models.Puzzle,
         as: 'Puzzles'
       }],
       where: {
-        huntID: req.body.huntID
+        huntID: req.query.huntID
       }
-    }).then(function(puzzles) {
-      res.send(puzzles);
+    }).then(function(rounds) {
+      res.send(rounds);
     })
   }
 };

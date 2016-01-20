@@ -1,3 +1,5 @@
+@import "../settings/colors.scss";
+
 table {
   border-spacing: 0;
 }
@@ -5,8 +7,35 @@ table {
 .card .details table {
   width: 100%;
 
-  tbody tr td {
-    border-bottom: 1px solid $greyBlue;
+  tbody tr {
+    &:last-child {
+      td {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      border-bottom: 1px solid $grey2;
+      padding: 10px 0px;
+
+      .folder {
+        &:before {
+          content: "\e002";
+          color: $grey4;
+          font-family: Flaticon;
+          font-size: 14px;
+          font-style: normal;
+          margin-right: 7px;
+        }
+
+        a {
+          color: $blue;
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
   }
 
   thead tr th {

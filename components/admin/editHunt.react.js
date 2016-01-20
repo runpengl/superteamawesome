@@ -3,30 +3,20 @@ var _ = require('lodash'),
     Q = require('q'),
     debug = require('debug')('superteamawesome:server'),
     React = require('react'),
-    update = require('react-addons-update');
+    update = require('react-addons-update'),
+    CreateRound = require('./createRound.react');
 
 module.exports = React.createClass({
-  addRoundName: function() {
-    var newState = update(this.state, {
-      newRound: {
-        names: {
-          $set: this.state.newRound.names.concat({val: '', key: this.state.newRound.names.length})
-        }
-      }
-    });
-    this.setState(newState);
-  },
-
   componentWillReceiveProps: function(newProps, oldProps) {
     this.setState(this.getInitialState(newProps));
   },
 
   componentDidMount: function() {
-    $.get("/hunt/puzzles", { huntID: this.state.hunt.id }, function(puzzles) {
+    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
-          puzzles: {
-            $set: puzzles
+          rounds: {
+            $set: rounds
           }
         });
         this.setState(newState);
@@ -34,16 +24,16 @@ module.exports = React.createClass({
     }.bind(this));
   },
 
-  createRound: function() {
-    // do something
-  },
-
   getFolderIcon: function() {
     return this.state.driveFolder.shared ? "shared folder info" : "folder info";
   },
 
-  getFolderUrl: function() {
-    return "https://drive.google.com/drive/folders/" + this.state.driveFolder.id;
+  getFolderUrl: function(id) {
+    return "https://drive.google.com/drive/folders/" + id;
+  },
+
+  getSheetUrl: function(id) {
+    return "https://docs.google.com/spreadsheets/d/" + id;
   },
 
   getInitialState: function(props) {
@@ -53,39 +43,16 @@ module.exports = React.createClass({
       driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
       folders: props.folders,
       hunt: props.hunt,
-      newRound: {
-        names: [{
-          val: '',
-          key: 0 // static key that doesn't rely on position in array for React rendering
-        }]
-      },
-      puzzles: []
+      rounds: []
     };
   },
 
-  handleRoundNameChange: function(index, event) {
-    var names = this.state.newRound.names;
-    names[index].val = event.target.value;
-    var newState = update(this.state, {
-      newRound: {
-        names: {
-          $set: names
-        }
-      }
-    });
-  },
-
-  removeRoundName: function(index) {
-    var names = this.state.newRound.names;
-    names.splice(index, 1);
-    var newState = update(this.state, {
-      newRound: {
-        names: {
-          $set: names
-        }
-      }
-    });
-    this.setState(newState);
+  getParentRound: function(roundID) {
+    var round = _.find(this.state.rounds, { id: roundID });
+    if (round != null) {
+      return round.name;
+    }
+    return "";
   },
 
   render: function() {
@@ -111,64 +78,66 @@ module.exports = React.createClass({
                   </li>
                   <li>
                     <div className='label'>Google Drive</div>
-                    <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl()}>{this.state.driveFolder.title}</a></div>
+                    <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl(this.state.driveFolder.id)}>{this.state.driveFolder.title}</a></div>
+                  </li>
+                  <li>
+                    <div className='label'>Puzzle Template</div>
+                    <div className='info sheet'><a target='blank' href={this.getSheetUrl(this.state.hunt.templateSheet)}>Puzzle Template</a></div>
                   </li>
                 </ul>
               </div>
             </div>
             <div className='card'>
               <div className='header'>
-                <h4>Puzzles</h4>
+                <h4>Rounds</h4>
               </div>
               <div className='details'>
                 <table cellSpacing="0" cellPadding="0">
                   <thead>
                     <tr>
-                      <th>Puzzle Name</th>
-                      <th>Created By</th>
-                      <th>Created At</th>
+                      <th>Round Name</th>
+                      <th>Parent Round</th>
+                      <th>Drive Folder</th>
+                      <th>Solved Folder</th>
+                      <th># Puzzles</th>
+                      <th>Meta Solved</th>
                     </tr>
                   </thead>
-                  // add list of puzzles here
+                  <tbody>
+                    {_this.state.rounds.map(function(round) {
+                      return (
+                        <tr key={"round-row-" + round.id}>
+                          <td>{round.name}</td>
+                          <td>{_this.getParentRound(round.parentID)}</td>
+                          <td>
+                            <div className='folder'>
+                              <a href={_this.getFolderUrl(round.folderID)} target='blank'>{round.name}</a>
+                            </div>
+                          </td>
+                          <td>
+                            <div className='folder'>
+                              <a href={_this.getFolderUrl(round.solvedFolderID)} target='blank'>Solved Folder</a>
+                            </div>
+                          </td>
+                          <td>
+                            {round.Puzzles.length}
+                          </td>
+                          <td>
+                            No
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
                 </table>
               </div>
             </div>
           </li>
           <li className={(this.props.activeTab == "round" ? "active": "")}>
-            <h4>Add Rounds</h4>
-            <form onSubmit={this.createRound}>
-              <div className='form-element'>
-                <label htmlFor='parent-round'>Parent Round</label>
-                <select value="">
-                  <option value=""></option>
-                  // add list of rounds from hunt here
-                </select>
-              </div>
-              <div className='form-element'>
-                <label htmlFor='name'>Round Name</label>
-              </div>
-              {this.state.newRound.names.map(function(name, index) {
-                var deleteButton = '';
-                if (index > 0) {
-                  deleteButton = <span className='delete' onClick={_this.removeRoundName.bind(_this, index)}>-</span>
-                }
-                return (
-                  <div className='form-element' key={"add.round." + name.key} >
-                    <input defaultValue='' type='text' onChange={_this.handleRoundNameChange.bind(_this, index)} />
-                    {deleteButton}
-                  </div>
-                );
-              })}
-              <div className='form-element'>
-                <div className='extra-text' onClick={this.addRoundName}>Add Another..</div>
-              </div>
-              <div className='form-element'>
-                <input type='submit' value={(this.state.newRound.names.length > 1) ? "Create Rounds" : "Create Round"} />
-              </div>
-            </form>
+            <CreateRound rounds={this.state.rounds} hunt={this.state.hunt} />
           </li>
           <li className={(this.props.activeTab == "puzzle" ? "active": "")}>
-            Add Puzzle
+            <h4>Add Puzzle</h4>
           </li>
           <li className={(this.props.activeTab == "settings" ? "active": "")}>
             Edit Settings

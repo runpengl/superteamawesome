@@ -106,7 +106,17 @@ module.exports = {
 
   createHunt: function(req, res) {
     var newHuntFolder;
-    gapi.createHunt(req.body.name, req.body.parentID).then(function(folder) {
+    function getFolder() {
+      var deferFolder = Q.defer();
+      if (req.body.createNewFolder === "false" || req.body.createNewFolder === undefined) {
+        deferFolder.resolve({id: req.body.folderID});
+        return deferFolder.promise;
+      } else {
+        return gapi.createFolder(req.body.name, req.body.parentID);
+      }
+    }
+
+    getFolder().then(function(folder) {
       newHuntFolder = folder;
       var deferred = Q.defer();
       if (req.body.active) {
@@ -121,21 +131,69 @@ module.exports = {
         });
       } else {
         deferred.resolve(true);
-        return tempDeferred.promise;
+        return deferred.promise;
       }
     }).then(function() {
+      var deferred = Q.defer();
+      if (req.body.templateSheet == null || req.body.templateSheet.length === 0) {
+        deferred.resolve({});
+        return deferred.promise;
+      } else {
+        return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
+      }
+    }).then(function(sheet) {
       return models.Hunt.create({
         name: req.body.name,
         folderID: newHuntFolder.id,
         createdBy: req.user.id,
         isActive: req.body.active,
-        parentFolderID: req.body.parentID
+        parentFolderID: req.body.parentID, // needs to be parent
+        templateSheet: sheet.id
       });
     }).then(function(hunt) {
+      debug(hunt);
       res.send(hunt);
     }).catch(function(error) {
       res.send({ error: error });
     });
-  }
+  },
 
+  createRound: function(req, res) {
+    var newHuntRoundFolder;
+    var folderPromises = [];
+    var rounds = [];
+    var newRound = req.body.newRound;
+
+    // create drive folders
+    newRound.names.forEach(function(roundName) {
+      folderPromises.push(gapi.createFolder(roundName.val, newRound.parentRound.folderID));
+    });
+    Q.all(folderPromises).then(function(folders) {
+      folders.forEach(function(folder, index) {
+        rounds.push({
+          name: newRound.names[index].val,
+          folderID: folder.id,
+          huntID: req.body.huntID,
+          parentID: newRound.parentRound.id
+        });
+      });
+
+      // create SOLVED folders inside the new drive folders
+      return Q.all(folders.map(function(folder) {
+        return gapi.createFolder("SOLVED", folder.id);
+      }));
+    }).then(function(solvedFolders) {
+      solvedFolders.forEach(function(folder, index) {
+        rounds[index]["solvedFolderID"] = folder.id;
+      });
+      return Q.all(rounds.map(function(round) {
+        return models.Round.create(round);
+      }))
+    }).then(function(newRounds) {
+      // still need to create meta puzzle sheet
+      res.send(newRounds);
+    }).catch(function(error) {
+      res.send({ error: error });
+    });
+  }
 };

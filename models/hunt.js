@@ -6,7 +6,8 @@ module.exports = function(sequelize, DataTypes) {
     folderID: DataTypes.TEXT,
     createdBy: DataTypes.TEXT,
     isActive: DataTypes.BOOLEAN,
-    parentFolderID: DataTypes.TEXT
+    parentFolderID: DataTypes.TEXT,
+    templateSheet: DataTypes.TEXT
   }, {
     classMethods: {
       associate: function(models) {
