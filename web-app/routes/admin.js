@@ -4,7 +4,6 @@ var debug = require('debug')('superteamawesome:server'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
     gapi = require('../gapi'),
-    models = require('../models'),
     AdminComponent = require('../components/admin.react');
 
 function getAdminState(user, activeTab) {
@@ -12,38 +11,40 @@ function getAdminState(user, activeTab) {
   var hunt = {name: 'None'};
   var rootFolderId = 'root';
   var rootFolder;
-  models.Hunt.findOne({where: {isActive: true}}).then(function(h) {
-    if (h) {
-      hunt = h.get({plain: true});
-      if (activeTab !== 'create') {
-        rootFolderId = hunt.parentFolderID;
-      }
-    }
-    return gapi.getFolder(rootFolderId);
-  }).then(function(folder) {
-    rootFolder = folder;
-    return gapi.listFiles(rootFolder.id);
-  }).then(function(files) {
-    var adminFactory = React.createFactory(AdminComponent);
-    var state = {
-      hunt: hunt,
-      activeTab: activeTab,
-      folders: files,
-      userFirstName: user.firstName,
-      rootFolder: rootFolder
-    }
-    var markup = ReactDOMServer.renderToString(
-      adminFactory(state)
-    );
+  // replace with firebase
 
-    deferred.resolve({
-      user: user,
-      markup: markup,
-      state: JSON.stringify(state)
-    });
-  }).catch(function(error) {
-    deferred.reject(error);
-  });
+  // models.Hunt.findOne({where: {isActive: true}}).then(function(h) {
+  //   if (h) {
+  //     hunt = h.get({plain: true});
+  //     if (activeTab !== 'create') {
+  //       rootFolderId = hunt.parentFolderID;
+  //     }
+  //   }
+  //   return gapi.getFolder(rootFolderId);
+  // }).then(function(folder) {
+  //   rootFolder = folder;
+  //   return gapi.listFiles(rootFolder.id);
+  // }).then(function(files) {
+  //   var adminFactory = React.createFactory(AdminComponent);
+  //   var state = {
+  //     hunt: hunt,
+  //     activeTab: activeTab,
+  //     folders: files,
+  //     userFirstName: user.firstName,
+  //     rootFolder: rootFolder
+  //   }
+  //   var markup = ReactDOMServer.renderToString(
+  //     adminFactory(state)
+  //   );
+
+  //   deferred.resolve({
+  //     user: user,
+  //     markup: markup,
+  //     state: JSON.stringify(state)
+  //   });
+  // }).catch(function(error) {
+  //   deferred.reject(error);
+  // });
   return deferred.promise;
 }
 
@@ -62,13 +63,15 @@ function renderAdmin(req, res, page) {
 
 module.exports = {
   index: function(req, res) {
-    models.Hunt.findOne({where: {isActive: true}}).then(function(hunt) {
-      if (hunt) {
-        res.redirect("/admin/edit");
-      } else {
-        res.redirect("/admin/create");
-      }
-    });
+    // replace with firebase
+
+    // models.Hunt.findOne({where: {isActive: true}}).then(function(hunt) {
+    //   if (hunt) {
+    //     res.redirect("/admin/edit");
+    //   } else {
+    //     res.redirect("/admin/create");
+    //   }
+    // });
   },
 
   create: function(req, res) {
@@ -142,14 +145,17 @@ module.exports = {
         return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
       }
     }).then(function(sheet) {
-      return models.Hunt.create({
-        name: req.body.name,
-        folderID: newHuntFolder.id,
-        createdBy: req.user.id,
-        isActive: req.body.active,
-        parentFolderID: req.body.parentID, // needs to be parent
-        templateSheet: sheet.id
-      });
+      // replace with firebase
+
+      return null;
+      // return models.Hunt.create({
+      //   name: req.body.name,
+      //   folderID: newHuntFolder.id,
+      //   createdBy: req.user.id,
+      //   isActive: req.body.active,
+      //   parentFolderID: req.body.parentID, // needs to be parent
+      //   templateSheet: sheet.id
+      // });
     }).then(function(hunt) {
       debug(hunt);
       res.send(hunt);

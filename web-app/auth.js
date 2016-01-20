@@ -1,5 +1,4 @@
-var models = require("./models"),
-    google = require('googleapis'),
+var google = require('googleapis'),
     config = require('./config');
 
 var OAuth2 = google.auth.OAuth2;
@@ -17,28 +16,31 @@ module.exports = {
     if (profile.photos.length > 0) {
       photo = profile.photos[0].value;
     }
-    models.User.findOrCreate(
-      {
-        where: {googleID: profile.id},
-        defaults: {
-          googleID: profile.id,
-          lastName: profile.name.familyName,
-          firstName: profile.name.givenName,
-          picture: photo,
-          accessToken: accessToken,
-          refreshToken: refreshToken
-        }
-      }
-    ).spread(function(user, created) {
-      user.set('picture', photo);
-      user.set('lastName', profile.name.familyName);
-      user.set('firstName', profile.name.givenName);
-      user.set('accessToken', accessToken);
-      user.set('refreshToken', refreshToken);
-      user.save().then(function() {
-        return done(false, user.get({plain: true}));
-      });
-    });
+
+    // Replace with Firebase
+
+    // models.User.findOrCreate(
+    //   {
+    //     where: {googleID: profile.id},
+    //     defaults: {
+    //       googleID: profile.id,
+    //       lastName: profile.name.familyName,
+    //       firstName: profile.name.givenName,
+    //       picture: photo,
+    //       accessToken: accessToken,
+    //       refreshToken: refreshToken
+    //     }
+    //   }
+    // ).spread(function(user, created) {
+    //   user.set('picture', photo);
+    //   user.set('lastName', profile.name.familyName);
+    //   user.set('firstName', profile.name.givenName);
+    //   user.set('accessToken', accessToken);
+    //   user.set('refreshToken', refreshToken);
+    //   user.save().then(function() {
+    //     return done(false, user.get({plain: true}));
+    //   });
+    // });
   },
 
   googleScope: [
@@ -48,17 +50,21 @@ module.exports = {
   ].join(' '),
 
   serializeUser: function(user, done) {
-    return done(null, user.googleID);
+    // replace with firebase
+
+    // return done(null, user.googleID);
   },
 
   deserializeUser: function(id, done) {
-    models.User.findOne({ where: { googleID: id } }).then(function(user) {
-      var u = user.get({plain: true});
-      oauth2Client.setCredentials({
-        access_token: u.accessToken,
-        refresh_token: u.refreshToken
-      });
-      return done(null, u);
-    })
+    // replace with firebase
+
+    // models.User.findOne({ where: { googleID: id } }).then(function(user) {
+    //   var u = user.get({plain: true});
+    //   oauth2Client.setCredentials({
+    //     access_token: u.accessToken,
+    //     refresh_token: u.refreshToken
+    //   });
+    //   return done(null, u);
+    // })
   }
 };

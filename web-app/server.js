@@ -12,8 +12,6 @@ var passport = require('passport');
 var config = require('./config');
 var StrategyGoogle = require('passport-google-oauth').OAuth2Strategy;
 var session = require('express-session');
-var Sequelize = require('sequelize');
-var SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 var models = require("./models");
 var auth = require("./auth");
@@ -61,10 +59,7 @@ app.use(session({
   },
   secret: 'poofytoo',
   saveUninitialized: false,
-  resave: false,
-  store: new SequelizeStore({
-    db: models.sequelize
-  })
+  resave: false
 }));
 app.use(passport.initialize());
 app.use(passport.session());
