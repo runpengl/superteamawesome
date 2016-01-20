@@ -28,3 +28,9 @@ For debug mode, add the `--debug` flag when running `run.sh`.
 4. `npm start` will auto compile the jsx and bundle all the js into a bundle.js in public/js  
 OR `npm run debug` will run a debug version that you can use node-inspector to debug; having the `DEBUG` environment variable set will cause debug statements to be logged as well.
 5. Navigate to http://localhost:8080/
+
+**To Contribute**
+
+Please either fork this repository and then make a pull request, or create a new feature branch in the format `feature/your-feature-name`, and then create a pull request when you're ready to merge.
+
+Maybe some day we'll write tests too. But probably not.
