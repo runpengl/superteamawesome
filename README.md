@@ -1,6 +1,10 @@
 # superteamawesome
 MIT ATS Mystery Hunt Puzzle Organizer
 
+There are two parts to this app: One is the web site (Node/React/Firebase, inside `web-app/`), and one is the Chrome Extension (inside `chrome-extension/`) that will hook into the same firebase.
+
+## Web Application
+
 Before you can do anything, you'll need a config.js file with Google Auth and your database connection information. Look at `config.js.example` or email styu314@gmail.com for a sample. You'll also need to enable the Google Drive, URL Shortener, and Google+ APIs in your [Project console](https://console.developers.google.com/project).
 
 **Quick setup for those with a Mac and MAMP installed:**
