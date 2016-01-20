@@ -20,6 +20,7 @@
     "express": "~4.10.6",
     "express-handlebars": "^2.0.1",
     "express-session": "^1.11.3",
+    "firebase": "^2.3.2",
     "googleapis": "^2.1.5",
     "jquery": "^2.1.4",
     "lodash": "^3.10.1",
@@ -33,6 +34,7 @@
     "react-addons-update": "^0.14.0",
     "react-dom": "^0.14.0",
     "react-router": "^1.0.0-rc3",
+    "reactfire": "^0.5.1",
     "sequelize": "^3.12.2",
     "serve-favicon": "~2.2.0"
   },
