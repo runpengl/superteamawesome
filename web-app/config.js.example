@@ -1,18 +1,9 @@
 module.exports = {
     GOOGLE_CLIENT_ID: "",
     GOOGLE_CLIENT_SECRET: "",
-    development: {
-        database: "superteamawesome",
-        username: "root",
-        password: "",
-        port: "3306",
-        host: "localhost",
-        dialect: "mysql",
-
-        pool: {
-            max: 5,
-            min: 0,
-            idle: 10000
-        }
+    firebase: {
+        host: "example.firebaseio.com",
+        secret: "somesecret",
+        serverId: "someserveruuid"
     }
 }

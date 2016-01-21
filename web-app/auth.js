@@ -1,5 +1,7 @@
 var google = require('googleapis'),
-    config = require('./config');
+    config = require('./config'),
+    firebaseRef = require('./firebase'),
+    debug = require('debug')('superteamawesome:server');
 
 var OAuth2 = google.auth.OAuth2;
 var oauth2Client = new OAuth2(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET, "http://localhost:8080/auth/google/callback");
@@ -17,30 +19,24 @@ module.exports = {
       photo = profile.photos[0].value;
     }
 
-    // Replace with Firebase
+    var userData = {
+      googleId: profile.id,
+      email: profile.emails[0].value,
+      lastName: profile.name.familyName,
+      firstName: profile.name.givenName,
+      picture: photo,
+      accessToken: accessToken,
+      refreshToken: refreshToken
+    };
 
-    // models.User.findOrCreate(
-    //   {
-    //     where: {googleID: profile.id},
-    //     defaults: {
-    //       googleID: profile.id,
-    //       lastName: profile.name.familyName,
-    //       firstName: profile.name.givenName,
-    //       picture: photo,
-    //       accessToken: accessToken,
-    //       refreshToken: refreshToken
-    //     }
-    //   }
-    // ).spread(function(user, created) {
-    //   user.set('picture', photo);
-    //   user.set('lastName', profile.name.familyName);
-    //   user.set('firstName', profile.name.givenName);
-    //   user.set('accessToken', accessToken);
-    //   user.set('refreshToken', refreshToken);
-    //   user.save().then(function() {
-    //     return done(false, user.get({plain: true}));
-    //   });
-    // });
+    firebaseRef.child('users/' + profile.id).set(userData, function(error) {
+      if (error) {
+        console.error("Error creating user:", error);
+      } else {
+        debug("Success!");
+        return done(false, userData);
+      }
+    });
   },
 
   googleScope: [
@@ -50,21 +46,18 @@ module.exports = {
   ].join(' '),
 
   serializeUser: function(user, done) {
-    // replace with firebase
-
-    // return done(null, user.googleID);
+    return done(null, user.googleId);
   },
 
   deserializeUser: function(id, done) {
-    // replace with firebase
-
-    // models.User.findOne({ where: { googleID: id } }).then(function(user) {
-    //   var u = user.get({plain: true});
-    //   oauth2Client.setCredentials({
-    //     access_token: u.accessToken,
-    //     refresh_token: u.refreshToken
-    //   });
-    //   return done(null, u);
-    // })
+    firebaseRef.child('users/' + id).once("value", function(userData) {
+      if (userData != null) {
+        oauth2Client.setCredentials({
+          access_token: userData.accessToken,
+          refresh_token: userData.refreshToken
+        });
+        return done(null, userData);
+      }
+    });
   }
 };

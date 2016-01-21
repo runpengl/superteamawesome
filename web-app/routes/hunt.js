@@ -1,6 +1,5 @@
 var debug = require('debug')('superteamawesome:server'),
-    Q = require('q'),
-    models = require('../models');
+    Q = require('q');
 
 module.exports = {
   rounds: function(req, res) {

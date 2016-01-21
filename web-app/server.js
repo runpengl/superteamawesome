@@ -12,8 +12,8 @@ var passport = require('passport');
 var config = require('./config');
 var StrategyGoogle = require('passport-google-oauth').OAuth2Strategy;
 var session = require('express-session');
+var FirebaseStore = require('connect-firebase')(session);
 
-var models = require("./models");
 var auth = require("./auth");
 
 // routes
@@ -59,7 +59,8 @@ app.use(session({
   },
   secret: 'poofytoo',
   saveUninitialized: false,
-  resave: false
+  resave: false,
+  store: new FirebaseStore(config.firebase)
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -71,7 +72,9 @@ app.get('/login', routes.login);
 app.get('/logout', routes.logout);
 
 app.get('/auth/google', passport.authenticate('google', {
-  scope: auth.googleScope
+  scope: auth.googleScope,
+  accessType: 'offline',
+  approvalPrompt: 'force'
 }));
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
