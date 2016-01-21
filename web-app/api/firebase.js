@@ -1,6 +1,6 @@
 var Firebase = require('firebase'),
     FirebaseTokenGenerator = require('firebase-token-generator'),
-    config = require('./config.js');
+    config = require('../config');
 
 // firebase setup
 var firebaseRef = new Firebase("https://" + config.firebase.host + "/");

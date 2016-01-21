@@ -1,6 +1,6 @@
 var google = require('googleapis'),
     config = require('./config'),
-    firebaseRef = require('./firebase'),
+    firebaseRef = require('./api/firebase'),
     debug = require('debug')('superteamawesome:server');
 
 var OAuth2 = google.auth.OAuth2;

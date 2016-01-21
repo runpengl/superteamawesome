@@ -1,5 +1,5 @@
 var auth = require('../auth'),
-    gapi = require('../gapi'),
+    gapi = require('../api/google'),
     debug = require('debug')('superteamawesome:server');
 
 module.exports = {

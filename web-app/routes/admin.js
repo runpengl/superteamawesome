@@ -3,8 +3,9 @@ var debug = require('debug')('superteamawesome:server'),
     Q = require('q'),
     React = require('react'),
     ReactDOMServer = require('react-dom/server'),
-    gapi = require('../gapi'),
-    AdminComponent = require('../components/admin.react');
+    gapi = require('../api/google'),
+    AdminComponent = require('../components/admin.react'),
+    firebaseRef = require('../api/firebase');
 
 function getAdminState(user, activeTab) {
   var deferred = Q.defer();
