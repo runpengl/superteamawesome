@@ -51,12 +51,12 @@ module.exports = {
 
   deserializeUser: function(id, done) {
     firebaseRef.child('users/' + id).once("value", function(userData) {
-      if (userData != null) {
+      if (userData.val() != null) {
         oauth2Client.setCredentials({
-          access_token: userData.accessToken,
-          refresh_token: userData.refreshToken
+          access_token: userData.val().accessToken,
+          refresh_token: userData.val().refreshToken
         });
-        return done(null, userData);
+        return done(null, userData.val());
       }
     });
   }
