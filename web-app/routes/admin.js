@@ -7,45 +7,63 @@ var debug = require('debug')('superteamawesome:server'),
     AdminComponent = require('../components/admin.react'),
     firebaseRef = require('../api/firebase');
 
+function getActiveHunt() {
+  var huntDeferred = Q.defer();
+  firebaseRef.child("hunts").once("value", function(huntsSnapshot) {
+    if (huntsSnapshot.exists()) {
+      huntsSnapshot.orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
+        if (huntSnapshot.exists()) {
+          huntDeferred.resolve(huntSnapshot.val());
+        } else {
+          huntDeferred.resolve(null);
+        }
+      });
+    } else {
+      huntDeferred.resolve(null);
+    }
+  });
+
+  return huntDeferred.promise;
+}
 function getAdminState(user, activeTab) {
   var deferred = Q.defer();
   var hunt = {name: 'None'};
   var rootFolderId = 'root';
   var rootFolder;
-  // replace with firebase
 
-  // models.Hunt.findOne({where: {isActive: true}}).then(function(h) {
-  //   if (h) {
-  //     hunt = h.get({plain: true});
-  //     if (activeTab !== 'create') {
-  //       rootFolderId = hunt.parentFolderID;
-  //     }
-  //   }
-  //   return gapi.getFolder(rootFolderId);
-  // }).then(function(folder) {
-  //   rootFolder = folder;
-  //   return gapi.listFiles(rootFolder.id);
-  // }).then(function(files) {
-  //   var adminFactory = React.createFactory(AdminComponent);
-  //   var state = {
-  //     hunt: hunt,
-  //     activeTab: activeTab,
-  //     folders: files,
-  //     userFirstName: user.firstName,
-  //     rootFolder: rootFolder
-  //   }
-  //   var markup = ReactDOMServer.renderToString(
-  //     adminFactory(state)
-  //   );
+  getActiveHunt().then(function(h) {
+    if (h) {
+      hunt = h;
+      if (activeTab !== 'create') {
+        rootFolderId = hunt.parentFolderId;
+      }
+    }
+    return gapi.getFolder(rootFolderId);
+  }).then(function(folder) {
+    rootFolder = folder;
+    return gapi.listFiles(rootFolder.id);
+  }).then(function(files) {
+    var adminFactory = React.createFactory(AdminComponent);
+    var state = {
+      hunt: hunt,
+      activeTab: activeTab,
+      folders: files,
+      userFirstName: user.firstName,
+      rootFolder: rootFolder
+    }
+    var markup = ReactDOMServer.renderToString(
+      adminFactory(state)
+    );
 
-  //   deferred.resolve({
-  //     user: user,
-  //     markup: markup,
-  //     state: JSON.stringify(state)
-  //   });
-  // }).catch(function(error) {
-  //   deferred.reject(error);
-  // });
+    deferred.resolve({
+      user: user,
+      markup: markup,
+      state: JSON.stringify(state)
+    });
+  }).catch(function(error) {
+    deferred.reject(error);
+  });
+
   return deferred.promise;
 }
 
@@ -64,15 +82,21 @@ function renderAdmin(req, res, page) {
 
 module.exports = {
   index: function(req, res) {
-    // replace with firebase
-
-    // models.Hunt.findOne({where: {isActive: true}}).then(function(hunt) {
-    //   if (hunt) {
-    //     res.redirect("/admin/edit");
-    //   } else {
-    //     res.redirect("/admin/create");
-    //   }
-    // });
+    firebaseRef.child("hunts").once("value", function(huntsSnapshot) {
+      if (huntsSnapshot.exists()) {
+        huntsSnapshot.orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
+          if (huntSnapshot.exists()) {
+            debug("EXISTS");
+            res.redirect("/admin/edit");
+          } else {
+            debug("SORTA CREATE");
+            res.redirect("/admin/create");
+          }
+        });
+      } else {
+        res.redirect("/admin/create");
+      }
+    });
   },
 
   create: function(req, res) {
