@@ -1,6 +1,6 @@
-@import "settings/mixins.scss";
-@import "settings/fonts.scss";
-@import "settings/colors.scss";
+@import "includes/_mixins.scss";
+@import "includes/_fonts.scss";
+@import "includes/_variables.scss";
 
 .admin-content {
   @include calc-height(100%, 100px);
@@ -49,16 +49,16 @@
 
             &.folder {
               &:before {
-                content: "\e003";
+                content: $sta-icon-folder;
                 color: $grey4;
-                font-family: Flaticon;
+                font-family: $flaticon-family;
                 font-size: 14px;
                 font-style: normal;
                 margin-right: 7px;
               }
 
               &.shared:before {
-                content: "\e006";
+                content: $sta-icon-shared-folder;
               }
 
               a:hover {
@@ -70,8 +70,8 @@
             &.sheet {
               &::before {
                 color: $grey4;
-                content: "\e001";
-                font-family: Flaticon;
+                content: $sta-icon-sheet;
+                font-family: $flaticon-family;
                 font-size: 14px;
                 font-style: normal;
                 margin-right: 7px;
@@ -104,7 +104,7 @@
       .form-element {
         .folder-title {
           &:before {
-            content: "\e003";
+            content: $sta-icon-folder;
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -113,7 +113,7 @@
           }
 
           &.shared:before {
-            content: "\e006";
+            content: $sta-icon-shared-folder;
           }
         }
       }
@@ -129,9 +129,9 @@
       ul.breadcrumbs {
         background: white;
         border-bottom: 2px solid $teal;
-        padding: 10px 0px;
+        padding: 10px 0;
         position: absolute;
-        top: 0px;
+        top: 0;
         width: 100%;
 
         li.folder-title {
@@ -142,7 +142,7 @@
           padding-left: 10px;
 
           &:before {
-            content: "\e003";
+            content: $sta-icon-folder;
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -151,7 +151,7 @@
           }
 
           &.shared:before {
-            content: "\e006";
+            content: $sta-icon-folder-shared;
           }
 
           &:after {
@@ -169,7 +169,7 @@
           }
 
           &:first-child {
-            margin-left: 0px;
+            margin-left: 0;
           }
 
           &:last-child:after {
@@ -204,7 +204,7 @@
           }
 
           &:before {
-            content: "\e003";
+            content: $sta-icon-folder;
             color: $grey4;
             font-family: Flaticon;
             font-size: 14px;
@@ -213,7 +213,7 @@
           }
 
           &.shared:before {
-            content: "\e006";
+            content: $sta-icon-folder-shared;
           }
 
           &.selected {

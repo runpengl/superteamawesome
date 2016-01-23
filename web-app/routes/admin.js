@@ -84,7 +84,7 @@ module.exports = {
   index: function(req, res) {
     firebaseRef.child("hunts").once("value", function(huntsSnapshot) {
       if (huntsSnapshot.exists()) {
-        huntsSnapshot.orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
+        firebaseRef.child("hunts").orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
           if (huntSnapshot.exists()) {
             res.redirect("/admin/edit");
           } else {

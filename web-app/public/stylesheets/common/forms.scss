@@ -1,15 +1,15 @@
-@import "settings/mixins.scss";
-@import "settings/colors.scss";
+@import "includes/_mixins.scss";
+@import "includes/_variables.scss";
 
 form {
-  margin: 20px 0px;
+  margin: 20px 0;
 
   label {
     color: $grey4;
     display: block;
     font-size: 12px;
     font-weight: 600;
-    margin: 5px 0px;
+    margin: 5px 0;
   }
 
   input[type=text] {
@@ -50,11 +50,11 @@ form {
     @include transition-ease;
 
     background: $teal;
-    border: 0px;
+    border: 0;
     color: white;
     cursor: pointer;
     font-size: 13px;
-    margin: 5px 0px;
+    margin: 5px 0;
     padding: 5px 12px;
 
     &:hover {
@@ -64,12 +64,12 @@ form {
 
   .form-element {
     font-size: 12px;
-    margin: 10px 0px;
+    margin: 10px 0;
 
     .extra-text {
       color: $teal;
       cursor: pointer;
-      font-size: 0.9em;
+      font-size: .9em;
       margin-top: 3px;
 
       &:hover {

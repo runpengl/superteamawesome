@@ -1,11 +1,11 @@
-@import "settings/defaults.scss";
+@import "defaults.scss";
 
 // common css
-@import "includes/forms.scss";
-@import "includes/login.scss";
-@import "includes/navigation.scss";
-@import "includes/side-navigation.scss";
-@import "includes/tables.scss";
+@import "common/forms.scss";
+@import "common/login.scss";
+@import "common/navigation.scss";
+@import "common/side-navigation.scss";
+@import "common/tables.scss";
 
 // page css
 @import "pages/admin.scss";

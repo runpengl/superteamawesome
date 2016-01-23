@@ -32,6 +32,11 @@ For debug mode, add the `--debug` flag when running `run.sh`.
 OR `npm run debug` will run a debug version that you can use node-inspector to debug; having the `DEBUG` environment variable set will cause debug statements to be logged as well.
 4. Navigate to http://localhost:8080/
 
+**Development**
+We recommend using Sublime to develop, along with the following plugins:
+- [Sublime CSS Comb](https://github.com/csscomb/sublime-csscomb) (orders your CSS rules for you!)
+- [Babel Sublime](https://github.com/babel/babel-sublime) (React/JSX syntax highlighting)
+
 **To Contribute**
 
 Please either fork this repository and then make a pull request, or create a new feature branch in the format `feature/your-feature-name`, and then create a pull request when you're ready to merge.

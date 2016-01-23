@@ -3,46 +3,46 @@
   position: relative;
   top: 50%;
   -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
+          transform: translateY(-50%);
 }
 
 @mixin transition-ease {
-  transition: all 250ms ease-in;
-  -moz-transition: all 250ms ease-in;
+          transition: all 250ms ease-in;
+     -moz-transition: all 250ms ease-in;
   -webkit-transition: all 250ms ease-in;
 }
 
 @mixin triangle-down($left, $right, $top, $color) {
-  width: 0; 
-  height: 0; 
+  width: 0;
+  height: 0;
   border-left: $left solid transparent;
   border-right: $right solid transparent;
   border-top: $top solid $color;
 }
 
 @mixin triangle-up($left, $right, $bottom, $color) {
-  width: 0; 
-  height: 0; 
+  width: 0;
+  height: 0;
   border-left: $left solid transparent;
   border-right: $right solid transparent;
   border-bottom: $bottom solid $color;
 }
 
 @mixin triangle-right($top, $bottom, $left, $color) {
-  width: 0; 
-  height: 0; 
+  width: 0;
+  height: 0;
   border-top: $top solid transparent;
   border-left: $left solid $color;
   border-bottom: $bottom solid transparent;
 }
 
 @mixin calc-height($percent, $subtract) {
-  height: calc(#{$percent} - #{$subtract});
+  height:         calc(#{$percent} - #{$subtract});
   height: -webkit-calc(#{$percent} - #{$subtract});
 }
 
 @mixin calc-width($percent, $subtract) {
-  width: calc(#{$percent} - #{$subtract});
+  width:         calc(#{$percent} - #{$subtract});
   width: -webkit-calc(#{$percent} - #{$subtract});
 }
