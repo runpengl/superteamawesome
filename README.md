@@ -33,6 +33,7 @@ OR `npm run debug` will run a debug version that you can use node-inspector to d
 4. Navigate to http://localhost:8080/
 
 **Development**
+
 We recommend using Sublime to develop, along with the following plugins:
 - [Sublime CSS Comb](https://github.com/csscomb/sublime-csscomb) (orders your CSS rules for you!)
 - [Babel Sublime](https://github.com/babel/babel-sublime) (React/JSX syntax highlighting)
