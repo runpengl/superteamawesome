@@ -56,6 +56,7 @@ public/
    fonts/
    img/
    js/
+     bundle.js          // This is the only JavaScript file on the front end*
    stylesheets/
      common/            // Common stylings, e.g. navigation, forms, tables
      includes/          // Variables, fonts, mixins
@@ -64,6 +65,8 @@ public/
      main.scss          // Puts everything together
 components/             // React components
 ```
+
+*Note that bundle.js is built by browserify, which takes `app.js`, looks at the NPM modules it requires and then pulls it all in to bundle.js, basically allowing any node module to be used in the front end :)
 
 **To Contribute**
 
