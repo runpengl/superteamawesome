@@ -9,6 +9,7 @@
     - [Environment](#environment)
     - [File Structure](#file-structure)
   - [To Contribute](#to-contribute)
+    - [Code Style](#code-style)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
