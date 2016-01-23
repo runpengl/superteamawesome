@@ -170,7 +170,7 @@ module.exports = {
         deferred.resolve({});
         return deferred.promise;
       } else {
-        return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
+        return gapi.copySheet(req.body.templateSheet, newHuntFolder.id, "Puzzle Template");
       }
     }).then(function(sheet) {
       var deferred = Q.defer();
@@ -233,11 +233,38 @@ module.exports = {
     }).then(function(solvedFolders) {
       solvedFolders.forEach(function(folder, index) {
         rounds[index]["solvedFolderId"] = folder.id;
-        firebaseRef.child("hunts/" + req.body.huntId + "/rounds").push(rounds[index]);
+        var roundRef = firebaseRef.child("hunts/" + req.body.huntId + "/rounds").push(rounds[index]);
+        if (req.body.puzzleTemplate != null) {
+          gapi.copySheet(req.body.puzzleTemplate, rounds[index].folderId, rounds[index].name + " Meta").then(function(sheet) {
+            roundRef.child("puzzles").push({
+              name: rounds[index].name + " Meta",
+              link: "", // TODO: add link
+              googleSheet: sheet.id,
+              solved: false,
+              puzzlers: [],
+              slack: "", // TODO: add slack
+              categories: [],
+              state: "unsolved"
+            });
+          });
+        } else {
+          gapi.createSheet(rounds[index].name + " Meta", rounds[index].folderId).then(function(sheet) {
+            roundRef.child("puzzles").push({
+              name: rounds[index].name + " Meta",
+              link: "", // TODO: add link
+              googleSheet: sheet.id,
+              solved: false,
+              puzzlers: [],
+              slack: "", // TODO: add slack
+              categories: [],
+              state: "unsolved"
+            });
+          })
+        }
       });
-    }).then(function(newRounds) {
-      // still need to create meta puzzle sheet
-      res.send(newRounds);
+
+
+      res.send(rounds);
     }).catch(function(error) {
       res.send({ error: error });
     });

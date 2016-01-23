@@ -28,10 +28,12 @@ module.exports = React.createClass({
       newRound.parentRound = this.props.rounds[roundIndex];
     }
 
+    // TODO: add meta links
     $.post("/admin/create/round",
       {
         newRound: newRound,
-        huntId: this.props.hunt.name.replace(" ", "").toLowerCase()
+        huntId: this.props.hunt.name.replace(" ", "").toLowerCase(),
+        puzzleTemplate: this.props.hunt.template
       }
     ).success(function(rounds) {
       if (rounds.error == null) {

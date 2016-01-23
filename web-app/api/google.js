@@ -7,7 +7,7 @@ var debug = require('debug')('superteamawesome:server');
 module.exports = {
 
   // Google Drive functions
-  copySheet: function(sheetLink, destinationFolder) {
+  copySheet: function(sheetLink, destinationFolder, title) {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     var regex = /https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g;
@@ -15,7 +15,7 @@ module.exports = {
     service.files.copy({
       fileId: fileId,
       resource: {
-        "title": "Puzzle Template",
+        "title": title,
         "parents": [{ "id": destinationFolder }]
       }
     }, function(err, response) {
