@@ -483,7 +483,7 @@ module.exports = React.createClass({displayName: "exports",
     $.post("/admin/create/round",
       {
         newRound: newRound,
-        huntID: this.props.hunt.id
+        huntId: this.props.hunt.name.replace(" ", "").toLowerCase()
       }
     ).success(function(rounds) {
       if (rounds.error == null) {
@@ -631,7 +631,7 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   componentDidMount: function() {
-    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
+    $.get("/hunt/rounds", { huntId: this.state.hunt.id }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
           rounds: {

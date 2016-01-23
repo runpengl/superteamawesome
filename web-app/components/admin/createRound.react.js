@@ -31,7 +31,7 @@ module.exports = React.createClass({
     $.post("/admin/create/round",
       {
         newRound: newRound,
-        huntID: this.props.hunt.id
+        huntId: this.props.hunt.name.replace(" ", "").toLowerCase()
       }
     ).success(function(rounds) {
       if (rounds.error == null) {

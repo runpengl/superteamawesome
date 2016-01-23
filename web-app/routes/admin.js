@@ -174,7 +174,7 @@ module.exports = {
       }
     }).then(function(sheet) {
       var deferred = Q.defer();
-      var id = req.body.name.replace(" ", "");
+      var id = req.body.name.replace(" ", "").toLowerCase();
       var hunt = {
         name: req.body.name,
         folderId: newHuntFolder.id,
@@ -222,8 +222,7 @@ module.exports = {
         rounds.push({
           name: newRound.names[index].val,
           folderId: folder.id,
-          huntID: req.body.huntID,
-          parentID: newRound.parentRound.id
+          parentId: newRound.parentRound.folderId
         });
       });
 
@@ -234,10 +233,8 @@ module.exports = {
     }).then(function(solvedFolders) {
       solvedFolders.forEach(function(folder, index) {
         rounds[index]["solvedFolderId"] = folder.id;
+        firebaseRef.child("hunts/" + req.body.huntId + "/rounds").push(rounds[index]);
       });
-      return Q.all(rounds.map(function(round) {
-        return models.Round.create(round);
-      }))
     }).then(function(newRounds) {
       // still need to create meta puzzle sheet
       res.send(newRounds);

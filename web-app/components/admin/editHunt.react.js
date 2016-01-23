@@ -12,7 +12,7 @@ module.exports = React.createClass({
   },
 
   componentDidMount: function() {
-    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
+    $.get("/hunt/rounds", { huntId: this.state.hunt.id }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
           rounds: {
