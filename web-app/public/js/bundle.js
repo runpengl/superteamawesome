@@ -389,47 +389,51 @@ module.exports = React.createClass({displayName: "exports",
       React.createElement("div", null, 
         React.createElement("h3", null, "Create New Hunt"), 
         React.createElement("form", {className: "create-hunt-form", onSubmit: this.handleSubmit}, 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "active"}, 
-              React.createElement("input", {name: "active", type: "checkbox", onChange: this.handleActiveChange, defaultChecked: "true"}), " Active"
+          React.createElement("div", {className: "form-column input-column"}, 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "active"}, 
+                React.createElement("input", {name: "active", type: "checkbox", onChange: this.handleActiveChange, defaultChecked: "true"}), " Active"
+              ), 
+              React.createElement("label", {htmlFor: "createNewFolder"}, 
+                React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this.handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
+              )
             ), 
-            React.createElement("label", {htmlFor: "createNewFolder"}, 
-              React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this.handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "name"}, "Name"), 
+              React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this.handleNameChange, defaultValue: ""})
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "template"}, "Template Puzzle Sheet"), 
+              React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this.handleTemplateChange, defaultvalue: ""})
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "googleDrive"}, "Parent Folder"), 
+              React.createElement("div", {className: this.getSelectedFolderIcon()}, 
+                this.getSelectedFolderName()
+              )
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("input", {type: "submit", value: "Create Hunt"})
             )
           ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "name"}, "Name"), 
-            React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this.handleNameChange, defaultValue: ""})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "template"}, "Template Puzzle Sheet"), 
-            React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this.handleTemplateChange, defaultvalue: ""})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "googleDrive"}, "Parent Folder"), 
-            React.createElement("div", {className: this.getSelectedFolderIcon()}, 
-              this.getSelectedFolderName()
-            )
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("input", {type: "submit", value: "Create Hunt"})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "folder"}, "Select Google Drive Folder"), 
-            React.createElement("span", {className: "help-text"}, "Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:"), 
-            React.createElement(Folders, {breadcrumbs: this.state.breadcrumbs, 
-                     ref: "createHuntFolders", 
-                     openFolder: this.openFolder, 
-                     selectHuntFolder: this.selectHuntFolder, 
-                     folders: this.state.folders, 
-                     rootFolder: this.state.rootFolder, 
-                     selectedFolder: this.state.selectedFolder}, 
-              this.state.folders.map(function(folder, index) {
-                return (React.createElement(Folder, {
-                          folder: folder, 
-                          index: folder.id, 
-                          key: folder.id}));
-              })
+          React.createElement("div", {className: "form-column drive-column"}, 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "folder"}, "Select Google Drive Folder"), 
+              React.createElement("span", {className: "help-text"}, "Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:"), 
+              React.createElement(Folders, {breadcrumbs: this.state.breadcrumbs, 
+                       ref: "createHuntFolders", 
+                       openFolder: this.openFolder, 
+                       selectHuntFolder: this.selectHuntFolder, 
+                       folders: this.state.folders, 
+                       rootFolder: this.state.rootFolder, 
+                       selectedFolder: this.state.selectedFolder}, 
+                this.state.folders.map(function(folder, index) {
+                  return (React.createElement(Folder, {
+                            folder: folder, 
+                            index: folder.id, 
+                            key: folder.id}));
+                })
+              )
             )
           )
         )

@@ -89,15 +89,16 @@
       }
     }
 
+    $drive-list-width: 66%;
     .create-hunt-form {
       height: 100%;
 
-      .form-element-container, .folder-container {
-        display: inline-block;
-        height: 100%;
-        position: relative;
-        vertical-align: top;
-        width: 49%;
+      .input-column {
+        width: 33%;
+      }
+
+      .drive-column {
+        width: $drive-list-width;
       }
 
       .form-element {
@@ -123,7 +124,7 @@
 
       margin-top: 10px;
       position: absolute;
-      width: 100%;
+      width: $drive-list-width;
 
       ul.breadcrumbs {
         background: white;
