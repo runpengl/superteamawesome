@@ -140,7 +140,7 @@ module.exports = React.createClass({displayName: "exports",
       createHunt: {
         name: '',
         active: true,
-        folderID: 'root'
+        folderId: 'root'
       }
     };
   },
@@ -174,10 +174,10 @@ module.exports = React.createClass({displayName: "exports",
   // Render the component
   render: function() {
     var editHunt;
-    if (this.state.hunt.id) {
+    if (this.state.hunt.folderId) {
       editHunt = React.createElement(EditHunt, {folders: this.state.folders, hunt: this.state.hunt, activeTab: this.state.activeTab});
     } else {
-      editHunt = React.createElement("h3", null, (this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit"));
+      editHunt = React.createElement("h3", null, (this.state.hunt.folderId ? "Edit " + this.state.hunt.name : "No hunt to edit"));
     }
 
     return (
@@ -358,20 +358,26 @@ module.exports = React.createClass({displayName: "exports",
     if (!name) {
       return;
     }
-    var folder = this.state.selectedFolder;
-    var folderID = null;
-    var parentID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    var folder = (this.state.selectedFolder.props != null) ? this.state.selectedFolder.props.folder : this.state.selectedFolder;
+    var folderId = null;
+    var parentId = null;
+
+    // set parent ID, which depends on whether the folder is the root folder or not
     if (this.state.hunt.createNewFolder == null || !this.state.hunt.createNewFolder) {
-      folderID = parentID;
-      parentID = folder.props.folder.parents[0].id;
+      if (folder.parents.length > 0) {
+        parentId = folder.parents[0].id;
+      }
+    } else {
+      parentId = folder.id;
     }
+
     $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,
         createNewFolder: this.state.hunt.createNewFolder,
-        folderID: folderID,
-        parentID: parentID,
+        folderId: folderId,
+        parentId: parentId,
         templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
@@ -385,51 +391,56 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   render: function() {
+    // TODO: error validation. conditionals are hard :(
     return (
       React.createElement("div", null, 
         React.createElement("h3", null, "Create New Hunt"), 
         React.createElement("form", {className: "create-hunt-form", onSubmit: this.handleSubmit}, 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "active"}, 
-              React.createElement("input", {name: "active", type: "checkbox", onChange: this.handleActiveChange, defaultChecked: "true"}), " Active"
+          React.createElement("div", {className: "form-column input-column"}, 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "active"}, 
+                React.createElement("input", {name: "active", type: "checkbox", onChange: this.handleActiveChange, defaultChecked: "true"}), " Active"
+              ), 
+              React.createElement("label", {htmlFor: "createNewFolder"}, 
+                React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this.handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
+              )
             ), 
-            React.createElement("label", {htmlFor: "createNewFolder"}, 
-              React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this.handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "name"}, "Name"), 
+              React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this.handleNameChange, defaultValue: ""})
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "template"}, "Template Puzzle Sheet"), 
+              React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this.handleTemplateChange, defaultvalue: ""})
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "googleDrive"}, "Parent Folder"), 
+              React.createElement("div", {className: this.getSelectedFolderIcon()}, 
+                this.getSelectedFolderName()
+              )
+            ), 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("input", {type: "submit", value: "Create Hunt"})
             )
           ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "name"}, "Name"), 
-            React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this.handleNameChange, defaultValue: ""})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "template"}, "Template Puzzle Sheet"), 
-            React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this.handleTemplateChange, defaultvalue: ""})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "googleDrive"}, "Parent Folder"), 
-            React.createElement("div", {className: this.getSelectedFolderIcon()}, 
-              this.getSelectedFolderName()
-            )
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("input", {type: "submit", value: "Create Hunt"})
-          ), 
-          React.createElement("div", {className: "form-element"}, 
-            React.createElement("label", {htmlFor: "folder"}, "Select Google Drive Folder"), 
-            React.createElement("span", {className: "help-text"}, "Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:"), 
-            React.createElement(Folders, {breadcrumbs: this.state.breadcrumbs, 
-                     ref: "createHuntFolders", 
-                     openFolder: this.openFolder, 
-                     selectHuntFolder: this.selectHuntFolder, 
-                     folders: this.state.folders, 
-                     rootFolder: this.state.rootFolder, 
-                     selectedFolder: this.state.selectedFolder}, 
-              this.state.folders.map(function(folder, index) {
-                return (React.createElement(Folder, {
-                          folder: folder, 
-                          index: folder.id, 
-                          key: folder.id}));
-              })
+          React.createElement("div", {className: "form-column drive-column"}, 
+            React.createElement("div", {className: "form-element"}, 
+              React.createElement("label", {htmlFor: "folder"}, "Select Google Drive Folder"), 
+              React.createElement("span", {className: "help-text"}, "Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:"), 
+              React.createElement(Folders, {breadcrumbs: this.state.breadcrumbs, 
+                       ref: "createHuntFolders", 
+                       openFolder: this.openFolder, 
+                       selectHuntFolder: this.selectHuntFolder, 
+                       folders: this.state.folders, 
+                       rootFolder: this.state.rootFolder, 
+                       selectedFolder: this.state.selectedFolder}, 
+                this.state.folders.map(function(folder, index) {
+                  return (React.createElement(Folder, {
+                            folder: folder, 
+                            index: folder.id, 
+                            key: folder.id}));
+                })
+              )
             )
           )
         )
@@ -462,17 +473,19 @@ module.exports = React.createClass({displayName: "exports",
     var newRound = this.state.newRound;
     if (newRound.parentRound === "None") {
       newRound.parentRound = {
-        folderID: this.props.hunt.folderID
+        folderId: this.props.hunt.folderId
       };
     } else {
       var roundIndex = parseInt(newRound.parentRound.split("-")[1]);
       newRound.parentRound = this.props.rounds[roundIndex];
     }
 
+    // TODO: add meta links
     $.post("/admin/create/round",
       {
         newRound: newRound,
-        huntID: this.props.hunt.id
+        huntId: this.props.hunt.name.replace(" ", "").toLowerCase(),
+        puzzleTemplate: this.props.hunt.template
       }
     ).success(function(rounds) {
       if (rounds.error == null) {
@@ -567,9 +580,9 @@ module.exports = React.createClass({displayName: "exports",
             React.createElement("label", {htmlFor: "parent-round"}, "Parent Round"), 
             React.createElement("select", {value: this.state.newRound.parentRound, onChange: this.handleParentRoundChange}, 
               React.createElement("option", {value: "None"}, "None"), 
-              this.props.rounds.map(function(round, index) {
+              Object.keys(this.props.rounds).map(function(roundId) {
                 return (
-                  React.createElement("option", {key: "round-" + index, value: "round-" + index}, round.name)
+                  React.createElement("option", {key: roundId, value: _this.props.rounds[roundId]}, _this.props.rounds[roundId].name)
                 );
               })
             )
@@ -620,7 +633,7 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   componentDidMount: function() {
-    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
+    $.get("/hunt/rounds", { huntId: this.state.hunt.name.replace(" ", "").toLowerCase() }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
           rounds: {
@@ -648,7 +661,7 @@ module.exports = React.createClass({displayName: "exports",
     props = props || this.props;
 
     return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
       folders: props.folders,
       hunt: props.hunt,
       rounds: []
@@ -712,23 +725,24 @@ module.exports = React.createClass({displayName: "exports",
                     )
                   ), 
                   React.createElement("tbody", null, 
-                    _this.state.rounds.map(function(round) {
+                    Object.keys(_this.state.rounds).map(function(roundId) {
+                      var round = _this.state.rounds[roundId];
                       return (
-                        React.createElement("tr", {key: "round-row-" + round.id}, 
+                        React.createElement("tr", {key: roundId}, 
                           React.createElement("td", null, round.name), 
-                          React.createElement("td", null, _this.getParentRound(round.parentID)), 
+                          React.createElement("td", null, _this.getParentRound(round.parentId)), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.folderID), target: "blank"}, round.name)
+                              React.createElement("a", {href: _this.getFolderUrl(round.folderId), target: "blank"}, round.name)
                             )
                           ), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.solvedFolderID), target: "blank"}, "Solved Folder")
+                              React.createElement("a", {href: _this.getFolderUrl(round.solvedFolderId), target: "blank"}, "Solved Folder")
                             )
                           ), 
                           React.createElement("td", null, 
-                            round.Puzzles.length
+                            Object.keys(round.puzzles).length
                           ), 
                           React.createElement("td", null, 
                             "No"

@@ -1,19 +1,19 @@
 var debug = require('debug')('superteamawesome:server'),
     Q = require('q'),
-    models = require('../models');
+    firebaseRef = require('../api/firebase');;
 
 module.exports = {
   rounds: function(req, res) {
-    models.Round.findAll({
-      include: [{
-        model: models.Puzzle,
-        as: 'Puzzles'
-      }],
-      where: {
-        huntID: req.query.huntID
-      }
-    }).then(function(rounds) {
+    firebaseRef.child("hunts/" + req.query.huntId + "/rounds").once("value", function(snapshot) {
+      var rounds = {};
+      snapshot.forEach(function(childSnapshot) {
+        // key will be "fred" the first time and "barney" the second time
+        var key = childSnapshot.key();
+        // childData will be the actual contents of the child
+        var childData = childSnapshot.val();
+        rounds[key] = childData;
+      });
       res.send(rounds);
-    })
+    });
   }
 };

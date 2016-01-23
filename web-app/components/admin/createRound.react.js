@@ -21,17 +21,19 @@ module.exports = React.createClass({
     var newRound = this.state.newRound;
     if (newRound.parentRound === "None") {
       newRound.parentRound = {
-        folderID: this.props.hunt.folderID
+        folderId: this.props.hunt.folderId
       };
     } else {
       var roundIndex = parseInt(newRound.parentRound.split("-")[1]);
       newRound.parentRound = this.props.rounds[roundIndex];
     }
 
+    // TODO: add meta links
     $.post("/admin/create/round",
       {
         newRound: newRound,
-        huntID: this.props.hunt.id
+        huntId: this.props.hunt.name.replace(" ", "").toLowerCase(),
+        puzzleTemplate: this.props.hunt.template
       }
     ).success(function(rounds) {
       if (rounds.error == null) {
@@ -126,9 +128,9 @@ module.exports = React.createClass({
             <label htmlFor='parent-round'>Parent Round</label>
             <select value={this.state.newRound.parentRound} onChange={this.handleParentRoundChange}>
               <option value="None">None</option>
-              {this.props.rounds.map(function(round, index) {
+              {Object.keys(this.props.rounds).map(function(roundId) {
                 return (
-                  <option key={"round-" + index} value={"round-" + index}>{round.name}</option>
+                  <option key={roundId} value={_this.props.rounds[roundId]}>{_this.props.rounds[roundId].name}</option>
                 );
               })}
             </select>

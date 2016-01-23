@@ -12,7 +12,7 @@ module.exports = React.createClass({
   },
 
   componentDidMount: function() {
-    $.get("/hunt/rounds", { huntID: this.state.hunt.id }, function(rounds) {
+    $.get("/hunt/rounds", { huntId: this.state.hunt.name.replace(" ", "").toLowerCase() }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
           rounds: {
@@ -40,7 +40,7 @@ module.exports = React.createClass({
     props = props || this.props;
 
     return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
       folders: props.folders,
       hunt: props.hunt,
       rounds: []
@@ -104,23 +104,24 @@ module.exports = React.createClass({
                     </tr>
                   </thead>
                   <tbody>
-                    {_this.state.rounds.map(function(round) {
+                    {Object.keys(_this.state.rounds).map(function(roundId) {
+                      var round = _this.state.rounds[roundId];
                       return (
-                        <tr key={"round-row-" + round.id}>
+                        <tr key={roundId}>
                           <td>{round.name}</td>
-                          <td>{_this.getParentRound(round.parentID)}</td>
+                          <td>{_this.getParentRound(round.parentId)}</td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.folderID)} target='blank'>{round.name}</a>
+                              <a href={_this.getFolderUrl(round.folderId)} target='blank'>{round.name}</a>
                             </div>
                           </td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.solvedFolderID)} target='blank'>Solved Folder</a>
+                              <a href={_this.getFolderUrl(round.solvedFolderId)} target='blank'>Solved Folder</a>
                             </div>
                           </td>
                           <td>
-                            {round.Puzzles.length}
+                            {Object.keys(round.puzzles).length}
                           </td>
                           <td>
                             No
