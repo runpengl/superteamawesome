@@ -520,7 +520,7 @@ table {
     border-bottom: 1px solid #dfdfdf;
     padding: 10px 0px; }
     .card .details table tbody tr td .folder:before {
-      content: "\e002";
+      content: "\e003";
       color: #656565;
       font-family: Flaticon;
       font-size: 14px;

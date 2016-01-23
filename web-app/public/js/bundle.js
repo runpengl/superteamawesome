@@ -580,9 +580,9 @@ module.exports = React.createClass({displayName: "exports",
             React.createElement("label", {htmlFor: "parent-round"}, "Parent Round"), 
             React.createElement("select", {value: this.state.newRound.parentRound, onChange: this.handleParentRoundChange}, 
               React.createElement("option", {value: "None"}, "None"), 
-              this.props.rounds.map(function(round, index) {
+              Object.keys(this.props.rounds).map(function(roundId) {
                 return (
-                  React.createElement("option", {key: "round-" + index, value: "round-" + index}, round.name)
+                  React.createElement("option", {key: roundId, value: _this.props.rounds[roundId]}, _this.props.rounds[roundId].name)
                 );
               })
             )
@@ -633,7 +633,7 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   componentDidMount: function() {
-    $.get("/hunt/rounds", { huntId: this.state.hunt.id }, function(rounds) {
+    $.get("/hunt/rounds", { huntId: this.state.hunt.name.replace(" ", "").toLowerCase() }, function(rounds) {
       if (this.isMounted()) {
         var newState = update(this.state, {
           rounds: {
@@ -725,11 +725,12 @@ module.exports = React.createClass({displayName: "exports",
                     )
                   ), 
                   React.createElement("tbody", null, 
-                    _this.state.rounds.map(function(round) {
+                    Object.keys(_this.state.rounds).map(function(roundId) {
+                      var round = _this.state.rounds[roundId];
                       return (
-                        React.createElement("tr", {key: "round-row-" + round.id}, 
+                        React.createElement("tr", {key: roundId}, 
                           React.createElement("td", null, round.name), 
-                          React.createElement("td", null, _this.getParentRound(round.parentID)), 
+                          React.createElement("td", null, _this.getParentRound(round.parentId)), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
                               React.createElement("a", {href: _this.getFolderUrl(round.folderId), target: "blank"}, round.name)
@@ -741,7 +742,7 @@ module.exports = React.createClass({displayName: "exports",
                             )
                           ), 
                           React.createElement("td", null, 
-                            round.Puzzles.length
+                            Object.keys(round.puzzles).length
                           ), 
                           React.createElement("td", null, 
                             "No"
