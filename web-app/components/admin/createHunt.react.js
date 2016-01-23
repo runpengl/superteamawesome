@@ -126,20 +126,26 @@ module.exports = React.createClass({
     if (!name) {
       return;
     }
-    var folder = this.state.selectedFolder;
-    var folderID = null;
-    var parentID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    var folder = (this.state.selectedFolder.props != null) ? this.state.selectedFolder.props.folder : this.state.selectedFolder;
+    var folderId = null;
+    var parentId = null;
+
+    // set parent ID, which depends on whether the folder is the root folder or not
     if (this.state.hunt.createNewFolder == null || !this.state.hunt.createNewFolder) {
-      folderID = parentID;
-      parentID = folder.props.folder.parents[0].id;
+      if (folder.parents.length > 0) {
+        parentId = folder.parents[0].id;
+      }
+    } else {
+      parentId = folder.id;
     }
+
     $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,
         createNewFolder: this.state.hunt.createNewFolder,
-        folderID: folderID,
-        parentID: parentID,
+        folderId: folderId,
+        parentId: parentId,
         templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
@@ -153,6 +159,7 @@ module.exports = React.createClass({
   },
 
   render: function() {
+    // TODO: error validation. conditionals are hard :(
     return (
       <div>
         <h3>Create New Hunt</h3>

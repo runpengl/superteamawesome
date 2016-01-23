@@ -11,9 +11,9 @@ function getActiveHunt() {
   var huntDeferred = Q.defer();
   firebaseRef.child("hunts").once("value", function(huntsSnapshot) {
     if (huntsSnapshot.exists()) {
-      huntsSnapshot.orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
-        if (huntSnapshot.exists()) {
-          huntDeferred.resolve(huntSnapshot.val());
+      firebaseRef.child("hunts").orderByChild("isActive").equalTo(true).on("child_added", function(snapshot) {
+        if (snapshot.exists()) {
+          huntDeferred.resolve(snapshot.val());
         } else {
           huntDeferred.resolve(null);
         }
@@ -22,9 +22,9 @@ function getActiveHunt() {
       huntDeferred.resolve(null);
     }
   });
-
   return huntDeferred.promise;
 }
+
 function getAdminState(user, activeTab) {
   var deferred = Q.defer();
   var hunt = {name: 'None'};
@@ -69,15 +69,15 @@ function getAdminState(user, activeTab) {
 
 function renderAdmin(req, res, page) {
   getAdminState(req.user, page).then(function(state) {
-      res.render('admin', state);
-    }).catch(function(error) {
-      if (error.errors && error.errors[0].message === "Invalid Credentials") {
-        req.session.returnPath = req.route.path;
-        res.redirect("/login");
-      } else {
-        res.render("error", {error: error});
-      }
-    });
+    res.render('admin', state);
+  }).catch(function(error) {
+    if (error.errors && error.errors[0].message === "Invalid Credentials") {
+      req.session.returnPath = req.route.path;
+      res.redirect("/login");
+    } else {
+      res.render("error", {error: error});
+    }
+  });
 }
 
 module.exports = {
@@ -86,10 +86,8 @@ module.exports = {
       if (huntsSnapshot.exists()) {
         huntsSnapshot.orderByChild("isActive").equalTo(true).on("child_added", function(huntSnapshot) {
           if (huntSnapshot.exists()) {
-            debug("EXISTS");
             res.redirect("/admin/edit");
           } else {
-            debug("SORTA CREATE");
             res.redirect("/admin/create");
           }
         });
@@ -108,7 +106,6 @@ module.exports = {
   },
 
   editRound: function(req, res) {
-    debug("editing round");
     renderAdmin(req, res, "round");
   },
 
@@ -137,10 +134,10 @@ module.exports = {
     function getFolder() {
       var deferFolder = Q.defer();
       if (req.body.createNewFolder === "false" || req.body.createNewFolder === undefined) {
-        deferFolder.resolve({id: req.body.folderID});
+        deferFolder.resolve({id: req.body.folderId});
         return deferFolder.promise;
       } else {
-        return gapi.createFolder(req.body.name, req.body.parentID);
+        return gapi.createFolder(req.body.name, req.body.parentId);
       }
     }
 
@@ -148,19 +145,25 @@ module.exports = {
       newHuntFolder = folder;
       var deferred = Q.defer();
       if (req.body.active) {
-        return models.Hunt.update({
-          isActive: false
-        },
-        {
-          where: {
-            isActive: true
-          },
-          fields: ["isActive"]
+        getActiveHunt().then(function(hunt) {
+          if (hunt) {
+            firebaseRef.child("hunt/" + hunt.id).update({
+              isActive: false
+            }, function(error) {
+              if (error) {
+                deferred.reject("Error updating active hunt: " + error);
+              } else {
+                deferred.resolve(true);
+              }
+            });
+          } else {
+            deferred.resolve(true);
+          }
         });
       } else {
         deferred.resolve(true);
-        return deferred.promise;
       }
+      return deferred.promise;
     }).then(function() {
       var deferred = Q.defer();
       if (req.body.templateSheet == null || req.body.templateSheet.length === 0) {
@@ -170,19 +173,34 @@ module.exports = {
         return gapi.copySheet(req.body.templateSheet, newHuntFolder.id);
       }
     }).then(function(sheet) {
-      // replace with firebase
+      var deferred = Q.defer();
+      var id = req.body.name.replace(" ", "");
+      var hunt = {
+        name: req.body.name,
+        folderId: newHuntFolder.id,
+        createdBy: req.user.googleId,
+        isActive: req.body.active === "true" || req.body.active === true
+      };
 
-      return null;
-      // return models.Hunt.create({
-      //   name: req.body.name,
-      //   folderID: newHuntFolder.id,
-      //   createdBy: req.user.id,
-      //   isActive: req.body.active,
-      //   parentFolderID: req.body.parentID, // needs to be parent
-      //   templateSheet: sheet.id
-      // });
+      if (sheet.id != null) {
+        hunt.templateSheet = sheet.id;
+      }
+
+      // TODO(styu): remove when validation is done
+      if (req.body.parentId !=  null) {
+        hunt.parentFolderId = req.body.parentId;
+      }
+
+      firebaseRef.child("hunts/" + id).set(hunt, function(error) {
+        if (error) {
+          debug(error);
+          deferred.reject("Error saving new hunt: " + error);
+        } else {
+          deferred.resolve(hunt);
+        }
+      });
+      return deferred.promise;
     }).then(function(hunt) {
-      debug(hunt);
       res.send(hunt);
     }).catch(function(error) {
       res.send({ error: error });
@@ -197,13 +215,13 @@ module.exports = {
 
     // create drive folders
     newRound.names.forEach(function(roundName) {
-      folderPromises.push(gapi.createFolder(roundName.val, newRound.parentRound.folderID));
+      folderPromises.push(gapi.createFolder(roundName.val, newRound.parentRound.folderId));
     });
     Q.all(folderPromises).then(function(folders) {
       folders.forEach(function(folder, index) {
         rounds.push({
           name: newRound.names[index].val,
-          folderID: folder.id,
+          folderId: folder.id,
           huntID: req.body.huntID,
           parentID: newRound.parentRound.id
         });
@@ -215,7 +233,7 @@ module.exports = {
       }));
     }).then(function(solvedFolders) {
       solvedFolders.forEach(function(folder, index) {
-        rounds[index]["solvedFolderID"] = folder.id;
+        rounds[index]["solvedFolderId"] = folder.id;
       });
       return Q.all(rounds.map(function(round) {
         return models.Round.create(round);

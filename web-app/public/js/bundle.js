@@ -140,7 +140,7 @@ module.exports = React.createClass({displayName: "exports",
       createHunt: {
         name: '',
         active: true,
-        folderID: 'root'
+        folderId: 'root'
       }
     };
   },
@@ -174,10 +174,10 @@ module.exports = React.createClass({displayName: "exports",
   // Render the component
   render: function() {
     var editHunt;
-    if (this.state.hunt.id) {
+    if (this.state.hunt.folderId) {
       editHunt = React.createElement(EditHunt, {folders: this.state.folders, hunt: this.state.hunt, activeTab: this.state.activeTab});
     } else {
-      editHunt = React.createElement("h3", null, (this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit"));
+      editHunt = React.createElement("h3", null, (this.state.hunt.folderId ? "Edit " + this.state.hunt.name : "No hunt to edit"));
     }
 
     return (
@@ -358,20 +358,26 @@ module.exports = React.createClass({displayName: "exports",
     if (!name) {
       return;
     }
-    var folder = this.state.selectedFolder;
-    var folderID = null;
-    var parentID = (folder.props == null) ? folder.id : folder.props.folder.id;
+    var folder = (this.state.selectedFolder.props != null) ? this.state.selectedFolder.props.folder : this.state.selectedFolder;
+    var folderId = null;
+    var parentId = null;
+
+    // set parent ID, which depends on whether the folder is the root folder or not
     if (this.state.hunt.createNewFolder == null || !this.state.hunt.createNewFolder) {
-      folderID = parentID;
-      parentID = folder.props.folder.parents[0].id;
+      if (folder.parents.length > 0) {
+        parentId = folder.parents[0].id;
+      }
+    } else {
+      parentId = folder.id;
     }
+
     $.post("/admin/create/hunt",
       {
         name: name,
         active: this.state.hunt.active,
         createNewFolder: this.state.hunt.createNewFolder,
-        folderID: folderID,
-        parentID: parentID,
+        folderId: folderId,
+        parentId: parentId,
         templateSheet: this.state.hunt.template
       }
     ).success(function(hunt) {
@@ -385,6 +391,7 @@ module.exports = React.createClass({displayName: "exports",
   },
 
   render: function() {
+    // TODO: error validation. conditionals are hard :(
     return (
       React.createElement("div", null, 
         React.createElement("h3", null, "Create New Hunt"), 
@@ -466,7 +473,7 @@ module.exports = React.createClass({displayName: "exports",
     var newRound = this.state.newRound;
     if (newRound.parentRound === "None") {
       newRound.parentRound = {
-        folderID: this.props.hunt.folderID
+        folderId: this.props.hunt.folderId
       };
     } else {
       var roundIndex = parseInt(newRound.parentRound.split("-")[1]);
@@ -652,7 +659,7 @@ module.exports = React.createClass({displayName: "exports",
     props = props || this.props;
 
     return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
       folders: props.folders,
       hunt: props.hunt,
       rounds: []
@@ -723,12 +730,12 @@ module.exports = React.createClass({displayName: "exports",
                           React.createElement("td", null, _this.getParentRound(round.parentID)), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.folderID), target: "blank"}, round.name)
+                              React.createElement("a", {href: _this.getFolderUrl(round.folderId), target: "blank"}, round.name)
                             )
                           ), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.solvedFolderID), target: "blank"}, "Solved Folder")
+                              React.createElement("a", {href: _this.getFolderUrl(round.solvedFolderId), target: "blank"}, "Solved Folder")
                             )
                           ), 
                           React.createElement("td", null, 

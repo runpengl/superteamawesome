@@ -40,7 +40,7 @@ module.exports = React.createClass({
     props = props || this.props;
 
     return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderID}),
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
       folders: props.folders,
       hunt: props.hunt,
       rounds: []
@@ -111,12 +111,12 @@ module.exports = React.createClass({
                           <td>{_this.getParentRound(round.parentID)}</td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.folderID)} target='blank'>{round.name}</a>
+                              <a href={_this.getFolderUrl(round.folderId)} target='blank'>{round.name}</a>
                             </div>
                           </td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.solvedFolderID)} target='blank'>Solved Folder</a>
+                              <a href={_this.getFolderUrl(round.solvedFolderId)} target='blank'>Solved Folder</a>
                             </div>
                           </td>
                           <td>

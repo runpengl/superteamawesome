@@ -11,9 +11,7 @@ module.exports = {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     var regex = /https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g;
-    debug(sheetLink, destinationFolder);
     var fileId = regex.exec(sheetLink)[1];
-    debug("SHEET" + fileId);
     service.files.copy({
       fileId: fileId,
       resource: {
@@ -25,7 +23,6 @@ module.exports = {
         debug("The API returned an error when copying a file: " + err);
         defer.reject(err);
       } else {
-        debug(response);
         defer.resolve(response);
       }
     });
@@ -72,11 +69,11 @@ module.exports = {
     return defer.promise;
   },
 
-  getFolder: function(folderID) {
+  getFolder: function(folderId) {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     service.files.get({
-      fileId: folderID
+      fileId: folderId
     }, function(err, response) {
       if (err) {
         console.log('The API returned an error:' + err);
@@ -88,17 +85,16 @@ module.exports = {
     return defer.promise;
   },
 
-  listFiles: function(folderID) {
+  listFiles: function(folderId) {
     var defer = Q.defer();
     var service = google.drive({version: 'v2'});
     service.files.list({
-      q: '"' + folderID + '" in parents and mimeType = "application/vnd.google-apps.folder"'
+      q: '"' + folderId + '" in parents and mimeType = "application/vnd.google-apps.folder"'
     }, function(err, response) {
       if (err) {
         debug('The API returned an error: ' + err);
         defer.reject(err);
       } else {
-        debug(_.filter(response.items, { labels: { trashed: false }}));
         defer.resolve(_.filter(response.items, { labels: { trashed: false }}));
       }
     });

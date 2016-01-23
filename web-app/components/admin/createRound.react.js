@@ -21,7 +21,7 @@ module.exports = React.createClass({
     var newRound = this.state.newRound;
     if (newRound.parentRound === "None") {
       newRound.parentRound = {
-        folderID: this.props.hunt.folderID
+        folderId: this.props.hunt.folderId
       };
     } else {
       var roundIndex = parseInt(newRound.parentRound.split("-")[1]);

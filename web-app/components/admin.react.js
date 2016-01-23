@@ -15,7 +15,7 @@ module.exports = React.createClass({
       createHunt: {
         name: '',
         active: true,
-        folderID: 'root'
+        folderId: 'root'
       }
     };
   },
@@ -49,10 +49,10 @@ module.exports = React.createClass({
   // Render the component
   render: function() {
     var editHunt;
-    if (this.state.hunt.id) {
+    if (this.state.hunt.folderId) {
       editHunt = <EditHunt folders={this.state.folders} hunt={this.state.hunt} activeTab={this.state.activeTab}/>;
     } else {
-      editHunt = <h3>{(this.state.hunt.id ? "Edit " + this.state.hunt.name : "No hunt to edit")}</h3>;
+      editHunt = <h3>{(this.state.hunt.folderId ? "Edit " + this.state.hunt.name : "No hunt to edit")}</h3>;
     }
 
     return (
