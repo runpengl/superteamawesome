@@ -3,10 +3,26 @@ var _ = require('lodash'),
     Q = require('q'),
     debug = require('debug')('superteamawesome:server'),
     React = require('react'),
-    update = require('react-addons-update'),
-    CreateRound = require('./createRound.react');
+    update = require('react-addons-update');
 
+var CreateRound = require('./createRound.react'),
+    utils = require('../../utils');
+
+// Module for viewing the hunt details (admin view)
 module.exports = React.createClass({
+
+  // lifecycle methods
+  getInitialState: function(props) {
+    props = props || this.props;
+
+    return {
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
+      folders: props.folders,
+      hunt: props.hunt,
+      rounds: []
+    };
+  },
+
   componentWillReceiveProps: function(newProps, oldProps) {
     this.setState(this.getInitialState(newProps));
   },
@@ -24,27 +40,9 @@ module.exports = React.createClass({
     }.bind(this));
   },
 
+  // getter methods
   getFolderIcon: function() {
     return this.state.driveFolder.shared ? "shared folder info" : "folder info";
-  },
-
-  getFolderUrl: function(id) {
-    return "https://drive.google.com/drive/folders/" + id;
-  },
-
-  getSheetUrl: function(id) {
-    return "https://docs.google.com/spreadsheets/d/" + id;
-  },
-
-  getInitialState: function(props) {
-    props = props || this.props;
-
-    return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
-      folders: props.folders,
-      hunt: props.hunt,
-      rounds: []
-    };
   },
 
   getParentRound: function(roundID) {
@@ -78,11 +76,11 @@ module.exports = React.createClass({
                   </li>
                   <li>
                     <div className='label'>Google Drive</div>
-                    <div className={this.getFolderIcon()}><a target="blank" href={this.getFolderUrl(this.state.driveFolder.id)}>{this.state.driveFolder.title}</a></div>
+                    <div className={this.getFolderIcon()}><a target="blank" href={utils.getFolderUrl(this.state.driveFolder.id)}>{this.state.driveFolder.title}</a></div>
                   </li>
                   <li>
                     <div className='label'>Puzzle Template</div>
-                    <div className='info sheet'><a target='blank' href={this.getSheetUrl(this.state.hunt.templateSheet)}>Puzzle Template</a></div>
+                    <div className='info sheet'><a target='blank' href={utils.getSheetUrl(this.state.hunt.templateSheet)}>Puzzle Template</a></div>
                   </li>
                 </ul>
               </div>
@@ -112,12 +110,12 @@ module.exports = React.createClass({
                           <td>{_this.getParentRound(round.parentId)}</td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.folderId)} target='blank'>{round.name}</a>
+                              <a href={utils.getFolderUrl(round.folderId)} target='blank'>{round.name}</a>
                             </div>
                           </td>
                           <td>
                             <div className='folder'>
-                              <a href={_this.getFolderUrl(round.solvedFolderId)} target='blank'>Solved Folder</a>
+                              <a href={utils.getFolderUrl(round.solvedFolderId)} target='blank'>Solved Folder</a>
                             </div>
                           </td>
                           <td>

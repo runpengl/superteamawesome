@@ -1,26 +1,31 @@
-var $ = require('jquery');
-var React = require('react');
-var update = require('react-addons-update');
+var $ = require('jquery'),
+    React = require('react'),
+    update = require('react-addons-update');
+
 var Folder = require('../driveFolder.react');
 var Folders = require('../driveFolders.react');
 
+// Module for creating a hunt
 module.exports = React.createClass({
+
+  // life cycle methods
+  getInitialState: function(props) {
+    props = props || this.props;
+    return {
+      breadcrumbs: [props.rootFolder],
+      folders: props.folders,
+      hunt: props.hunt,
+      rootFolder: props.rootFolder,
+      selectedFolder: props.rootFolder,
+    };
+  },
+
   componentWillReceiveProps: function(newProps, oldProps){
     this.setState(this.getInitialState(newProps));
   },
 
-  getInitialState: function(props) {
-    props = props || this.props;
-    return {
-      hunt: props.hunt,
-      breadcrumbs: [props.rootFolder],
-      selectedFolder: props.rootFolder,
-      folders: props.folders,
-      rootFolder: props.rootFolder
-    };
-  },
-
-  getSelectedFolderIcon: function() {
+  // getters
+  _getSelectedFolderIcon: function() {
     var isShared = false;
     if (this.state.selectedFolder.props == null) {
       isShared = this.state.selectedFolder.shared;
@@ -30,7 +35,7 @@ module.exports = React.createClass({
     return isShared ? "shared folder-title" : "folder-title";
   },
 
-  getSelectedFolderName: function() {
+  _getSelectedFolderName: function() {
     if (this.state.selectedFolder.props == null) {
       return this.state.selectedFolder.title;
     } else {
@@ -38,7 +43,41 @@ module.exports = React.createClass({
     }
   },
 
-  openFolder: function(folder, index) {
+  // setters
+  _setHuntName: function(name) {
+    var newState = update(this.state, {
+      hunt: {
+        name: {
+          $set: name
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  // event handlers
+  _handleActiveChange: function(e) {
+    var newState = update(this.state, {
+      hunt: {
+        active: {
+          $set: e.target.checked
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  _handleCreateNewFolderChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        createNewFolder: {
+          $set: e.target.checked
+        }
+      }
+    }));
+  },
+
+  _handleFolderOpen: function(folder, index) {
     var _this = this;
     if (index !== undefined) {
       this.state.breadcrumbs.splice(index, this.state.breadcrumbs.length - index);
@@ -56,7 +95,7 @@ module.exports = React.createClass({
     });
   },
 
-  selectHuntFolder: function(folder) {
+  _handleHuntFolderSelect: function(folder) {
     var newState;
     if (folder == null) {
       newState = update(this.state, {
@@ -74,53 +113,11 @@ module.exports = React.createClass({
     this.setState(newState);
   },
 
-  setHuntName: function(name) {
-    var newState = update(this.state, {
-      hunt: {
-        name: {
-          $set: name
-        }
-      }
-    });
-    this.setState(newState);
+  _handleNameChange: function(e) {
+    this._setHuntName(e.target.value);
   },
 
-  handleNameChange: function(e) {
-    this.setHuntName(e.target.value);
-  },
-
-  handleActiveChange: function(e) {
-    var newState = update(this.state, {
-      hunt: {
-        active: {
-          $set: e.target.checked
-        }
-      }
-    });
-    this.setState(newState);
-  },
-
-  handleCreateNewFolderChange: function(e) {
-    this.setState(update(this.state, {
-      hunt: {
-        createNewFolder: {
-          $set: e.target.checked
-        }
-      }
-    }));
-  },
-
-  handleTemplateChange: function(e) {
-    this.setState(update(this.state, {
-      hunt: {
-        template: {
-          $set: e.target.value
-        }
-      }
-    }));
-  },
-
-  handleSubmit: function(e) {
+  _handleSubmit: function(e) {
     e.preventDefault();
     var name = this.state.hunt.name.trim();
     if (!name) {
@@ -155,7 +152,17 @@ module.exports = React.createClass({
         window.location.href="/admin/edit";
       }
     }.bind(this));
-    this.setHuntName('');
+    this._setHuntName('');
+  },
+
+  _handleTemplateChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        template: {
+          $set: e.target.value
+        }
+      }
+    }));
   },
 
   render: function() {
@@ -163,28 +170,28 @@ module.exports = React.createClass({
     return (
       <div>
         <h3>Create New Hunt</h3>
-        <form className='create-hunt-form' onSubmit={this.handleSubmit}>
+        <form className='create-hunt-form' onSubmit={this._handleSubmit}>
           <div className="form-column input-column">
             <div className='form-element'>
               <label htmlFor='active'>
-                <input name='active' type='checkbox' onChange={this.handleActiveChange} defaultChecked="true" /> Active
+                <input name='active' type='checkbox' onChange={this._handleActiveChange} defaultChecked="true" /> Active
               </label>
               <label htmlFor='createNewFolder'>
-                <input name='createNewFolder' type='checkbox' onChange={this.handleCreateNewFolderChange} defaultChecked="" /> Create New Folder
+                <input name='createNewFolder' type='checkbox' onChange={this._handleCreateNewFolderChange} defaultChecked="" /> Create New Folder
               </label>
             </div>
             <div className='form-element'>
               <label htmlFor='name'>Name</label>
-              <input type='text' name='name' value={this.state.hunt.name} onChange={this.handleNameChange} defaultValue="" />
+              <input type='text' name='name' value={this.state.hunt.name} onChange={this._handleNameChange} defaultValue="" />
             </div>
             <div className='form-element'>
               <label htmlFor='template'>Template Puzzle Sheet</label>
-              <input type='text' name='template' value={this.state.hunt.template} onChange={this.handleTemplateChange} defaultvalue="" />
+              <input type='text' name='template' value={this.state.hunt.template} onChange={this._handleTemplateChange} defaultvalue="" />
             </div>
             <div className='form-element'>
               <label htmlFor='googleDrive'>Parent Folder</label>
-              <div className={this.getSelectedFolderIcon()}>
-                {this.getSelectedFolderName()}
+              <div className={this._getSelectedFolderIcon()}>
+                {this._getSelectedFolderName()}
               </div>
             </div>
             <div className='form-element'>
@@ -196,12 +203,12 @@ module.exports = React.createClass({
               <label htmlFor='folder'>Select Google Drive Folder</label>
               <span className='help-text'>Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:</span>
               <Folders breadcrumbs={this.state.breadcrumbs}
-                       ref="createHuntFolders"
-                       openFolder={this.openFolder}
-                       selectHuntFolder={this.selectHuntFolder}
                        folders={this.state.folders}
                        rootFolder={this.state.rootFolder}
-                       selectedFolder={this.state.selectedFolder}>
+                       ref="createHuntFolders"
+                       selectedFolder={this.state.selectedFolder}
+                       handleFolderOpen={this._handleFolderOpen}
+                       handleHuntFolderSelect={this._handleHuntFolderSelect}>
                 {this.state.folders.map(function(folder, index) {
                   return (<Folder
                             folder={folder}

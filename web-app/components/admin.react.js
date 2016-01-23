@@ -1,9 +1,12 @@
 var React = require('react');
-var CreateHunt = require('./admin/createHunt.react');
-var EditHunt = require('./admin/editHunt.react');
 
+var CreateHunt = require('./admin/createHunt.react'),
+    EditHunt = require('./admin/editHunt.react');
+
+// Overall module for the admin page
 module.exports = React.createClass({
 
+  // lifecycle methods
   getInitialState: function(props) {
     props = props || this.props;
     return {
@@ -28,6 +31,11 @@ module.exports = React.createClass({
     };
   },
 
+  componentWillReceiveProps: function(newProps, oldProps){
+    this.setState(this.getInitialState(newProps));
+  },
+
+  // getter methods
   getActiveState: function(tab) {
     if (tab === "edit") {
       if (this.state.activeTab === "edit" ||
@@ -40,10 +48,6 @@ module.exports = React.createClass({
       return this.state.activeTab === tab ? "active" : "";
     }
     return "";
-  },
-
-  componentWillReceiveProps: function(newProps, oldProps){
-    this.setState(this.getInitialState(newProps));
   },
 
   // Render the component

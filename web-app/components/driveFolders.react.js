@@ -1,13 +1,12 @@
-var React = require('react');
-var update = require('react-addons-update');
-var _ = require('lodash');
-var $ = require('jquery');
+var _ = require('lodash'),
+    $ = require('jquery'),
+    React = require('react'),
+    update = require('react-addons-update');
 
+// Displays a list of Google Drive Folders
 module.exports = React.createClass({
-  componentWillReceiveProps: function(newProps, oldProps){
-    this.setState(this.getInitialState(newProps));
-  },
 
+  // lifecycle methods
   getInitialState: function(props) {
     props = props || this.props;
     return {
@@ -17,20 +16,26 @@ module.exports = React.createClass({
     };
   },
 
-  openFolder: function(folder) {
-    this.props.openFolder(folder.props.folder);
+  componentWillReceiveProps: function(newProps, oldProps){
+    this.setState(this.getInitialState(newProps));
   },
+
+  // event handlers
 
   // selects a folder from the breadcrumb
-  openBreadcrumbFolder: function(index) {
-    this.props.openFolder(this.props.breadcrumbs[index], index);
+  _handleBreadcrumbFolderOpen: function(index) {
+    this.props.handleFolderOpen(this.props.breadcrumbs[index], index);
   },
 
-  selectFolder: function(folder) {
+  _handleFolderOpen: function(folder) {
+    this.props.handleFolderOpen(folder.props.folder);
+  },
+
+  _handleFolderSelect: function(folder) {
     if (this.state.selectedFolder.props && this.state.selectedFolder.props.index === folder.props.index) {
-      this.props.selectHuntFolder(null);
+      this.props.handleHuntFolderSelect(null);
     } else {
-      this.props.selectHuntFolder(folder);
+      this.props.handleHuntFolderSelect(folder);
     }
   },
 
@@ -40,9 +45,9 @@ module.exports = React.createClass({
       var isSelected = folder.props.index === selectedKey;
       return React.cloneElement(folder, {
         isSelected: isSelected,
-        openFolder: this.openFolder,
-        selectFolder: this.selectFolder,
-        key: folder.props.key
+        key: folder.props.key,
+        handleFolderOpen: this._handleFolderOpen,
+        handleFolderSelect: this._handleFolderSelect
       });
     }, this);
     var _this = this;
@@ -52,7 +57,7 @@ module.exports = React.createClass({
         <ul className='breadcrumbs'>
           {this.props.breadcrumbs.map(function(folder, index) {
             return (
-              <li onClick={_this.openBreadcrumbFolder.bind(_this, index)}
+              <li onClick={_this._handleBreadcrumbFolderOpen.bind(_this, index)}
                   key={'breadcrumb' + folder.id}
                   className={(folder.shared ? 'shared folder-title': 'folder-title')}>
                   <span>{folder.title}</span>

@@ -124,11 +124,14 @@ $(function() {
 
 },{"./components/admin.react":2,"jquery":12,"react":172,"react-dom":16}],2:[function(require,module,exports){
 var React = require('react');
-var CreateHunt = require('./admin/createHunt.react');
-var EditHunt = require('./admin/editHunt.react');
 
+var CreateHunt = require('./admin/createHunt.react'),
+    EditHunt = require('./admin/editHunt.react');
+
+// Overall module for the admin page
 module.exports = React.createClass({displayName: "exports",
 
+  // lifecycle methods
   getInitialState: function(props) {
     props = props || this.props;
     return {
@@ -153,6 +156,11 @@ module.exports = React.createClass({displayName: "exports",
     };
   },
 
+  componentWillReceiveProps: function(newProps, oldProps){
+    this.setState(this.getInitialState(newProps));
+  },
+
+  // getter methods
   getActiveState: function(tab) {
     if (tab === "edit") {
       if (this.state.activeTab === "edit" ||
@@ -165,10 +173,6 @@ module.exports = React.createClass({displayName: "exports",
       return this.state.activeTab === tab ? "active" : "";
     }
     return "";
-  },
-
-  componentWillReceiveProps: function(newProps, oldProps){
-    this.setState(this.getInitialState(newProps));
   },
 
   // Render the component
@@ -230,29 +234,34 @@ module.exports = React.createClass({displayName: "exports",
 });
 
 },{"./admin/createHunt.react":3,"./admin/editHunt.react":5,"react":172}],3:[function(require,module,exports){
-var $ = require('jquery');
-var React = require('react');
-var update = require('react-addons-update');
+var $ = require('jquery'),
+    React = require('react'),
+    update = require('react-addons-update');
+
 var Folder = require('../driveFolder.react');
 var Folders = require('../driveFolders.react');
 
+// Module for creating a hunt
 module.exports = React.createClass({displayName: "exports",
+
+  // life cycle methods
+  getInitialState: function(props) {
+    props = props || this.props;
+    return {
+      breadcrumbs: [props.rootFolder],
+      folders: props.folders,
+      hunt: props.hunt,
+      rootFolder: props.rootFolder,
+      selectedFolder: props.rootFolder,
+    };
+  },
+
   componentWillReceiveProps: function(newProps, oldProps){
     this.setState(this.getInitialState(newProps));
   },
 
-  getInitialState: function(props) {
-    props = props || this.props;
-    return {
-      hunt: props.hunt,
-      breadcrumbs: [props.rootFolder],
-      selectedFolder: props.rootFolder,
-      folders: props.folders,
-      rootFolder: props.rootFolder
-    };
-  },
-
-  getSelectedFolderIcon: function() {
+  // getters
+  _getSelectedFolderIcon: function() {
     var isShared = false;
     if (this.state.selectedFolder.props == null) {
       isShared = this.state.selectedFolder.shared;
@@ -262,7 +271,7 @@ module.exports = React.createClass({displayName: "exports",
     return isShared ? "shared folder-title" : "folder-title";
   },
 
-  getSelectedFolderName: function() {
+  _getSelectedFolderName: function() {
     if (this.state.selectedFolder.props == null) {
       return this.state.selectedFolder.title;
     } else {
@@ -270,7 +279,41 @@ module.exports = React.createClass({displayName: "exports",
     }
   },
 
-  openFolder: function(folder, index) {
+  // setters
+  _setHuntName: function(name) {
+    var newState = update(this.state, {
+      hunt: {
+        name: {
+          $set: name
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  // event handlers
+  _handleActiveChange: function(e) {
+    var newState = update(this.state, {
+      hunt: {
+        active: {
+          $set: e.target.checked
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  _handleCreateNewFolderChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        createNewFolder: {
+          $set: e.target.checked
+        }
+      }
+    }));
+  },
+
+  _handleFolderOpen: function(folder, index) {
     var _this = this;
     if (index !== undefined) {
       this.state.breadcrumbs.splice(index, this.state.breadcrumbs.length - index);
@@ -288,7 +331,7 @@ module.exports = React.createClass({displayName: "exports",
     });
   },
 
-  selectHuntFolder: function(folder) {
+  _handleHuntFolderSelect: function(folder) {
     var newState;
     if (folder == null) {
       newState = update(this.state, {
@@ -306,53 +349,11 @@ module.exports = React.createClass({displayName: "exports",
     this.setState(newState);
   },
 
-  setHuntName: function(name) {
-    var newState = update(this.state, {
-      hunt: {
-        name: {
-          $set: name
-        }
-      }
-    });
-    this.setState(newState);
+  _handleNameChange: function(e) {
+    this._setHuntName(e.target.value);
   },
 
-  handleNameChange: function(e) {
-    this.setHuntName(e.target.value);
-  },
-
-  handleActiveChange: function(e) {
-    var newState = update(this.state, {
-      hunt: {
-        active: {
-          $set: e.target.checked
-        }
-      }
-    });
-    this.setState(newState);
-  },
-
-  handleCreateNewFolderChange: function(e) {
-    this.setState(update(this.state, {
-      hunt: {
-        createNewFolder: {
-          $set: e.target.checked
-        }
-      }
-    }));
-  },
-
-  handleTemplateChange: function(e) {
-    this.setState(update(this.state, {
-      hunt: {
-        template: {
-          $set: e.target.value
-        }
-      }
-    }));
-  },
-
-  handleSubmit: function(e) {
+  _handleSubmit: function(e) {
     e.preventDefault();
     var name = this.state.hunt.name.trim();
     if (!name) {
@@ -387,7 +388,17 @@ module.exports = React.createClass({displayName: "exports",
         window.location.href="/admin/edit";
       }
     }.bind(this));
-    this.setHuntName('');
+    this._setHuntName('');
+  },
+
+  _handleTemplateChange: function(e) {
+    this.setState(update(this.state, {
+      hunt: {
+        template: {
+          $set: e.target.value
+        }
+      }
+    }));
   },
 
   render: function() {
@@ -395,28 +406,28 @@ module.exports = React.createClass({displayName: "exports",
     return (
       React.createElement("div", null, 
         React.createElement("h3", null, "Create New Hunt"), 
-        React.createElement("form", {className: "create-hunt-form", onSubmit: this.handleSubmit}, 
+        React.createElement("form", {className: "create-hunt-form", onSubmit: this._handleSubmit}, 
           React.createElement("div", {className: "form-column input-column"}, 
             React.createElement("div", {className: "form-element"}, 
               React.createElement("label", {htmlFor: "active"}, 
-                React.createElement("input", {name: "active", type: "checkbox", onChange: this.handleActiveChange, defaultChecked: "true"}), " Active"
+                React.createElement("input", {name: "active", type: "checkbox", onChange: this._handleActiveChange, defaultChecked: "true"}), " Active"
               ), 
               React.createElement("label", {htmlFor: "createNewFolder"}, 
-                React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this.handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
+                React.createElement("input", {name: "createNewFolder", type: "checkbox", onChange: this._handleCreateNewFolderChange, defaultChecked: ""}), " Create New Folder"
               )
             ), 
             React.createElement("div", {className: "form-element"}, 
               React.createElement("label", {htmlFor: "name"}, "Name"), 
-              React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this.handleNameChange, defaultValue: ""})
+              React.createElement("input", {type: "text", name: "name", value: this.state.hunt.name, onChange: this._handleNameChange, defaultValue: ""})
             ), 
             React.createElement("div", {className: "form-element"}, 
               React.createElement("label", {htmlFor: "template"}, "Template Puzzle Sheet"), 
-              React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this.handleTemplateChange, defaultvalue: ""})
+              React.createElement("input", {type: "text", name: "template", value: this.state.hunt.template, onChange: this._handleTemplateChange, defaultvalue: ""})
             ), 
             React.createElement("div", {className: "form-element"}, 
               React.createElement("label", {htmlFor: "googleDrive"}, "Parent Folder"), 
-              React.createElement("div", {className: this.getSelectedFolderIcon()}, 
-                this.getSelectedFolderName()
+              React.createElement("div", {className: this._getSelectedFolderIcon()}, 
+                this._getSelectedFolderName()
               )
             ), 
             React.createElement("div", {className: "form-element"}, 
@@ -428,12 +439,12 @@ module.exports = React.createClass({displayName: "exports",
               React.createElement("label", {htmlFor: "folder"}, "Select Google Drive Folder"), 
               React.createElement("span", {className: "help-text"}, "Select the root Google Drive folder to work on this hunt from. Click to select, double click to open the folder:"), 
               React.createElement(Folders, {breadcrumbs: this.state.breadcrumbs, 
-                       ref: "createHuntFolders", 
-                       openFolder: this.openFolder, 
-                       selectHuntFolder: this.selectHuntFolder, 
                        folders: this.state.folders, 
                        rootFolder: this.state.rootFolder, 
-                       selectedFolder: this.state.selectedFolder}, 
+                       ref: "createHuntFolders", 
+                       selectedFolder: this.state.selectedFolder, 
+                       handleFolderOpen: this._handleFolderOpen, 
+                       handleHuntFolderSelect: this._handleHuntFolderSelect}, 
                 this.state.folders.map(function(folder, index) {
                   return (React.createElement(Folder, {
                             folder: folder, 
@@ -457,19 +468,38 @@ var _ = require('lodash'),
     React = require('react'),
     update = require('react-addons-update');
 
+// Module for creating a puzzle round
 module.exports = React.createClass({displayName: "exports",
-  addRoundName: function() {
-    var newState = update(this.state, {
+
+  // lifecycle methods
+  getInitialState: function(props) {
+    props = props || this.props;
+
+    return {
       newRound: {
-        names: {
-          $set: this.state.newRound.names.concat({val: '', key: this.state.newRound.names.length})
-        }
+        meta: '',
+        names: [{
+          val: '',
+          key: 0 // static key that doesn't rely on position in array for React rendering
+        }],
+        parentRound: "None"
+      },
+      newPuzzle: {
+        names: [{
+          val: '',
+          key: 0
+        }],
+        links: [{
+          val: '',
+          key: 0
+        }],
+        parentRound: null
       }
-    });
-    this.setState(newState);
+    };
   },
 
-  createRound: function(event) {
+  // event handlers
+  _handleNewRoundSubmit: function(event) {
     var newRound = this.state.newRound;
     if (newRound.parentRound === "None") {
       newRound.parentRound = {
@@ -497,33 +527,7 @@ module.exports = React.createClass({displayName: "exports",
     event.preventDefault();
   },
 
-  getInitialState: function(props) {
-    props = props || this.props;
-
-    return {
-      newRound: {
-        meta: '',
-        names: [{
-          val: '',
-          key: 0 // static key that doesn't rely on position in array for React rendering
-        }],
-        parentRound: "None"
-      },
-      newPuzzle: {
-        names: [{
-          val: '',
-          key: 0
-        }],
-        links: [{
-          val: '',
-          key: 0
-        }],
-        parentRound: null
-      }
-    };
-  },
-
-  handleParentRoundChange: function(event) {
+  _handleParentRoundChange: function(event) {
     this.setState(update(this.state, {
       newRound: {
         parentRound: {
@@ -533,7 +537,7 @@ module.exports = React.createClass({displayName: "exports",
     }));
   },
 
-  handleRoundMetaLinkChange: function(event) {
+  _handleRoundMetaLinkChange: function(event) {
     var newState = update(this.state, {
       newRound: {
         meta: {
@@ -544,7 +548,18 @@ module.exports = React.createClass({displayName: "exports",
     this.setState(newState);
   },
 
-  handleRoundNameChange: function(index, event) {
+  _handleRoundNameAddition: function() {
+    var newState = update(this.state, {
+      newRound: {
+        names: {
+          $set: this.state.newRound.names.concat({val: '', key: this.state.newRound.names.length})
+        }
+      }
+    });
+    this.setState(newState);
+  },
+
+  _handleRoundNameChange: function(index, event) {
     var names = this.state.newRound.names;
     names[index].val = event.target.value;
     var newState = update(this.state, {
@@ -557,7 +572,7 @@ module.exports = React.createClass({displayName: "exports",
     this.setState(newState);
   },
 
-  removeRoundName: function(index) {
+  _handleRoundNameRemoval: function(index) {
     var names = this.state.newRound.names;
     names.splice(index, 1);
     var newState = update(this.state, {
@@ -575,10 +590,10 @@ module.exports = React.createClass({displayName: "exports",
     return (
       React.createElement("div", null, 
         React.createElement("h4", null, "Add Rounds"), 
-        React.createElement("form", {onSubmit: this.createRound}, 
+        React.createElement("form", {onSubmit: this._handleNewRoundSubmit}, 
           React.createElement("div", {className: "form-element"}, 
             React.createElement("label", {htmlFor: "parent-round"}, "Parent Round"), 
-            React.createElement("select", {value: this.state.newRound.parentRound, onChange: this.handleParentRoundChange}, 
+            React.createElement("select", {value: this.state.newRound.parentRound, onChange: this._handleParentRoundChange}, 
               React.createElement("option", {value: "None"}, "None"), 
               Object.keys(this.props.rounds).map(function(roundId) {
                 return (
@@ -589,7 +604,7 @@ module.exports = React.createClass({displayName: "exports",
           ), 
           React.createElement("div", {className: "form-element"}, 
             React.createElement("label", {htmlFor: "meta-link"}, "Meta Puzzle Link"), 
-            React.createElement("input", {defaultValue: "", type: "text", onChange: _this.handleRoundMetaLinkChange})
+            React.createElement("input", {defaultValue: "", type: "text", onChange: _this._handleRoundMetaLinkChange})
           ), 
           React.createElement("div", {className: "form-element"}, 
             React.createElement("label", {htmlFor: "name"}, "Round Name")
@@ -597,17 +612,17 @@ module.exports = React.createClass({displayName: "exports",
           this.state.newRound.names.map(function(name, index) {
             var deleteButton = '';
             if (index > 0) {
-              deleteButton = React.createElement("span", {className: "delete", onClick: _this.removeRoundName.bind(_this, index)}, "-")
+              deleteButton = React.createElement("span", {className: "delete", onClick: _this._handleRoundNameRemoval.bind(_this, index)}, "-")
             }
             return (
               React.createElement("div", {className: "form-element", key: "add.round." + name.key}, 
-                React.createElement("input", {defaultValue: "", type: "text", onChange: _this.handleRoundNameChange.bind(_this, index)}), 
+                React.createElement("input", {defaultValue: "", type: "text", onChange: _this._handleRoundNameChange.bind(_this, index)}), 
                 deleteButton
               )
             );
           }), 
           React.createElement("div", {className: "form-element"}, 
-            React.createElement("div", {className: "extra-text", onClick: this.addRoundName}, "Add Another..")
+            React.createElement("div", {className: "extra-text", onClick: this._handleRoundNameAddition}, "Add Another..")
           ), 
           React.createElement("div", {className: "form-element"}, 
             React.createElement("input", {type: "submit", value: (this.state.newRound.names.length > 1) ? "Create Rounds" : "Create Round"})
@@ -624,10 +639,26 @@ var _ = require('lodash'),
     Q = require('q'),
     debug = require('debug')('superteamawesome:server'),
     React = require('react'),
-    update = require('react-addons-update'),
-    CreateRound = require('./createRound.react');
+    update = require('react-addons-update');
 
+var CreateRound = require('./createRound.react'),
+    utils = require('../../utils');
+
+// Module for viewing the hunt details (admin view)
 module.exports = React.createClass({displayName: "exports",
+
+  // lifecycle methods
+  getInitialState: function(props) {
+    props = props || this.props;
+
+    return {
+      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
+      folders: props.folders,
+      hunt: props.hunt,
+      rounds: []
+    };
+  },
+
   componentWillReceiveProps: function(newProps, oldProps) {
     this.setState(this.getInitialState(newProps));
   },
@@ -645,27 +676,9 @@ module.exports = React.createClass({displayName: "exports",
     }.bind(this));
   },
 
+  // getter methods
   getFolderIcon: function() {
     return this.state.driveFolder.shared ? "shared folder info" : "folder info";
-  },
-
-  getFolderUrl: function(id) {
-    return "https://drive.google.com/drive/folders/" + id;
-  },
-
-  getSheetUrl: function(id) {
-    return "https://docs.google.com/spreadsheets/d/" + id;
-  },
-
-  getInitialState: function(props) {
-    props = props || this.props;
-
-    return {
-      driveFolder: _.find(props.folders, {"id": props.hunt.folderId}),
-      folders: props.folders,
-      hunt: props.hunt,
-      rounds: []
-    };
   },
 
   getParentRound: function(roundID) {
@@ -699,11 +712,11 @@ module.exports = React.createClass({displayName: "exports",
                   ), 
                   React.createElement("li", null, 
                     React.createElement("div", {className: "label"}, "Google Drive"), 
-                    React.createElement("div", {className: this.getFolderIcon()}, React.createElement("a", {target: "blank", href: this.getFolderUrl(this.state.driveFolder.id)}, this.state.driveFolder.title))
+                    React.createElement("div", {className: this.getFolderIcon()}, React.createElement("a", {target: "blank", href: utils.getFolderUrl(this.state.driveFolder.id)}, this.state.driveFolder.title))
                   ), 
                   React.createElement("li", null, 
                     React.createElement("div", {className: "label"}, "Puzzle Template"), 
-                    React.createElement("div", {className: "info sheet"}, React.createElement("a", {target: "blank", href: this.getSheetUrl(this.state.hunt.templateSheet)}, "Puzzle Template"))
+                    React.createElement("div", {className: "info sheet"}, React.createElement("a", {target: "blank", href: utils.getSheetUrl(this.state.hunt.templateSheet)}, "Puzzle Template"))
                   )
                 )
               )
@@ -733,12 +746,12 @@ module.exports = React.createClass({displayName: "exports",
                           React.createElement("td", null, _this.getParentRound(round.parentId)), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.folderId), target: "blank"}, round.name)
+                              React.createElement("a", {href: utils.getFolderUrl(round.folderId), target: "blank"}, round.name)
                             )
                           ), 
                           React.createElement("td", null, 
                             React.createElement("div", {className: "folder"}, 
-                              React.createElement("a", {href: _this.getFolderUrl(round.solvedFolderId), target: "blank"}, "Solved Folder")
+                              React.createElement("a", {href: utils.getFolderUrl(round.solvedFolderId), target: "blank"}, "Solved Folder")
                             )
                           ), 
                           React.createElement("td", null, 
@@ -770,29 +783,19 @@ module.exports = React.createClass({displayName: "exports",
   }
 });
 
-},{"./createRound.react":4,"debug":9,"jquery":12,"lodash":13,"q":14,"react":172,"react-addons-update":15}],6:[function(require,module,exports){
-var React = require('react');
-var classNames = require('classnames');
+},{"../../utils":174,"./createRound.react":4,"debug":9,"jquery":12,"lodash":13,"q":14,"react":172,"react-addons-update":15}],6:[function(require,module,exports){
+var classNames = require('classnames'),
+    React = require('react');
 
+// Displays a single Google Drive Folder
 module.exports = React.createClass({displayName: "exports",
-  getClass: function() {
-    if (this.props.folder.shared) {
-      if (this.state.selected) {
-        return 'shared selected';
-      }
-      return 'shared';
-    } else if (this.state.selected) {
-      return 'selected';
-    }
-    return '';
+
+  _handleFolderOpen: function() {
+    this.props.handleFolderOpen(this);
   },
 
-  openFolder: function() {
-    this.props.openFolder(this);
-  },
-
-  selectFolder: function() {
-    this.props.selectFolder(this);
+  _handleFolderSelect: function() {
+    this.props.handleFolderSelect(this);
   },
 
   render: function() {
@@ -801,27 +804,27 @@ module.exports = React.createClass({displayName: "exports",
       'selected': selected,
       'shared': this.props.folder.shared
     });
+
     return (
       React.createElement("li", {className: classes, 
-          onClick: this.selectFolder, 
-          onDoubleClick: this.openFolder}, 
-          React.createElement("span", {onClick: this.openFolder}, this.props.folder.title)
+          onClick: this._handleFolderSelect, 
+          onDoubleClick: this._handleFolderOpen}, 
+          React.createElement("span", {onClick: this._handleFolderOpen}, this.props.folder.title)
       )
     )
   }
 });
 
 },{"classnames":8,"react":172}],7:[function(require,module,exports){
-var React = require('react');
-var update = require('react-addons-update');
-var _ = require('lodash');
-var $ = require('jquery');
+var _ = require('lodash'),
+    $ = require('jquery'),
+    React = require('react'),
+    update = require('react-addons-update');
 
+// Displays a list of Google Drive Folders
 module.exports = React.createClass({displayName: "exports",
-  componentWillReceiveProps: function(newProps, oldProps){
-    this.setState(this.getInitialState(newProps));
-  },
 
+  // lifecycle methods
   getInitialState: function(props) {
     props = props || this.props;
     return {
@@ -831,20 +834,26 @@ module.exports = React.createClass({displayName: "exports",
     };
   },
 
-  openFolder: function(folder) {
-    this.props.openFolder(folder.props.folder);
+  componentWillReceiveProps: function(newProps, oldProps){
+    this.setState(this.getInitialState(newProps));
   },
+
+  // event handlers
 
   // selects a folder from the breadcrumb
-  openBreadcrumbFolder: function(index) {
-    this.props.openFolder(this.props.breadcrumbs[index], index);
+  _handleBreadcrumbFolderOpen: function(index) {
+    this.props.handleFolderOpen(this.props.breadcrumbs[index], index);
   },
 
-  selectFolder: function(folder) {
+  _handleFolderOpen: function(folder) {
+    this.props.handleFolderOpen(folder.props.folder);
+  },
+
+  _handleFolderSelect: function(folder) {
     if (this.state.selectedFolder.props && this.state.selectedFolder.props.index === folder.props.index) {
-      this.props.selectHuntFolder(null);
+      this.props.handleHuntFolderSelect(null);
     } else {
-      this.props.selectHuntFolder(folder);
+      this.props.handleHuntFolderSelect(folder);
     }
   },
 
@@ -854,9 +863,9 @@ module.exports = React.createClass({displayName: "exports",
       var isSelected = folder.props.index === selectedKey;
       return React.cloneElement(folder, {
         isSelected: isSelected,
-        openFolder: this.openFolder,
-        selectFolder: this.selectFolder,
-        key: folder.props.key
+        key: folder.props.key,
+        handleFolderOpen: this._handleFolderOpen,
+        handleFolderSelect: this._handleFolderSelect
       });
     }, this);
     var _this = this;
@@ -866,7 +875,7 @@ module.exports = React.createClass({displayName: "exports",
         React.createElement("ul", {className: "breadcrumbs"}, 
           this.props.breadcrumbs.map(function(folder, index) {
             return (
-              React.createElement("li", {onClick: _this.openBreadcrumbFolder.bind(_this, index), 
+              React.createElement("li", {onClick: _this._handleBreadcrumbFolderOpen.bind(_this, index), 
                   key: 'breadcrumb' + folder.id, 
                   className: (folder.shared ? 'shared folder-title': 'folder-title')}, 
                   React.createElement("span", null, folder.title)
@@ -44018,5 +44027,16 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
+
+},{}],174:[function(require,module,exports){
+module.exports = {
+  getFolderUrl: function(id) {
+    return "https://drive.google.com/drive/folders/" + id;
+  },
+
+  getSheetUrl: function(id) {
+    return "https://docs.google.com/spreadsheets/d/" + id;
+  },
+}
 
 },{}]},{},[1]);
