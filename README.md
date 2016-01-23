@@ -38,6 +38,33 @@ We recommend using Sublime to develop, along with the following plugins:
 - [Sublime CSS Comb](https://github.com/csscomb/sublime-csscomb) (orders your CSS rules for you!)
 - [Babel Sublime](https://github.com/babel/babel-sublime) (React/JSX syntax highlighting)
 
+**File Structure**
+
+```
+server.js               // Node server/routes/auth specified here
+app.js                  // Main *frontend* JavaScript file
+auth.js                 // Login functions for Passport (using Google OAuth)
+config.js               // Configurations
+gulpfile.js             // compiles SCSS files for you
+package.json            // tasks/dependencies/devDependencies
+run.sh                  // Convenience scripts
+setup.sh
+views/                  // Handlebars views
+   layouts/             // Common layouts (login and main)
+routes/                 // Route definitions
+public/
+   fonts/
+   img/
+   js/
+   stylesheets/
+     common/            // Common stylings, e.g. navigation, forms, tables
+     includes/          // Variables, fonts, mixins
+     pages/             // Specific page CSS
+     defaults.scss      // Basically a reset.css
+     main.scss          // Puts everything together
+components/             // React components
+```
+
 **To Contribute**
 
 Please either fork this repository and then make a pull request, or create a new feature branch in the format `feature/your-feature-name`, and then create a pull request when you're ready to merge.
