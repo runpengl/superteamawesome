@@ -147,7 +147,7 @@ module.exports = {
       if (req.body.active) {
         getActiveHunt().then(function(hunt) {
           if (hunt) {
-            firebaseRef.child("hunt/" + hunt.id).update({
+            firebaseRef.child("hunts/" + hunt.id).update({
               isActive: false
             }, function(error) {
               if (error) {
@@ -214,9 +214,10 @@ module.exports = {
     var newRound = req.body.newRound;
 
     // create drive folders
-    newRound.names.forEach(function(roundName) {
-      folderPromises.push(gapi.createFolder(roundName.val, newRound.parentRound.folderId));
+    folderPromises = newRound.names.map(function(roundName) {
+      return gapi.createFolder(roundName.val, newRound.parentRound.folderId);
     });
+
     Q.all(folderPromises).then(function(folders) {
       folders.forEach(function(folder, index) {
         rounds.push({
@@ -234,35 +235,27 @@ module.exports = {
       solvedFolders.forEach(function(folder, index) {
         rounds[index]["solvedFolderId"] = folder.id;
         var roundRef = firebaseRef.child("hunts/" + req.body.huntId + "/rounds").push(rounds[index]);
+        var meta = {
+          categories: [],
+          googleSheet: sheet.id,
+          isMeta: true,
+          link: "", // TODO: add link
+          name: rounds[index].name + " Meta",
+          puzzlers: [],
+          slack: "", // TODO: add slack
+          solved: false,
+          state: "unsolved"
+        };
         if (req.body.puzzleTemplate != null) {
           gapi.copySheet(req.body.puzzleTemplate, rounds[index].folderId, rounds[index].name + " Meta").then(function(sheet) {
-            roundRef.child("puzzles").push({
-              name: rounds[index].name + " Meta",
-              link: "", // TODO: add link
-              googleSheet: sheet.id,
-              solved: false,
-              puzzlers: [],
-              slack: "", // TODO: add slack
-              categories: [],
-              state: "unsolved"
-            });
+            roundRef.child("puzzles").push(meta);
           });
         } else {
           gapi.createSheet(rounds[index].name + " Meta", rounds[index].folderId).then(function(sheet) {
-            roundRef.child("puzzles").push({
-              name: rounds[index].name + " Meta",
-              link: "", // TODO: add link
-              googleSheet: sheet.id,
-              solved: false,
-              puzzlers: [],
-              slack: "", // TODO: add slack
-              categories: [],
-              state: "unsolved"
-            });
+            roundRef.child("puzzles").push(meta);
           })
         }
       });
-
 
       res.send(rounds);
     }).catch(function(error) {
