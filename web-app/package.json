@@ -19,9 +19,7 @@
     "dist:bundle:webpack": "webpack --config config/webpack.config.prod.js",
 
     "setup": "npm-run-all setup:install build:compile",
-    "setup:install": "npm-run-all setup:install:global setup:install:local",
-    "setup:install:global": "npm install -g webpack typescript tslint nodemon",
-    "setup:install:local": "npm install",
+    "setup:install": "npm install -g webpack typescript tslint nodemon",
 
     "watch": "npm-run-all -p watch:app watch:server",
     "watch:app": "npm-run-all -p watch:typescript:app watch:less watch:bundle:app",
@@ -43,6 +41,7 @@
     "normalize.css": "^5.0.0",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
+    "react-addons-update": "^15.4.1",
     "redux": "^3.6.0",
     "serve-favicon": "~2.3.0"
   },
