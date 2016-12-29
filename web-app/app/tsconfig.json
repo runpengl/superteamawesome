@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "declaration": false,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "build",
+    "removeComments": false,
+    "rootDir": ".",
+    "sourceMap": true,
+    "stripInternal": true,
+    "target": "es5"
+  },
+  "exclude": [
+    "build",
+    "dist",
+    "node_modules",
+    "test"
+  ]
+}

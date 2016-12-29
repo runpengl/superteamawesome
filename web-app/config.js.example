@@ -1,9 +1,0 @@
-module.exports = {
-    GOOGLE_CLIENT_ID: "",
-    GOOGLE_CLIENT_SECRET: "",
-    firebase: {
-        host: "example.firebaseio.com",
-        secret: "somesecret",
-        serverId: "someserveruuid"
-    }
-}
