@@ -1,16 +1,27 @@
 {
   "manifest_version": 2,
 
-  "name": "Getting started example",
-  "description": "This extension shows a Google Image search result for the current page",
+  "name": "SuperTeamAwesome Toolbar",
+  "description": "MIT Mystery Hunt Helper",
   "version": "1.0",
 
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup/popup.html"
   },
+
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1keXs6nWJ40Ky0Rn4FFc3oryXV9Hr3sHQlT9dWmhyPIRNMMrP4WwFcBujPrtkM2j2eU8YyoxlVDtusVm7OhK6jhhMZGk+jsP9AHUv9hD91uwtKThas8CI0+nr7/4CVsL2dONHA0aQGvo6mTNFxngLiIpAk41TdejmU+CNZX41tpKdsSzRrn5vcSxrH9f6JZY/NurqLUkCG1q+e8ulbrRdYFN6XOyKjuGqMg/eWWd+0uuMjWDqlGauNB0TjWO1IChYZVyWFSCYDO7CmQKmZm3cbbSgFW+S+ar6nEi9vVH2lXeT14N4RlEmI65Swswho6kKCt2fq22Fuk+JkW8akR4gwIDAQAB",
+
+  "oauth2": {
+    "client_id": "941573006926-dbr8496lpv0oq37fkm9h6p6e3nabgd2l.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
+
   "permissions": [
     "activeTab",
+    "identity",
     "https://ajax.googleapis.com/"
   ]
 }
