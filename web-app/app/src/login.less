@@ -1,0 +1,87 @@
+@import "variables";
+
+.login {
+  height: 100%;
+  width: 100%;
+
+  canvas {
+    position: fixed;
+    z-index: -1;
+    line-height: 0;
+    top: 0;
+  }
+
+  .login-container {
+    text-align: center;
+    width: 100%;
+
+    .login-image {
+      background-image: url('/images/characters.svg');
+      background-repeat: no-repeat;
+      background-size: 800%;
+      display: block;
+      height: 300px;
+      margin: -30px auto 0px;
+      width: 300px;
+    }
+
+    .image-loop(@i) when (@i < 7) {
+        @c: @i * -300px;
+
+        .login-image.person-@{i} {
+          background-position: @c 0px;
+        }
+
+        .image-loop(@i + 1);
+    }
+
+    .image-loop(0);
+
+    .login-button {
+      border: 2px solid @grey3;
+      display: inline-block;
+      text-decoration: none;
+      color: @grey3;
+      border-radius: 5px;
+      white-space: nowrap;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .flaticon-google {
+        border-right: @grey3 2px solid;
+        display: inline-block;
+        height: 42px;
+        line-height: 42px;
+        text-align: center;
+        vertical-align: middle;
+        width: 42px;
+      }
+
+      .text {
+        display: inline-block;
+        vertical-align: middle;
+        padding: 0px 20px;
+        font-size: 14px;
+      }
+    }
+
+    .login-title {
+      color: @grey4;
+      display: block;
+      font-size: 1.5em;
+      font-weight: 300;
+      margin: -20px 0 5px 0px;
+    }
+
+    .login-subtitle {
+      color: @grey4;
+      font-size: 1.2em;
+      font-weight: 100;
+      margin-bottom: 30px;
+      opacity: 0.6;
+      font-family: @muli-family;
+    }
+  }
+}

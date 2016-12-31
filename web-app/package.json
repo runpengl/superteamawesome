@@ -3,24 +3,20 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build:copy": "mkdir -p server/public && cp -r app/src/images server/public",
     "build:compile": "npm-run-all -p build:less build:typescript",
     "build:typescript": "npm-run-all -p build:typescript:app build:typescript:server",
     "build:typescript:app": "tsc -p app/",
     "build:typescript:server": "tsc -p server/",
     "build:less": "lessc --npm-import=\"prefix=~\" app/src/app.less app/build/src/app.css --source-map",
-    
     "start": "nodemon ./server/app.js",
-    "dev": "npm-run-all build:compile dev:run",
+    "dev": "npm-run-all build:copy build:compile dev:run",
     "dev:run": "npm-run-all -p watch start",
-
     "clean:public": "rm -rf server/public/*",
-
     "dist": "npm-run-all clean:public build:compile dist:bundle:webpack",
     "dist:bundle:webpack": "webpack --config config/webpack.config.prod.js",
-
     "setup": "npm-run-all setup:install build:compile",
     "setup:install": "npm install -g webpack typescript tslint nodemon",
-
     "watch": "npm-run-all -p watch:app watch:server",
     "watch:app": "npm-run-all -p watch:typescript:app watch:less watch:bundle:app",
     "watch:less": "chokidar 'app/src/**/*.less' -c 'npm run build:less'",
@@ -35,13 +31,14 @@
     "debug": "~2.2.0",
     "es6-shim": "^0.35.2",
     "express": "^4.14.0",
+    "firebase": "^3.6.4",
     "hbs": "~4.0.1",
     "morgan": "~1.7.0",
     "node": "0.0.0",
     "normalize.css": "^5.0.0",
     "react": "^15.4.1",
-    "react-dom": "^15.4.1",
     "react-addons-update": "^15.4.1",
+    "react-dom": "^15.4.1",
     "redux": "^3.6.0",
     "serve-favicon": "~2.3.0"
   },
@@ -51,6 +48,7 @@
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.26.1",
     "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.9.0",
     "less": "^2.7.1",
     "less-plugin-npm-import": "^2.1.0",
     "npm-run-all": "^3.1.2",
