@@ -15,4 +15,5 @@ web-app/server/**/*.js
 
 # Editor cruft
 .vscode/
+.idea/
 *config.js
