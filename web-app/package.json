@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build:copy": "mkdir -p server/public && cp -r app/src/images server/public",
+    "build:copy": "npm-run-all build:copy:folder build:copy:images build:copy:fonts",
+    "build:copy:folder": "mkdir -p server/public",
+    "build:copy:images": "cp -r app/src/images server/public",
+    "build:copy:fonts": "cp -r app/src/fonts server/public",
     "build:compile": "npm-run-all -p build:less build:typescript",
     "build:typescript": "npm-run-all -p build:typescript:app build:typescript:server",
     "build:typescript:app": "tsc -p app/",

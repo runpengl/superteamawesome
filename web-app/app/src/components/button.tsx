@@ -1,7 +1,7 @@
 import * as React from "react";
 
-interface Props {
-    onClick: () => void;
+interface Props extends React.HTMLProps<HTMLButtonElement> {
+    onClick?: () => void;
 }
 
 const Button: React.SFC<Props> = props => {
