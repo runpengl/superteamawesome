@@ -17,3 +17,4 @@ web-app/server/**/*.js
 .vscode/
 .idea/
 *config.ts
+*config.js
