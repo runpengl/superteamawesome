@@ -1,13 +1,14 @@
 firebase.initializeApp(config.firebase);
 
-function onBeforeNavigate(details) {
-    console.log("onBeforeNavigate:", details.tabId, details.url);
-}
-
-chrome.webNavigation.onBeforeNavigate.addListener(
-    onBeforeNavigate, {
-        url: [{ hostSuffix: "mit.edu" }]
-    });
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    switch (request.msg) {
+        case "content_script_load":
+            if (request.location.hostname.match(/mit\.edu$/)) {
+                sendResponse({ msg: "init_toolbar" });
+            }
+            break;
+    }
+});
 
 firebase.auth().onAuthStateChanged(function(user) {
     console.log("Firebase logged in as:", user);
