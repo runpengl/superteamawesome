@@ -46,7 +46,7 @@ module.exports = {
             {
                 test: staticFileRegex,
                 include: [
-                    path.resolve(__dirname, "../node_modules"),
+                    path.resolve(__dirname, "../server/public"),
                 ],
                 loader: "file-loader",
                 query: {
