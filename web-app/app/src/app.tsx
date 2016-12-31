@@ -1,57 +1,33 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { connect, Provider } from 'react-redux'
-import { combineReducers, createStore, Dispatch } from 'redux'
-import * as firebase from "firebase";
+import { Provider } from "react-redux";
+import { browserHistory, IndexRoute, Router, Route } from "react-router";
+import { combineReducers, createStore } from "redux";
 
-import { IAppState } from "./state";
-import Button from "./components/button";
+import { Dashboard } from "./dashboard";
+import { Login } from "./login";
 
-interface IStateProps {
-    googleToken?: string;
-    user?: firebase.UserInfo;
+interface IAppProps {
+    children?: JSX.Element[];
 }
 
-interface IOwnProps {}
-interface IDispatchProps {}
-
-interface IAppProps extends IStateProps, IOwnProps, IDispatchProps {}
-
-class UnconnectedApp extends React.Component<IAppProps, {}> {
+class App extends React.Component<IAppProps, {}> {
     public render() {
-        const { user } = this.props;
-        if (user !== undefined) {
-            return (
-                <div>
-                    <Button>hi there</Button>
-                </div>
-            );
-        } else {
-            return <span>Login please</span>;
-        }
+        return <div>{this.props.children}</div>;
     }
 }
-
-function mapStateToProps(state: IAppState): IStateProps {
-    const { googleToken, user } = state;
-    return {
-        googleToken,
-        user,
-    };
-}
-
-function mapDispatchToProps(_dispatch: Dispatch<IDispatchProps>) {
-    return {};
-}
-
-const App = connect(mapStateToProps, mapDispatchToProps)(UnconnectedApp);
 
 // todo: move reducers to reducers folder
 const store = createStore(combineReducers({}));
 
 ReactDOM.render(
   <Provider store={store}>
-    <App />
+    <Router history={browserHistory}>
+        <Route path="/" component={App}>
+            <IndexRoute component={Dashboard} />
+            <Route path="login" component={Login} />
+        </Route>
+    </Router>
   </Provider>,
   document.querySelector("#app")
 );
