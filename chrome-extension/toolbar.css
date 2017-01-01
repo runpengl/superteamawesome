@@ -3,6 +3,27 @@ body {
 }
 
 #toolbar {
-  background: #fbb03b;
-  height: 30px;
+  background: linear-gradient(to top, #cdc7ca, #dedcdb);
+  border-bottom: 1px solid rgba(0, 0, 0, .3);
+  box-sizing: border-box;
+  color: #6d6d6d;
+  font-size: 12px;
+  height: 100vh;
+  line-height: 100vh;
+  padding: 0 10px;
+}
+
+.puzzle-status {
+  border-radius: 2px;
+  color: #fff;
+  font-size: 10px;
+  margin-left: 5px;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+.puzzle-status.needs-extraction {
+  background: #e88714;
+}
+.puzzle-status.solved {
+  background: #07b05a;
 }
