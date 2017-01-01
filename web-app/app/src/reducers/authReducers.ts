@@ -1,4 +1,4 @@
-import { AsyncActionStatus, IAsyncAction, LOGIN_ACTION } from "../actions";
+import { IAsyncAction, isAsyncSucceeded, LOGIN_ACTION } from "../actions";
 import { IAuthState } from "../state";
 
 const initialState: IAuthState = {
@@ -8,7 +8,7 @@ const initialState: IAuthState = {
 export function authReducer(state: IAuthState = initialState, action: IAsyncAction<IAuthState>) {
     switch (action.type) {
         case LOGIN_ACTION:
-            if (action.status === AsyncActionStatus.SUCCEEDED) {
+            if (isAsyncSucceeded(action)) {
                 return Object.assign({}, state, action.value);
             }
         default:

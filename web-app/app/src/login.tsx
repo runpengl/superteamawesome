@@ -1,5 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
+import { IRouter } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { loginAction } from "./actions";

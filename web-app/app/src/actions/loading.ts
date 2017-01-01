@@ -1,8 +1,10 @@
-export enum AsyncActionStatus {
-    IN_PROGRESS,
-    FAILED,
-    SUCCEEDED,
-};
+export type AsyncActionStatus = "IN_PROGRESS" | "FAILED" | "SUCCEEDED" | "NONE";
+export const AsyncActionStatus = {
+    FAILED: "FAILED" as AsyncActionStatus,
+    IN_PROGRESS: "IN_PROGRESS" as AsyncActionStatus,
+    NONE: "NONE" as AsyncActionStatus,
+    SUCCEEDED: "SUCCEEDED" as AsyncActionStatus,
+}
 
 export interface IAsyncAction<T> {
     error?: Error;
@@ -11,16 +13,34 @@ export interface IAsyncAction<T> {
     value?: T;
 }
 
-export function isAsyncActionInProgress<T>(action: IAsyncAction<T>) {
+export interface IAsyncLoaded<T> {
+    error?: Error;
+    status: AsyncActionStatus;
+    value?: T;
+}
+
+export function isAsyncInProgress<T>(action: IAsyncAction<T> | IAsyncLoaded<T>) {
     return action.status === AsyncActionStatus.IN_PROGRESS;
 }
 
-export function isAsyncActionSucceeded<T>(action: IAsyncAction<T>) {
+export function isAsyncSucceeded<T>(action: IAsyncAction<T>) {
     return action.status === AsyncActionStatus.SUCCEEDED;
 }
 
-export function isAsyncActionFailed<T>(action: IAsyncAction<T>) {
+export function isAsyncLoaded<T>(value: IAsyncLoaded<T>) {
+    return value.status === AsyncActionStatus.SUCCEEDED;
+}
+
+export function isAsyncFailed<T>(action: IAsyncAction<T> | IAsyncLoaded<T>) {
     return action.status === AsyncActionStatus.FAILED;
+}
+
+export function getAsyncLoadedValue<T>(action: IAsyncAction<T>): IAsyncLoaded<T> {
+    return {
+        error: action.error,
+        status: action.status,
+        value: action.value,
+    }
 }
 
 export function asyncActionInProgressPayload<T>(type: string): IAsyncAction<T> {
