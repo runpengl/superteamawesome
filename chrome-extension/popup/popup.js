@@ -9,17 +9,21 @@ var authButton = document.getElementById("google_auth_button");
 function initApp() {
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
-            // User is signed in.
-            var displayName = user.displayName;
-            var photoURL = user.photoURL;
-            var uid = user.uid;
-            var providerData = user.providerData;
+            document.getElementById("user_photo").src = user.photoURL;
+            document.getElementById("user_name").textContent = user.displayName;
             authButton.textContent = "Sign out";
         } else {
             authButton.textContent = "Sign in with Google";
         }
         authButton.disabled = false;
     });
+
+    firebase.database().ref("hunts").orderByChild("isCurrent").equalTo(true).limitToFirst(1)
+        .on("value", function(snapshot) {
+            snapshot.forEach(function(child) {
+                document.getElementById("current_hunt_name").textContent = child.val().name;
+            });
+        });
 
     authButton.addEventListener("click", startSignIn);
 }

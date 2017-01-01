@@ -7,10 +7,12 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-<div id="toolbar">
-    <h3>STAPH</h3>
-    <h4>SuperTeamAwesome Puzzle Helper</h4>
-    <button id="google_auth_button">Sign in with Google</button>
+<div id="popup">
+    <h3 class="title">STAPH <span class="subtitle">SuperTeamAwesome Puzzle Helper</span></h3>
+    <img id="user_photo" />
+    <div>Logged in as: <span id="user_name">?</span></div>
+    <div>Current Hunt: <span id="current_hunt_name">?</span></div>
+    <button id="google_auth_button" class="button">Sign in with Google</button>
 </div>
 <script src="../firebase-3.6.2.js"></script>
 <script src="../config.js"></script>
