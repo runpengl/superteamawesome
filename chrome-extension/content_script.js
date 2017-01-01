@@ -1,3 +1,22 @@
+/**
+ * Toolbar Data Flow
+ *
+ * - content_script.js: sendMessage("contentScriptLoad", window.location)
+ *
+ * - background.js: onMessage("contentScriptLoad", location, sendResponse)
+ *   - if location matches puzzle, increment puzzleViewers/$puzzleKey/$userKey
+ *   - if location matches hunt, save path to huntPages (unconfirmed)
+ *   - in both cases, sendResponse("initToolbar"); otherwise do nothing
+ *
+ * - content_script.js: receive response; injectToolbar
+ * - toolbar.js: connect("toolbarLoad")
+ *
+ * - background.js: onConnect("toolbarLoad", port)
+ *   - listen to firebase updates and send them to the toolbar via port.postMessage
+ *   - add disconnect listener to clean up firebase listeners
+ *
+ * - toolbar.js: port.onMessage(data); render with React
+ */
 // Ask the background script if we should inject a toolbar onto this page
 chrome.runtime.sendMessage({
     msg: "contentScriptLoad",

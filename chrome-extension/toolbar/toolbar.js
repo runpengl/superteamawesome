@@ -24,7 +24,12 @@ function Toolbar(props) {
         r.a({
             className: "Toolbar-link",
             target: "_blank",
-            href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheet_id
+            href: "http://" + props.hunt.domain + props.puzzle.path
+        }, "puzzle"),
+        r.a({
+            className: "Toolbar-link",
+            target: "_blank",
+            href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
 
         r.div({ className: "Toolbar-right" },
@@ -38,5 +43,5 @@ function Toolbar(props) {
 }
 
 function toHumanReadable(camelCaseStr) {
-    return camelCaseStr.replace(/[A-Z]/g, " $1").toLowerCase();
+    return camelCaseStr.replace(/([A-Z])/g, " $1").toLowerCase();
 }

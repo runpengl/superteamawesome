@@ -20,32 +20,42 @@ function handleChromeRuntimeConnect(port) {
         delete toolbarData[tabId];
     });
 
-    var tabLocation = toolbarData[tabId].location;
-    if (tabLocation.hostname === "docs.google.com") {
-        var match = tabLocation.pathname.match(
-            /\/spreadsheets\/d\/([^\/?]+)/);
-        if (match) {
-            firebase.database().ref("puzzles")
-                .orderByChild("spreadsheet_id")
-                .equalTo(match[1])
-                .limitToFirst(1)
-                .once("value", function(puzzleSnapshot) {
-                    puzzleSnapshot.forEach(function(puzzle) {
-                        var puzzleData = puzzle.val();
-                        huntByKeyOnce(puzzleData.hunt, function(hunt) {
-                            port.postMessage({
-                                msg: "puzzle",
-                                data: {
-                                    currentUser: firebase.auth().currentUser,
-                                    puzzleKey: puzzle.key,
-                                    puzzle: puzzle.val(),
-                                    hunt: hunt
-                                }
-                            });
-                        });
+    var data = toolbarData[tabId];
+    switch (data.type) {
+        case "general":
+            break;
+
+        case "hunt":
+            break;
+
+        case "puzzle":
+            var db = firebase.database();
+            var puzzleRef = db.ref("puzzles/" + data.puzzleKey);
+            var huntRef = db.ref("hunts/" + data.huntKey);
+
+            var puzzleData = null;
+            var huntData = null;
+            function update() {
+                if (puzzleData && huntData) {
+                    port.postMessage({
+                        msg: "puzzle",
+                        data: {
+                            currentUser: firebase.auth().currentUser,
+                            puzzle: puzzleData,
+                            hunt: huntData
+                        }
                     });
-                });
-        }
+                }
+            }
+            function onPuzzle(puzzle) { puzzleData = puzzle.val(); update(); }
+            function onHunt(hunt) { huntData = hunt.val(); update(); }
+            puzzleRef.on("value", onPuzzle);
+            huntRef.on("value", onHunt);
+            port.onDisconnect.addListener(function() {
+                puzzleRef.off("value", onPuzzle);
+                huntRef.off("value", onHunt);
+            });
+            break;
     }
 }
 
@@ -68,49 +78,72 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
  */
 function handleContentScriptLoadMessage(request, sender, sendResponse) {
     var alreadySent = false;
-    function maybeInitToolbar() {
+    function maybeInitToolbar(data) {
         if (alreadySent) return;
-        toolbarData[sender.tab.id] = {
-            location: request.location
-        };
+        toolbarData[sender.tab.id] = data;
         sendResponse({ msg: "initToolbar" });
         alreadySent = true;
     }
-    firebase.database().ref("chromeExtensionConfig/toolbarFilters")
-        .once("value", function(filters) {
-            var hostname = request.location.hostname;
-            var pathname = request.location.pathname;
-            filters.forEach(function(filter) {
-                var hostSuffixFilter = filter.val().hostSuffix;
-                var pathPrefixFilter = filter.val().pathPrefix;
-                var satisfiesHostFilter = !hostSuffixFilter || hostname.endsWith(hostSuffixFilter);
-                var satisfiesPathFilter = !pathPrefixFilter || pathname.startsWith(pathPrefixFilter);
-                if (satisfiesHostFilter && satisfiesPathFilter) {
-                    maybeInitToolbar();
-                }
-            });
-        });
-    firebase.database().ref("hunts")
-        .once("value", function(hunts) {
-            var hostname = request.location.hostname;
+    var hostname = request.location.hostname;
+    var pathname = request.location.pathname;
+    if (hostname === "docs.google.com") {
+        // Attempt to find puzzle by spreadsheetId
+        var match = pathname.match(
+            /\/spreadsheets\/d\/([^\/?]+)/);
+        if (match) {
+            firebase.database().ref("puzzles")
+                .orderByChild("spreadsheetId")
+                .equalTo(match[1])
+                .limitToFirst(1)
+                .once("value", function(puzzleSnapshot) {
+                    puzzleSnapshot.forEach(function (puzzle) {
+                        maybeInitToolbar({
+                            type: "puzzle",
+                            huntKey: puzzle.val().hunt,
+                            puzzleKey: puzzle.key
+                        });
+                    });
+                });
+        }
+    } else if (
+        hostname === "superteamawesome.slack.com" ||
+        (hostname.endsWith("web.mit.edu") && pathname.startsWith("/puzzle")) ||
+        (hostname.endsWith("mit.edu") && pathname.startsWith("/~puzzle"))
+    ) {
+        maybeInitToolbar({ type: "general" });
+    } else {
+        // First, attempt to match to a hunt domain
+        firebase.database().ref("hunts").once("value", function(hunts) {
             hunts.forEach(function(hunt) {
                 var huntDomain = hunt.val().domain;
                 if (huntDomain && hostname.endsWith(huntDomain)) {
-                    maybeInitToolbar();
+                    // Then, try to find a matching puzzle within this hunt
+                    firebase.database().ref("puzzles")
+                        .orderByChild("hunt")
+                        .equalTo(hunt.key)
+                        .once("value", function(puzzles) {
+                            puzzles.forEach(function(puzzle) {
+                                var puzzlePath = puzzle.val().path;
+                                if (puzzlePath && pathname.startsWith(puzzlePath)) {
+                                    maybeInitToolbar({
+                                        type: "puzzle",
+                                        huntKey: hunt.key,
+                                        puzzleKey: puzzle.key
+                                    });
+                                }
+                            });
+                            // If no puzzle has matched; fall back to displaying a
+                            // toolbar for the given hunt.
+                            maybeInitToolbar({
+                                type: "hunt",
+                                huntKey: hunt.key
+                            });
+                        });
                 }
             });
         });
+    }
 
     // sendResponse will be called asynchronously
     return true;
-}
-
-//
-// Firebase Query Helpers
-// ----------------------------------------------------------------------------
-
-function huntByKeyOnce(huntKey, callback) {
-    firebase.database().ref("hunts/" + huntKey).once("value", function(snapshot) {
-        callback(snapshot.val());
-    });
 }
