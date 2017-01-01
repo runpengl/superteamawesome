@@ -3,27 +3,52 @@ body {
 }
 
 #toolbar {
-  background: linear-gradient(to top, #cdc7ca, #dedcdb);
-  border-bottom: 1px solid rgba(0, 0, 0, .3);
+  background: linear-gradient(to top, #f5f5f5, #eee);
+  border-bottom: 1px solid #d9d9d9;
   box-sizing: border-box;
   color: #6d6d6d;
   font-size: 12px;
   height: 100vh;
   line-height: 100vh;
-  padding: 0 10px;
 }
 
-.puzzle-status {
-  border-radius: 2px;
-  color: #fff;
-  font-size: 10px;
+.loading-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.loading-subtitle {
+  font-style: italic;
   margin-left: 5px;
-  padding: 3px 5px;
+}
+
+.Toolbar-puzzleStatus {
+  color: #fff;
+  display: inline-block;
+  height: 100vh;
+  margin-right: 10px;
+  padding: 0 10px;
   text-transform: uppercase;
 }
-.puzzle-status.needs-extraction {
+.Toolbar-puzzleStatus.needsExtraction {
   background: #e88714;
 }
-.puzzle-status.solved {
+.Toolbar-puzzleStatus.solved {
   background: #07b05a;
+}
+
+.Toolbar-puzzleName {
+  color: #333;
+  font-weight: 500;
+}
+
+.Toolbar-link {
+  border-bottom: 1px dotted;
+  color: #1c71b9;
+  margin-left: 10px;
+  text-decoration: none;
+}
+.Toolbar-link:hover {
+  border-bottom-style: solid;
 }
