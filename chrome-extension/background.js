@@ -4,6 +4,7 @@ var currentFirebaseUser = null;
 firebase.initializeApp(config.firebase);
 firebase.auth().onAuthStateChanged(handleFirebaseAuthStateChange);
 chrome.runtime.onMessage.addListener(handleChromeRuntimeMessage);
+chrome.runtime.onConnect.addListener(handleChromeRuntimeConnect);
 
 function noop() {}
 // Keep this data synced for faster toolbar initialization
@@ -14,33 +15,71 @@ function handleFirebaseAuthStateChange(user) {
     currentFirebaseUser = user;
 }
 
+var toolbarData = {};
+
+/**
+ * Handles chrome.runtime onConnect events. Toolbars injected onto a page
+ * will open a connection to request data from the background script.
+ */
+function handleChromeRuntimeConnect(port) {
+    var tabId = port.sender.tab.id;
+    port.onDisconnect.addListener(function() {
+        delete toolbarData[tabId];
+    });
+
+    var tabLocation = toolbarData[tabId].location;
+    if (tabLocation.hostname === "docs.google.com") {
+        var match = tabLocation.pathname.match(
+            /\/spreadsheets\/d\/([^\/?]+)/);
+        if (match) {
+            firebase.database().ref("puzzles")
+                .orderByChild("spreadsheet_id")
+                .equalTo(match[1])
+                .limitToFirst(1)
+                .once("value", function(snapshot) {
+                    snapshot.forEach(function(puzzle) {
+                        port.postMessage({
+                            msg: "initialData",
+                            puzzleKey: puzzle.key,
+                            puzzle: puzzle.val()
+                        });
+                    });
+                });
+        }
+    }
+}
+
 /**
  * Handles chrome.runtime onMessage events. Typically these messages are
  * sent from the content script injected on each page.
  */
 function handleChromeRuntimeMessage(request, sender, sendResponse) {
     switch (request.msg) {
-        case "content_script_load":
-            return handleContentScriptLoadMessage(request.location, sendResponse);
+        case "contentScriptLoad":
+            return handleContentScriptLoadMessage(
+                request, sender, sendResponse);
     }
-};
+}
 
 /**
  * Handles the `content_script_load` message. Given the location data
  * sent by the content script, determines if a toolbar should be injected
  * onto the page.
  */
-function handleContentScriptLoadMessage(location, sendResponse) {
+function handleContentScriptLoadMessage(request, sender, sendResponse) {
     var alreadySent = false;
     function maybeInitToolbar() {
         if (alreadySent) return;
-        sendResponse({ msg: "init_toolbar" });
+        toolbarData[sender.tab.id] = {
+            location: request.location
+        };
+        sendResponse({ msg: "initToolbar" });
         alreadySent = true;
     }
     firebase.database().ref("chromeExtensionConfig/toolbarFilters")
         .once("value", function(filters) {
-            var hostname = location.hostname;
-            var pathname = location.pathname;
+            var hostname = request.location.hostname;
+            var pathname = request.location.pathname;
             filters.forEach(function(filter) {
                 var hostSuffixFilter = filter.val().hostSuffix;
                 var pathPrefixFilter = filter.val().pathPrefix;
@@ -53,7 +92,7 @@ function handleContentScriptLoadMessage(location, sendResponse) {
         });
     firebase.database().ref("hunts")
         .once("value", function(hunts) {
-            var hostname = location.hostname;
+            var hostname = request.location.hostname;
             hunts.forEach(function(hunt) {
                 var huntDomain = hunt.val().domain;
                 if (huntDomain && hostname.endsWith(huntDomain)) {

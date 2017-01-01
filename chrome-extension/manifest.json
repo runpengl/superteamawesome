@@ -43,6 +43,6 @@
   ],
 
   "web_accessible_resources": [
-    "toolbar.html"
+    "toolbar/toolbar.html"
   ]
 }

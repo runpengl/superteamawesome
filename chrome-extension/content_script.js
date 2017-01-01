@@ -1,13 +1,13 @@
 // Ask the background script if we should inject a toolbar onto this page
 chrome.runtime.sendMessage({
-    msg: "content_script_load",
+    msg: "contentScriptLoad",
     location: window.location
 }, function(response) {
     if (!response) {
         return;
     }
     switch (response.msg) {
-        case "init_toolbar":
+        case "initToolbar":
             injectToolbar();
             break;
     }
@@ -18,7 +18,7 @@ function injectToolbar() {
 
     // Set up iframe
     var iframe = document.createElement("iframe");
-    iframe.src = chrome.extension.getURL("toolbar.html");
+    iframe.src = chrome.extension.getURL("toolbar/toolbar.html");
     iframe.style.background = "#fff";
     iframe.style.border = "0";
     iframe.style.height = toolbarHeight;
