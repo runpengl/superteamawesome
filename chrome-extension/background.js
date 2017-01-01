@@ -1,8 +1,5 @@
-var currentFirebaseUser = null;
-
 // Initialization
 firebase.initializeApp(config.firebase);
-firebase.auth().onAuthStateChanged(handleFirebaseAuthStateChange);
 chrome.runtime.onMessage.addListener(handleChromeRuntimeMessage);
 chrome.runtime.onConnect.addListener(handleChromeRuntimeConnect);
 
@@ -10,10 +7,6 @@ function noop() {}
 // Keep this data synced for faster toolbar initialization
 firebase.database().ref("chromeExtensionConfig").on("value", noop);
 firebase.database().ref("hunts").on("value", noop);
-
-function handleFirebaseAuthStateChange(user) {
-    currentFirebaseUser = user;
-}
 
 var toolbarData = {};
 
@@ -36,12 +29,19 @@ function handleChromeRuntimeConnect(port) {
                 .orderByChild("spreadsheet_id")
                 .equalTo(match[1])
                 .limitToFirst(1)
-                .once("value", function(snapshot) {
-                    snapshot.forEach(function(puzzle) {
-                        port.postMessage({
-                            msg: "initialData",
-                            puzzleKey: puzzle.key,
-                            puzzle: puzzle.val()
+                .once("value", function(puzzleSnapshot) {
+                    puzzleSnapshot.forEach(function(puzzle) {
+                        var puzzleData = puzzle.val();
+                        huntByKeyOnce(puzzleData.hunt, function(hunt) {
+                            port.postMessage({
+                                msg: "puzzle",
+                                data: {
+                                    currentUser: firebase.auth().currentUser,
+                                    puzzleKey: puzzle.key,
+                                    puzzle: puzzle.val(),
+                                    hunt: hunt
+                                }
+                            });
                         });
                     });
                 });
@@ -103,4 +103,14 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
 
     // sendResponse will be called asynchronously
     return true;
+}
+
+//
+// Firebase Query Helpers
+// ----------------------------------------------------------------------------
+
+function huntByKeyOnce(huntKey, callback) {
+    firebase.database().ref("hunts/" + huntKey).once("value", function(snapshot) {
+        callback(snapshot.val());
+    });
 }

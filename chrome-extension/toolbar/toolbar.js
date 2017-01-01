@@ -3,14 +3,14 @@
 var port = chrome.runtime.connect({ name: "toolbarLoad" });
 port.onMessage.addListener(function(event) {
     switch (event.msg) {
-        case "initialData":
-            handleInitialData(event);
+        case "puzzle":
+            handlePuzzleData(event.data);
     }
 });
 
-function handleInitialData(event) {
+function handlePuzzleData(data) {
     ReactDOM.render(
-        React.createElement(Toolbar, {puzzle: event.puzzle}),
+        React.createElement(Toolbar, data),
         document.getElementById("toolbar")
     );
 }
@@ -18,14 +18,22 @@ function handleInitialData(event) {
 var r = React.DOM;
 function Toolbar(props) {
     return r.div({ className: "Toolbar" },
-        r.span({ className: "Toolbar-puzzleStatus " + props.puzzle.status },
+        r.div({ className: "Toolbar-puzzleStatus " + props.puzzle.status },
             toHumanReadable(props.puzzle.status)),
-        r.span({ className: "Toolbar-puzzleName" }, props.puzzle.name),
+        r.div({ className: "Toolbar-puzzleName" }, props.puzzle.name),
         r.a({
             className: "Toolbar-link",
             target: "_blank",
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheet_id
-        }, "spreadsheet")
+        }, "spreadsheet"),
+
+        r.div({ className: "Toolbar-right" },
+            r.span({ className: "Toolbar-userName" }, props.currentUser.displayName),
+            r.img({
+                className: "Toolbar-userImage",
+                src: props.currentUser.photoURL
+            })
+        )
     );
 }
 

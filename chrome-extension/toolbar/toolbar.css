@@ -9,24 +9,31 @@ body {
   color: #6d6d6d;
   font-size: 12px;
   height: 100vh;
-  line-height: 100vh;
 }
 
 .loading-title {
   font-size: 16px;
   font-weight: bold;
+  line-height: 100vh;
   margin-left: 10px;
 }
 
 .loading-subtitle {
   font-style: italic;
+  line-height: 100vh;
   margin-left: 5px;
+}
+
+.Toolbar {
+  align-items: center;
+  display: flex;
 }
 
 .Toolbar-puzzleStatus {
   color: #fff;
   display: inline-block;
   height: 100vh;
+  line-height: 100vh;
   margin-right: 10px;
   padding: 0 10px;
   text-transform: uppercase;
@@ -40,15 +47,28 @@ body {
 
 .Toolbar-puzzleName {
   color: #333;
+  margin-top: -2px;
   font-weight: 500;
 }
 
 .Toolbar-link {
   border-bottom: 1px dotted;
   color: #1c71b9;
+  display: inline-block;
   margin-left: 10px;
   text-decoration: none;
 }
 .Toolbar-link:hover {
   border-bottom-style: solid;
+}
+
+.Toolbar-right {
+  display: flex;
+  line-height: 100vh;
+  margin-left: auto;
+}
+
+.Toolbar-userImage {
+  height: 100vh;
+  margin-left: 10px;
 }
