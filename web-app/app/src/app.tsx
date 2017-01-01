@@ -2,8 +2,10 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { browserHistory, IndexRoute, Router, Route } from "react-router";
-import { combineReducers, createStore } from "redux";
+import { applyMiddleware, compose, createStore } from "redux";
+import thunk from "redux-thunk";
 
+import { reducers } from "./reducers";
 import { Dashboard } from "./dashboard";
 import { Login } from "./login";
 
@@ -18,7 +20,7 @@ class App extends React.Component<IAppProps, {}> {
 }
 
 // todo: move reducers to reducers folder
-const store = createStore(combineReducers({}));
+const store = compose(applyMiddleware(thunk))(createStore)(reducers);
 
 ReactDOM.render(
   <Provider store={store}>
