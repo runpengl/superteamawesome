@@ -20,6 +20,7 @@ function handleChromeRuntimeConnect(port) {
         delete toolbarData[tabId];
     });
 
+    var currentUser = firebase.auth().currentUser;
     var data = toolbarData[tabId];
     switch (data.type) {
         case "general":
@@ -33,27 +34,27 @@ function handleChromeRuntimeConnect(port) {
             var puzzleRef = db.ref("puzzles/" + data.puzzleKey);
             var huntRef = db.ref("hunts/" + data.huntKey);
 
-            var puzzleData = null;
-            var huntData = null;
-            function update() {
-                if (puzzleData && huntData) {
-                    port.postMessage({
-                        msg: "puzzle",
-                        data: {
-                            currentUser: firebase.auth().currentUser,
-                            puzzle: puzzleData,
-                            hunt: huntData
-                        }
-                    });
-                }
-            }
-            function onPuzzle(puzzle) { puzzleData = puzzle.val(); update(); }
-            function onHunt(hunt) { huntData = hunt.val(); update(); }
-            puzzleRef.on("value", onPuzzle);
-            huntRef.on("value", onHunt);
+            var detachRefs = onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
+                port.postMessage({
+                    msg: "puzzle",
+                    data: {
+                        hunt: hunt.val(),
+                        puzzle: puzzle.val(),
+                        currentUser: currentUser,
+                        location: data.location
+                    }
+                });
+            });
+
+            // Add currentUser as a viewer of the puzzle
+            var viewRef = db.ref(
+                "puzzleViewers/" + data.puzzleKey + "/" + currentUser.uid + "/" + tabId);
+            viewRef.set(true);
+            viewRef.onDisconnect().remove();
+
             port.onDisconnect.addListener(function() {
-                puzzleRef.off("value", onPuzzle);
-                huntRef.off("value", onHunt);
+                viewRef.remove();
+                detachRefs();
             });
             break;
     }
@@ -99,6 +100,7 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                     puzzleSnapshot.forEach(function (puzzle) {
                         maybeInitToolbar({
                             type: "puzzle",
+                            location: "spreadsheet",
                             huntKey: puzzle.val().hunt,
                             puzzleKey: puzzle.key
                         });
@@ -127,6 +129,7 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                                 if (puzzlePath && pathname.startsWith(puzzlePath)) {
                                     maybeInitToolbar({
                                         type: "puzzle",
+                                        location: "puzzle",
                                         huntKey: hunt.key,
                                         puzzleKey: puzzle.key
                                     });
@@ -146,4 +149,33 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
 
     // sendResponse will be called asynchronously
     return true;
+}
+
+//
+// Firebase Query Helpers
+// ----------------------------------------------------------------------------
+
+/**
+ * Takes two firebase refs and attaches `value` event listeners on them, calling
+ * the given callback when both are resolved and for every update after. The caller
+ * is responsible for calling the returned detach function.
+ */
+function onValue2(ref1, ref2, callback) {
+    var snap1 = null;
+    var snap2 = null;
+    function update() {
+        if (snap1 && snap1.val() &&
+            snap2 && snap2.val()) {
+            callback(snap1, snap2);
+        }
+    }
+    function on1(snap) { snap1 = snap; update(); }
+    function on2(snap) { snap2 = snap; update(); }
+    ref1.on("value", on1);
+    ref2.on("value", on2);
+
+    return function detach() {
+        ref1.off("value", on1);
+        ref2.off("value", on2);
+    };
 }

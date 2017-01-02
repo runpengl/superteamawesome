@@ -33,7 +33,7 @@ chrome.runtime.sendMessage({
 });
 
 function injectToolbar() {
-    var toolbarHeight = "30px";
+    var toolbarHeight = "24px";
 
     // Set up iframe
     var iframe = document.createElement("iframe");
