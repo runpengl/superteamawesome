@@ -3,7 +3,7 @@ import { IRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadHuntAction } from "./actions";
+import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction } from "./actions";
 import { firebaseAuth } from "./auth";
 import { IAppState, IHuntState } from "./state";
 
@@ -18,7 +18,7 @@ interface IRouterContext {
 
 interface IOwnProps {}
 interface IDispatchProps {
-    loadHunt: () => void;
+    loadHuntAndUserInfo: () => void;
 }
 
 interface IStateProps {
@@ -39,7 +39,7 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
     };
 
     public componentDidMount() {
-        const { loadHunt } = this.props;
+        const { loadHuntAndUserInfo } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
@@ -47,7 +47,7 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
                 this.setState({
                     loggedIn: true,
                 });
-                loadHunt();
+                loadHuntAndUserInfo();
             }
         });
     }
@@ -96,7 +96,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
-        loadHunt: loadHuntAction,
+        loadHuntAndUserInfo: loadHuntAndUserInfoAction,
     }, dispatch);
 }
 
