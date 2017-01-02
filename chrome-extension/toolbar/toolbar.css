@@ -52,7 +52,7 @@ body {
 
 .Toolbar-right {
   display: flex;
-  line-height: 100vh;
+  height: 100vh;
   margin-left: auto;
 }
 
@@ -123,16 +123,37 @@ body {
  * Avatar
  */
 .Avatar {
+  align-self: flex-end;
   display: inline-block;
-  height: 24px;
   margin-right: 1px;
   position: relative;
-  width: 24px;
+}
+.Avatar.isIdle {
+  margin: 0;
+}
+
+.Avatar-imageFrame {
+  overflow: hidden;
 }
 
 .Avatar-image {
-  height: 100%;
-  width: 100%;
+  display: block;
+  height: 24px;
+  opacity: .5;
+  width: 24px;
+  transition: .2s margin-bottom .2s, .2s margin-right;
+}
+.Avatar.isPuzzleVisible .Avatar-image {
+  opacity: 1;
+}
+.Avatar.isIdle .Avatar-image,
+.Avatar-enter .Avatar-image,
+.Avatar-leave-active .Avatar-image {
+  margin-right: -24px;
+  margin-bottom: -24px;
+}
+.Avatar-enter-active .Avatar-image {
+  margin: 0;
 }
 
 .Avatar-tooltip {

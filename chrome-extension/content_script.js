@@ -28,6 +28,7 @@ chrome.runtime.sendMessage({
     switch (response.msg) {
         case "initToolbar":
             injectToolbar();
+            monitorPresence();
             break;
     }
 });
@@ -50,4 +51,31 @@ function injectToolbar() {
 
     // Shift the body down so that the toolbar doesn't obscure it
     document.body.style.transform = "translateY(" + toolbarHeight + ")";
+}
+
+function monitorPresence() {
+    document.addEventListener("visibilitychange", function() {
+        chrome.runtime.sendMessage({
+            msg: "pageVisibilityChange",
+            isHidden: document.hidden
+        });
+    });
+
+    var lastMouseMoveTimeMs = Date.now();
+    document.addEventListener("mousemove", function() {
+        lastMouseMoveTimeMs = Date.now();
+    });
+
+    var isIdle = false;
+    setInterval(function() {
+        // 3 minutes without mouse movement is considered idle.
+        var isIdleNow = (Date.now() - lastMouseMoveTimeMs) > 3 * 60 * 1000;
+        if (isIdleNow !== isIdle) {
+            chrome.runtime.sendMessage({
+                msg: "idleStatusChange",
+                isIdle: isIdleNow
+            });
+            isIdle = isIdleNow;
+        }
+    }, 1000);
 }

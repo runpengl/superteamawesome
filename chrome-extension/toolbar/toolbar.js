@@ -2,7 +2,7 @@ var puzzleData = null;
 var puzzleViewers = null;
 
 // Initialize a connection with the background script, which
-// will cache data as long as this connection is open.
+// will continue to send data as long as this connection is open.
 var port = chrome.runtime.connect({ name: "toolbarLoad" });
 port.onMessage.addListener(function(event) {
     switch (event.msg) {
@@ -55,12 +55,19 @@ function Toolbar(props) {
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
 
-        r.div({ className: "Toolbar-right" },
+        React.createElement(React.addons.CSSTransitionGroup, {
+            className: "Toolbar-right",
+            transitionName: "Avatar",
+            transitionEnterTimeout: 500,
+            transitionLeaveTimeout: 300
+        },
             props.viewers && props.viewers.map(function(user) {
                 return React.createElement(Avatar, {
-                    key: user.uid,
+                    key: user.id,
                     displayName: user.displayName,
-                    photoUrl: user.photoUrl
+                    photoUrl: user.photoUrl,
+                    isIdle: user.isIdle,
+                    isPuzzleVisible: user.isPuzzleVisible
                 });
             })
         )
@@ -111,13 +118,21 @@ var PuzzleStatusPicker = React.createClass({
 });
 
 function Avatar(props) {
-    return r.div({ className: "Avatar" },
-        r.img({
-            className: "Avatar-image",
-            src: props.photoUrl
-        }),
-        r.div({
-            className: "Avatar-tooltip"
-        }, props.displayName)
+    return r.div({
+        className: "Avatar" +
+            (props.isPuzzleVisible ? " isPuzzleVisible" : "") +
+            (props.isIdle ? " isIdle" : "")
+    },
+        r.div({ className: "Avatar-imageFrame" },
+            r.img({
+                className: "Avatar-image",
+                src: props.photoUrl
+            })
+        ),
+        r.div({ className: "Avatar-tooltip" },
+            props.displayName,
+            props.isPuzzleVisible || props.isIdle ? null : " (tab hidden)",
+            props.isIdle ? " (idle)" : ""
+        )
     );
 }

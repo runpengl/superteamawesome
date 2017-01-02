@@ -53,29 +53,45 @@ function handleChromeRuntimeConnect(port) {
                 });
             });
 
-            var viewRef = db.ref(
-                "puzzleViewers/" + data.puzzleKey + "/" + currentUser.uid + "/" + tabId);
+            var viewRef = db.ref("puzzleViewers").child(data.puzzleKey)
+                .child(currentUser.uid).child(tabId);
             var isConnectedRef = db.ref(".info/connected");
             isConnectedRef.on("value", function(snap) {
                 if (snap.val()) {
                     // When firebase is next disconnected, remove self as viewer
                     viewRef.onDisconnect().remove();
                     // Add currentUser as a viewer of the puzzle
-                    viewRef.set(true);
+                    viewRef.set({
+                        tabHidden: false,
+                        idle: false
+                    });
                 }
             });
 
+            var currentViewersChangeId = 0;
             var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey);
             viewersRef.on("value", function(snap) {
+                var changeId = ++currentViewersChangeId;
                 var viewers = [];
                 var numViewers = snap.numChildren();
                 var numUsersFetched = 0;
                 snap.forEach(function(viewer) {
                     db.ref("users/" + viewer.key).once("value", function(user) {
+                        if (currentViewersChangeId !== changeId) {
+                            return;
+                        }
+                        var allTabsHidden = true;
+                        var allTabsIdle = true;
+                        viewer.forEach(function(client) {
+                            allTabsHidden = allTabsHidden && client.val().tabHidden;
+                            allTabsIdle = allTabsIdle && client.val().idle;
+                        });
                         viewers.push({
                             id: user.key,
                             displayName: user.val().displayName,
-                            photoUrl: user.val().photoUrl
+                            photoUrl: user.val().photoUrl,
+                            isIdle: allTabsIdle,
+                            isPuzzleVisible: !allTabsHidden
                         });
                         if (++numUsersFetched === numViewers) {
                             port.postMessage({
@@ -103,8 +119,8 @@ function handleChromeRuntimeConnect(port) {
 }
 
 /**
- * Handles chrome.runtime onMessage events. Typically these messages are
- * sent from the content script injected on each page.
+ * Handles chrome.runtime onMessage events. These messages are sent from either
+ * the content script or the toolbar to read (once) or write firebase data.
  */
 function handleChromeRuntimeMessage(request, sender, sendResponse) {
     switch (request.msg) {
@@ -115,6 +131,22 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
             firebase.database()
                 .ref("puzzles/" + toolbarData[sender.tab.id].puzzleKey + "/status")
                 .set(request.status);
+            break;
+        case "pageVisibilityChange":
+            var data = toolbarData[sender.tab.id];
+            var currentUserId = firebase.auth().currentUser.uid;
+            firebase.database()
+                .ref("puzzleViewers").child(data.puzzleKey)
+                .child(currentUserId).child(sender.tab.id)
+                .child("tabHidden").set(request.isHidden);
+            break;
+        case "idleStatusChange":
+            var data = toolbarData[sender.tab.id];
+            var currentUserId = firebase.auth().currentUser.uid;
+            firebase.database()
+                .ref("puzzleViewers").child(data.puzzleKey)
+                .child(currentUserId).child(sender.tab.id)
+                .child("idle").set(request.isIdle);
             break;
     }
 }
