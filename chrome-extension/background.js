@@ -55,7 +55,8 @@ function handleChromeRuntimeConnect(port) {
 
             var viewRef = db.ref(
                 "puzzleViewers/" + data.puzzleKey + "/" + currentUser.uid + "/" + tabId);
-            var isConnectedRef = db.ref(".info/connected").on("value", function(snap) {
+            var isConnectedRef = db.ref(".info/connected");
+            isConnectedRef.on("value", function(snap) {
                 if (snap.val()) {
                     // When firebase is next disconnected, remove self as viewer
                     viewRef.onDisconnect().remove();
@@ -64,34 +65,38 @@ function handleChromeRuntimeConnect(port) {
                 }
             });
 
-            var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey)
-                .on("value", function(snap) {
-                    var viewers = [];
-                    var numViewers = snap.numChildren();
-                    var numUsersFetched = 0;
-                    snap.forEach(function(viewer) {
-                        db.ref("users/" + viewer.key).once("value", function(user) {
-                            viewers.push({
-                                id: user.key,
-                                displayName: user.val().displayName,
-                                photoUrl: user.val().photoUrl
-                            });
-                            if (++numUsersFetched === numViewers) {
-                                port.postMessage({
-                                    msg: "puzzleViewers",
-                                    data: { viewers: viewers }
-                                });
-                            }
+            var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey);
+            viewersRef.on("value", function(snap) {
+                var viewers = [];
+                var numViewers = snap.numChildren();
+                var numUsersFetched = 0;
+                snap.forEach(function(viewer) {
+                    db.ref("users/" + viewer.key).once("value", function(user) {
+                        viewers.push({
+                            id: user.key,
+                            displayName: user.val().displayName,
+                            photoUrl: user.val().photoUrl
                         });
+                        if (++numUsersFetched === numViewers) {
+                            port.postMessage({
+                                msg: "puzzleViewers",
+                                data: { viewers: viewers }
+                            });
+                        }
                     });
                 });
+            });
 
             port.onDisconnect.addListener(function() {
                 puzzleRef.off();
                 huntRef.off();
-                viewRef.remove(); // Remove self as viewer
                 isConnectedRef.off();
                 viewersRef.off();
+
+                // Remove self as viewer. Note that this must happen last;
+                // Otherwise, the viewersRef will be notified of changes and
+                // attempt to post a message on the disconnected port.
+                viewRef.remove();
             });
             break;
     }
