@@ -10,10 +10,19 @@ export interface IAuthState {
 export interface IHuntState {
     domain: string;
     name: string;
+    titleRegex?: string;
     year: number;
+}
+
+export interface IDiscoveredPuzzle {
+    host: string;
+    ignored?: boolean;
+    path: string;
+    title: string;
 }
 
 export interface IAppState {
     auth?: IAuthState;
+    discoveredPuzzles?: IAsyncLoaded<IDiscoveredPuzzle[]>;
     hunt?: IAsyncLoaded<IHuntState>;
 }

@@ -9,7 +9,7 @@ import {
     asyncActionSucceededPayload,
 } from "./loading";
 
-export const LOGIN_ACTION = "LOGIN_ACTION";
+export const LOGIN_ACTION = "LOGIN";
 export interface ILoginActionPayload {
     googleToken: string;
     user: firebase.UserInfo;
