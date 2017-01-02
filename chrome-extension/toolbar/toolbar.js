@@ -5,14 +5,27 @@ port.onMessage.addListener(function(event) {
     switch (event.msg) {
         case "puzzle":
             handlePuzzleData(event.data);
+        case "puzzleViewers":
+            handlePuzzleViewers(event.data);
     }
 });
 
-function handlePuzzleData(data) {
+var puzzleData = null;
+function renderToolbar() {
     ReactDOM.render(
-        React.createElement(Toolbar, data),
+        React.createElement(Toolbar, puzzleData),
         document.getElementById("toolbar")
     );
+}
+
+function handlePuzzleData(data) {
+    puzzleData = data;
+    renderToolbar();
+}
+
+function handlePuzzleViewers(data) {
+    puzzleData.viewers = data.viewers;
+    renderToolbar();
 }
 
 var r = React.DOM;
@@ -21,22 +34,24 @@ function Toolbar(props) {
         r.div({ className: "Toolbar-puzzleStatus " + props.puzzle.status },
             toHumanReadable(props.puzzle.status)),
         r.div({ className: "Toolbar-puzzleName" }, props.puzzle.name),
-        r.a({
+        props.location === "puzzle" ? null : r.a({
             className: "Toolbar-link",
             target: "_blank",
             href: "http://" + props.hunt.domain + props.puzzle.path
         }, "puzzle"),
-        r.a({
+        props.location === "spreadsheet" ? null : r.a({
             className: "Toolbar-link",
             target: "_blank",
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
 
         r.div({ className: "Toolbar-right" },
-            r.span({ className: "Toolbar-userName" }, props.currentUser.displayName),
-            r.img({
-                className: "Toolbar-userImage",
-                src: props.currentUser.photoURL
+            props.viewers && props.viewers.map(function(user) {
+                return r.img({
+                    key: user.id,
+                    className: "Toolbar-userImage",
+                    src: user.photoUrl
+                });
             })
         )
     );

@@ -9,6 +9,7 @@ body {
   color: #6d6d6d;
   font-size: 12px;
   height: 100vh;
+  white-space: nowrap;
 }
 
 .loading-title {
@@ -70,5 +71,5 @@ body {
 
 .Toolbar-userImage {
   height: 100vh;
-  margin-left: 10px;
+  margin-left: 1px;
 }

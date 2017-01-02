@@ -1,12 +1,19 @@
 // Initialization
 firebase.initializeApp(config.firebase);
+firebase.auth().onAuthStateChanged(handleFirebaseAuthStateChange);
 chrome.runtime.onMessage.addListener(handleChromeRuntimeMessage);
 chrome.runtime.onConnect.addListener(handleChromeRuntimeConnect);
 
-function noop() {}
 // Keep this data synced for faster toolbar initialization
-firebase.database().ref("chromeExtensionConfig").on("value", noop);
-firebase.database().ref("hunts").on("value", noop);
+firebase.database().ref("hunts").on("value", function() {});
+
+function handleFirebaseAuthStateChange(user) {
+    // Save info so other clients can display a list of users viewing a puzzle
+    firebase.database().ref("users/" + user.uid).set({
+        displayName: user.displayName,
+        photoUrl: user.photoURL
+    });
+}
 
 var toolbarData = {};
 
@@ -51,6 +58,27 @@ function handleChromeRuntimeConnect(port) {
                 "puzzleViewers/" + data.puzzleKey + "/" + currentUser.uid + "/" + tabId);
             viewRef.set(true);
             viewRef.onDisconnect().remove();
+
+            db.ref("puzzleViewers/" + data.puzzleKey).on("value", function(snap) {
+                var viewers = [];
+                var numViewers = snap.numChildren();
+                var numUsersFetched = 0;
+                snap.forEach(function(viewer) {
+                    db.ref("users/" + viewer.key).once("value", function(user) {
+                        viewers.push({
+                            id: user.key,
+                            displayName: user.val().displayName,
+                            photoUrl: user.val().photoUrl
+                        });
+                        if (++numUsersFetched === numViewers) {
+                            port.postMessage({
+                                msg: "puzzleViewers",
+                                data: { viewers: viewers }
+                            });
+                        }
+                    });
+                });
+            });
 
             port.onDisconnect.addListener(function() {
                 viewRef.remove();
