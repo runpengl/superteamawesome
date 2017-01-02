@@ -25,25 +25,12 @@ body {
   margin-left: 5px;
 }
 
+/**
+ * Toolbar
+ */
 .Toolbar {
   align-items: center;
   display: flex;
-}
-
-.Toolbar-puzzleStatus {
-  color: #fff;
-  display: inline-block;
-  height: 100vh;
-  line-height: 100vh;
-  margin-right: 10px;
-  padding: 0 10px;
-  text-transform: uppercase;
-}
-.Toolbar-puzzleStatus.needsExtraction {
-  background: #e88714;
-}
-.Toolbar-puzzleStatus.solved {
-  background: #07b05a;
 }
 
 .Toolbar-puzzleName {
@@ -69,6 +56,72 @@ body {
   margin-left: auto;
 }
 
+/**
+ * PuzzleStatusPicker
+ */
+.PuzzleStatusPicker {
+  display: flex;
+  margin-right: 10px;
+}
+
+.PuzzleStatusPicker-statusButton {
+  background: #d6d6d6;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  height: 100vh;
+  line-height: 100vh;
+  margin-right: 1px;
+  overflow: hidden;
+  text-align: center;
+  text-transform: uppercase;
+  transition: .3s max-width;
+}
+.PuzzleStatusPicker-statusButton:not(.isCurrent):hover,
+.PuzzleStatusPicker-statusButton.isPending {
+  opacity: .5;
+}
+.PuzzleStatusPicker-statusButton.new {
+  max-width: 50px;
+  width: 50px;
+}
+.PuzzleStatusPicker-statusButton.new:hover,
+.PuzzleStatusPicker-statusButton.new.isCurrent {
+  background: #9050d4;
+}
+.PuzzleStatusPicker-statusButton.inProgress {
+  max-width: 100px;
+  width: 100px;
+}
+.PuzzleStatusPicker-statusButton.inProgress:hover,
+.PuzzleStatusPicker-statusButton.inProgress.isCurrent {
+  background: #e88714;
+}
+.PuzzleStatusPicker-statusButton.stuck {
+  max-width: 60px;
+  width: 60px;
+}
+.PuzzleStatusPicker-statusButton.stuck:hover,
+.PuzzleStatusPicker-statusButton.stuck.isCurrent {
+  background: #e12548;
+}
+.PuzzleStatusPicker-statusButton.solved {
+  max-width: 66px;
+  width: 66px;
+}
+.PuzzleStatusPicker-statusButton.solved:hover,
+.PuzzleStatusPicker-statusButton.solved.isCurrent {
+  background: #07b05a;
+}
+.PuzzleStatusPicker.isCollapsed .PuzzleStatusPicker-statusButton:not(.isCurrent) {
+  max-width: 0;
+  margin: 0;
+}
+
+/**
+ * Avatar
+ */
 .Avatar {
   display: inline-block;
   height: 24px;

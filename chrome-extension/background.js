@@ -111,6 +111,11 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
         case "contentScriptLoad":
             return handleContentScriptLoadMessage(
                 request, sender, sendResponse);
+        case "puzzleStatusChange":
+            firebase.database()
+                .ref("puzzles/" + toolbarData[sender.tab.id].puzzleKey + "/status")
+                .set(request.status);
+            break;
     }
 }
 
