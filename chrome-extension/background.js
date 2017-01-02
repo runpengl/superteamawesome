@@ -203,7 +203,7 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                         .orderByChild("hunt")
                         .equalTo(hunt.key)
                         .once("value", function(puzzles) {
-                            puzzles.forEach(function(puzzle) {
+                            var puzzleFound = puzzles.forEach(function(puzzle) {
                                 var puzzlePath = puzzle.val().path;
                                 if (puzzlePath && pathname.startsWith(puzzlePath)) {
                                     maybeInitToolbar({
@@ -212,14 +212,33 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                                         huntKey: hunt.key,
                                         puzzleKey: puzzle.key
                                     });
+                                    return true;
                                 }
                             });
-                            // If no puzzle has matched; fall back to displaying a
-                            // toolbar for the given hunt.
+                            if (puzzleFound) {
+                                return;
+                            }
+                            // No puzzle matched; initialize toolbar for hunt
                             maybeInitToolbar({
                                 type: "hunt",
                                 huntKey: hunt.key
                             });
+
+                            if (hunt.val().isCurrent) {
+                                // If hunt is current, try and add a discoveredPage for it
+                                var pagesRef = firebase.database().ref("discoveredPages/" + hunt.key);
+                                pagesRef.orderByChild("path").equalTo(pathname)
+                                    .once("value", function(snap) {
+                                        if (!snap.numChildren()) {
+                                            // Page not found; add one
+                                            pagesRef.push({
+                                                host: hunt.val().domain,
+                                                path: pathname,
+                                                title: request.title
+                                            });
+                                        }
+                                    });
+                            }
                         });
                 }
             });

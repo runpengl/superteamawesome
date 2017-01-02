@@ -20,7 +20,8 @@
 // Ask the background script if we should inject a toolbar onto this page
 chrome.runtime.sendMessage({
     msg: "contentScriptLoad",
-    location: window.location
+    location: window.location,
+    title: document.title
 }, function(response) {
     if (!response) {
         return;
