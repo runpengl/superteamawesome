@@ -47,13 +47,25 @@ function Toolbar(props) {
 
         r.div({ className: "Toolbar-right" },
             props.viewers && props.viewers.map(function(user) {
-                return r.img({
-                    key: user.id,
-                    className: "Toolbar-userImage",
-                    src: user.photoUrl
+                return React.createElement(Avatar, {
+                    key: user.uid,
+                    displayName: user.displayName,
+                    photoUrl: user.photoUrl
                 });
             })
         )
+    );
+}
+
+function Avatar(props) {
+    return r.div({ className: "Avatar" },
+        r.img({
+            className: "Avatar-image",
+            src: props.photoUrl
+        }),
+        r.div({
+            className: "Avatar-tooltip"
+        }, props.displayName)
     );
 }
 

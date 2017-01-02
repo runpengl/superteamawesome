@@ -69,7 +69,44 @@ body {
   margin-left: auto;
 }
 
-.Toolbar-userImage {
-  height: 100vh;
-  margin-left: 1px;
+.Avatar {
+  display: inline-block;
+  height: 24px;
+  margin-right: 1px;
+  position: relative;
+  width: 24px;
+}
+
+.Avatar-image {
+  height: 100%;
+  width: 100%;
+}
+
+.Avatar-tooltip {
+  background: #333;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .5);
+  color: #fff;
+  line-height: 20px;
+  margin-right: 5px;
+  padding: 0 5px;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 100%;
+  top: 2px;
+  transition: .2s opacity;
+}
+.Avatar-tooltip::after {
+  border: 5px solid;
+  border-color: transparent #333;
+  border-right: none;
+  content: "";
+  display: block;
+  left: 100%;
+  position: absolute;
+  transform: translateY(-50%);
+  top: 50%;
+}
+.Avatar:hover .Avatar-tooltip {
+  opacity: 1;
 }
