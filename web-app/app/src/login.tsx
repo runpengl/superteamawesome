@@ -1,6 +1,36 @@
 import * as React from "react";
+import { connect } from "react-redux";
+import { IRouter } from "react-router";
+import { bindActionCreators, Dispatch } from "redux";
 
-export class Login extends React.Component<{}, {}> {
+import { loginAction } from "./actions";
+import { IAppState } from "./state";
+
+// props from redux state
+interface IStateProps {
+    googleToken?: string;
+}
+
+// props given to component
+interface IOwnProps {}
+
+// dispatch functions
+interface IDispatchProps {
+    login: () => void;
+}
+
+interface IRouterContext {
+    router: IRouter;
+}
+
+export interface ILoginProps extends IStateProps, IOwnProps, IDispatchProps {}
+
+class UnconnectedLogin extends React.Component<ILoginProps, {}> {
+    public context: IRouterContext;
+    static contextTypes = {
+        router: React.PropTypes.object.isRequired,
+    };
+
     public componentDidMount() {
         const canvas = document.getElementById("poofytoo") as HTMLCanvasElement;
         let context = canvas.getContext("2d");
@@ -68,6 +98,12 @@ export class Login extends React.Component<{}, {}> {
         window.setInterval(animateBackground,80);
     }
 
+    public componentDidUpdate(oldProps: ILoginProps) {
+        if (oldProps.googleToken === undefined && this.props.googleToken !== undefined) {
+            this.context.router.push("/");
+        }
+    }
+
     public render() {
         const random = Math.floor(Math.random() * 8);
         return (
@@ -80,7 +116,7 @@ export class Login extends React.Component<{}, {}> {
                     <div className="login-subtitle">
                         let"s have some mystery hunt fun
                     </div>
-                    <a className="login-button" href="/auth/google">
+                    <a className="login-button" onClick={this.handleLogin}>
                         <span className="flaticon-google" />
                         <span className="text">Sign in with Google</span>
                     </a>
@@ -89,4 +125,24 @@ export class Login extends React.Component<{}, {}> {
             </div>
         )
     }
+
+    private handleLogin = () => {
+        const { login } = this.props;
+        login();
+    }
 }
+
+function mapStateToProps(state: IAppState, _props: IOwnProps): IStateProps {
+    const { auth } = state;
+    return {
+        googleToken: auth.googleToken,
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
+    return bindActionCreators({
+        login: loginAction,
+    }, dispatch);
+}
+
+export const Login = connect(mapStateToProps, mapDispatchToProps)(UnconnectedLogin);

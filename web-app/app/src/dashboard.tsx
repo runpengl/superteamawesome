@@ -1,10 +1,14 @@
 import * as React from "react";
 import { IRouter } from "react-router";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
 
+import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction } from "./actions";
 import { firebaseAuth } from "./auth";
+import { IAppState, IHuntState } from "./state";
 
 interface IDashboardState {
-    isLoading: boolean;
+    isLoading?: boolean;
     loggedIn?: boolean;
 }
 
@@ -12,7 +16,18 @@ interface IRouterContext {
     router: IRouter;
 }
 
-export class Dashboard extends React.Component<{}, IDashboardState> {
+interface IOwnProps {}
+interface IDispatchProps {
+    loadHuntAndUserInfo: () => void;
+}
+
+interface IStateProps {
+    hunt: IAsyncLoaded<IHuntState>;
+}
+
+interface IDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
+
+class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardState> {
     public state: IDashboardState = {
         isLoading: true,
         loggedIn: false,
@@ -24,16 +39,23 @@ export class Dashboard extends React.Component<{}, IDashboardState> {
     };
 
     public componentDidMount() {
+        const { loadHuntAndUserInfo } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
             } else {
                 this.setState({
-                    isLoading: false,
                     loggedIn: true,
                 });
+                loadHuntAndUserInfo();
             }
         });
+    }
+
+    public componentDidUpdate(oldProps: IDashboardProps) {
+        if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(this.props.hunt)) {
+            this.setState({ isLoading: false });
+        }
     }
 
     public render() {
@@ -41,11 +63,41 @@ export class Dashboard extends React.Component<{}, IDashboardState> {
             return <span>Loading...</span>;
         } else {
             if (this.state.loggedIn) {
-                return <span>This is a dashboard</span>;
+                return this.renderDashboard();
             } else {
                 // shouldn't get here
                 return <span>Please login</span>;
             }
         }
     }
+
+    private renderDashboard() {
+        const hunt = this.props.hunt.value;
+        return (
+            <div className="dashboard">
+                <div className="header">
+                    <h1>STAPH</h1>
+                    <div className="sub-header">Super Team Awesome Puzzle Helper</div>
+                </div>
+                <div className="hunt-header">
+                    <div className="label">Current Hunt: {hunt.name}</div>
+                </div>
+            </div>
+        )
+    }
 }
+
+function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
+    const { hunt } = state;
+    return {
+        hunt,
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
+    return bindActionCreators({
+        loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+    }, dispatch);
+}
+
+export const Dashboard = connect(mapStateToProps, mapDispatchToProps)(UnconnectedDashboard);
