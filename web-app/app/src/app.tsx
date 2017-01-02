@@ -7,6 +7,7 @@ import thunk from "redux-thunk";
 import * as createLogger from "redux-logger";
 
 import { reducers } from "./reducers";
+import { AdminDashboard } from "./adminDashboard";
 import { Dashboard } from "./dashboard";
 import { Login } from "./login";
 
@@ -28,6 +29,7 @@ ReactDOM.render(
     <Router history={browserHistory}>
         <Route path="/" component={App}>
             <IndexRoute component={Dashboard} />
+            <Route path="admin" component={AdminDashboard} />
             <Route path="login" component={Login} />
         </Route>
     </Router>

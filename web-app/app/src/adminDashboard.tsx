@@ -7,7 +7,7 @@ import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction } from "./action
 import { firebaseAuth } from "./auth";
 import { IAppState, IHuntState } from "./state";
 
-interface IDashboardState {
+interface IAdminDashboardState {
     isLoading?: boolean;
     loggedIn?: boolean;
 }
@@ -25,10 +25,10 @@ interface IStateProps {
     hunt: IAsyncLoaded<IHuntState>;
 }
 
-interface IDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
+interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
 
-class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardState> {
-    public state: IDashboardState = {
+class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IAdminDashboardState> {
+    public state: IAdminDashboardState = {
         isLoading: true,
         loggedIn: false,
     };
@@ -52,7 +52,7 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
         });
     }
 
-    public componentDidUpdate(oldProps: IDashboardProps) {
+    public componentDidUpdate(oldProps: IAdminDashboardProps) {
         if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(this.props.hunt)) {
             this.setState({ isLoading: false });
         }
@@ -71,18 +71,13 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
         }
     }
 
-    private goToAdmin = () => {
-        this.context.router.push("/admin");
-    }
-
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
             <div className="dashboard">
                 <div className="header">
-                    <h1>STAPH</h1>
+                    <h1>STAPH [ADMIN]</h1>
                     <div className="sub-header">Super Team Awesome Puzzle Helper</div>
-                    <button onClick={this.goToAdmin}>Admin View</button>
                 </div>
                 <div className="hunt-header">
                     <div className="label">Current Hunt: {hunt.name}</div>
@@ -105,4 +100,4 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     }, dispatch);
 }
 
-export const Dashboard = connect(mapStateToProps, mapDispatchToProps)(UnconnectedDashboard);
+export const AdminDashboard = connect(mapStateToProps, mapDispatchToProps)(UnconnectedAdminDashboard);
