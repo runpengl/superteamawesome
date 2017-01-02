@@ -41,7 +41,7 @@ function handleChromeRuntimeConnect(port) {
             var puzzleRef = db.ref("puzzles/" + data.puzzleKey);
             var huntRef = db.ref("hunts/" + data.huntKey);
 
-            var detachRefs = onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
+            onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
                 port.postMessage({
                     msg: "puzzle",
                     data: {
@@ -53,36 +53,45 @@ function handleChromeRuntimeConnect(port) {
                 });
             });
 
-            // Add currentUser as a viewer of the puzzle
             var viewRef = db.ref(
                 "puzzleViewers/" + data.puzzleKey + "/" + currentUser.uid + "/" + tabId);
-            viewRef.set(true);
-            viewRef.onDisconnect().remove();
-
-            db.ref("puzzleViewers/" + data.puzzleKey).on("value", function(snap) {
-                var viewers = [];
-                var numViewers = snap.numChildren();
-                var numUsersFetched = 0;
-                snap.forEach(function(viewer) {
-                    db.ref("users/" + viewer.key).once("value", function(user) {
-                        viewers.push({
-                            id: user.key,
-                            displayName: user.val().displayName,
-                            photoUrl: user.val().photoUrl
-                        });
-                        if (++numUsersFetched === numViewers) {
-                            port.postMessage({
-                                msg: "puzzleViewers",
-                                data: { viewers: viewers }
-                            });
-                        }
-                    });
-                });
+            var isConnectedRef = db.ref(".info/connected").on("value", function(snap) {
+                if (snap.val()) {
+                    // When firebase is next disconnected, remove self as viewer
+                    viewRef.onDisconnect().remove();
+                    // Add currentUser as a viewer of the puzzle
+                    viewRef.set(true);
+                }
             });
 
+            var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey)
+                .on("value", function(snap) {
+                    var viewers = [];
+                    var numViewers = snap.numChildren();
+                    var numUsersFetched = 0;
+                    snap.forEach(function(viewer) {
+                        db.ref("users/" + viewer.key).once("value", function(user) {
+                            viewers.push({
+                                id: user.key,
+                                displayName: user.val().displayName,
+                                photoUrl: user.val().photoUrl
+                            });
+                            if (++numUsersFetched === numViewers) {
+                                port.postMessage({
+                                    msg: "puzzleViewers",
+                                    data: { viewers: viewers }
+                                });
+                            }
+                        });
+                    });
+                });
+
             port.onDisconnect.addListener(function() {
-                viewRef.remove();
-                detachRefs();
+                puzzleRef.off();
+                huntRef.off();
+                viewRef.remove(); // Remove self as viewer
+                isConnectedRef.off();
+                viewersRef.off();
             });
             break;
     }
