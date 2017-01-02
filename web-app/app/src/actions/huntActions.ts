@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 
 import { firebaseAuth, firebaseDatabase } from "../auth";
-import { IAppState } from "../state";
+import { IAppState, IHuntState } from "../state";
 import { LOGIN_ACTION, ILoginActionPayload } from "./authActions";
 import {
     asyncActionFailedPayload,
@@ -9,17 +9,16 @@ import {
     asyncActionSucceededPayload,
 } from "./loading";
 
-export const LOAD_HUNT_ACTION = "LOAD_HUNT_ACTION";
-export interface ILoadHuntActionPayload {
-    domain: string;
-    name: string;
-    year: number;
-}
-
+export const LOAD_HUNT_ACTION = "LOAD_HUNT";
 export interface IHunt {
-    domain: string;
+    host: string;
     isCurrent: boolean;
     name: string;
+    titleRegex?: string;
+}
+
+export interface ILoadHuntActionPayload extends IHunt {
+    year: number;
 }
 
 export function loadHuntAndUserInfoAction() {
@@ -44,11 +43,7 @@ export function loadHuntAndUserInfoAction() {
                         const hunt = huntSnapshot.val() as IHunt;
                         dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
                             LOAD_HUNT_ACTION,
-                            {
-                                domain: hunt.domain,
-                                name: hunt.name,
-                                year: Number(huntSnapshot.key),
-                            },
+                            Object.assign({}, hunt, { year: Number(huntSnapshot.key) }),
                         ));
                         return true;
                     });
@@ -57,4 +52,24 @@ export function loadHuntAndUserInfoAction() {
                 });
         });
     }
+}
+
+export const SAVE_HUNT_ACTION = "SAVE_HUNT_INFO";
+export interface ISaveHuntActionPayload extends IHunt { }
+
+export function saveHuntInfoAction(hunt: IHuntState) {
+    return (dispatch: Dispatch<IAppState>, _getState: () => IAppState) => {
+        dispatch(asyncActionInProgressPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION));
+        let huntInfo = Object.assign({}, hunt);
+        delete huntInfo["year"];
+        firebaseDatabase
+            .ref(`hunts/${hunt.year}`)
+            .set(huntInfo)
+            .then((a) => {
+                console.log(a);
+                dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, huntInfo));
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
+            })
+    };
 }

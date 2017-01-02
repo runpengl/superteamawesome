@@ -10,6 +10,7 @@ export interface IAuthState {
 export interface IHuntState {
     domain: string;
     name: string;
+    titleRegex?: string;
     year: number;
 }
 

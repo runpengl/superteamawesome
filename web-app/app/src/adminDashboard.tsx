@@ -3,11 +3,13 @@ import { IRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction } from "./actions";
+import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction, saveHuntInfoAction } from "./actions";
 import { firebaseAuth } from "./auth";
 import { IAppState, IHuntState } from "./state";
 
 interface IAdminDashboardState {
+    hasChanges?: boolean;
+    hunt?: IHuntState;
     isLoading?: boolean;
     loggedIn?: boolean;
 }
@@ -19,6 +21,7 @@ interface IRouterContext {
 interface IOwnProps {}
 interface IDispatchProps {
     loadHuntAndUserInfo: () => void;
+    saveHuntInfo: (hunt: IHuntState) => void;
 }
 
 interface IStateProps {
@@ -54,7 +57,11 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     public componentDidUpdate(oldProps: IAdminDashboardProps) {
         if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(this.props.hunt)) {
-            this.setState({ isLoading: false });
+            const hunt = this.props.hunt.value;
+            this.setState({
+                hunt,
+                isLoading: false,
+            });
         }
     }
 
@@ -71,6 +78,41 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
+    private handleHuntDomainChange = (event: React.FormEvent) => {
+        const newValue = (event.target as HTMLInputElement).value;
+        if (newValue !== this.props.hunt.value.domain) {
+            this.setState({
+                hasChanges: true,
+                hunt: Object.assign({}, this.state.hunt, { domain: newValue }),
+            });
+        }
+    }
+
+    private handleHuntNameChange = (event: React.FormEvent) => {
+        const newValue = (event.target as HTMLInputElement).value;
+        if (newValue !== this.props.hunt.value.name) {
+            this.setState({
+                hasChanges: true,
+                hunt: Object.assign({}, this.state.hunt, { name: newValue }),
+            });
+        }
+    }
+
+    private handleHuntTitleRegexChange = (event: React.FormEvent) => {
+        const newValue = (event.target as HTMLInputElement).value;
+        if (newValue !== this.props.hunt.value.titleRegex) {
+            this.setState({
+                hasChanges: true,
+                hunt: Object.assign({}, this.state.hunt, { titleRegex: newValue }),
+            });
+        }
+    }
+
+    private handleSave = () => {
+        this.props.saveHuntInfo(this.state.hunt);
+        this.setState({ hasChanges: false });
+    }
+
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
@@ -79,8 +121,22 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     <h1>STAPH [ADMIN]</h1>
                     <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                 </div>
-                <div className="hunt-header">
-                    <div className="label">Current Hunt: {hunt.name}</div>
+                <div className="hunt-edit-container">
+                    <div className="hunt-information">
+                        <div className="edit-info-line">
+                            <label>Hunt Name</label>
+                            <input type="text" defaultValue={hunt.name} onChange={this.handleHuntNameChange} />
+                        </div>
+                        <div className="edit-info-line">
+                            <label>url to match</label>
+                            <input type="text" defaultValue={hunt.domain} onChange={this.handleHuntDomainChange} />
+                        </div>
+                        <div className="edit-info-line">
+                            <label>match title</label>
+                            <input type="text" defaultValue={hunt.titleRegex} onChange={this.handleHuntTitleRegexChange} />
+                        </div>
+                    </div>
+                    <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
             </div>
         )
@@ -97,6 +153,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+        saveHuntInfo: saveHuntInfoAction,
     }, dispatch);
 }
 
