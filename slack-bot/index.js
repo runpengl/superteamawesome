@@ -1,41 +1,46 @@
-var firebase = require('firebase');
+var admin = require('firebase-admin');
 var config = require('./config').config;
 var WebClient = require('@slack/client').WebClient;
 
 // Initialization
-firebase.initializeApp(config.firebase);
 var slack = new WebClient(config.slack.token);
-//firebase.auth().onAuthStateChanged(handleFirebaseAuthStateChange);
 
-// Keep this data synced for faster toolbar initialization
-firebase.database().ref("hunts").on("value", handleFirebaseValueChange);
+admin.initializeApp(config.firebase);
+admin.database().ref("puzzles").on("child_changed", handleFirebaseValueChange);
 
-function handleFirebaseValueChange(value) {
-    console.log(value);
+// Set up
+var db_copy = {};
+admin.database().ref("puzzles").once("value", function(snap) {
+    db_copy = snap.val();
+});
+
+
+
+// Firebase
+function handleFirebaseValueChange(snap) {
+    console.log(snap.key);
+    console.log(snap.val());
+    // check if the puzzle is newly solved
+    if (snap.val().status === 'solved' && db_copy[snap.key].status != 'solved') {
+        console.log('Solved', snap.val().name);
+    }
+    // update db_copy
+    db_copy[snap.key] = snap.val();
 }
-
-function handleFirebaseAuthStateChange(user) {
-    // Save info so other clients can display a list of users viewing a puzzle
-    firebase.database().ref("users/" + user.uid).set({
-        displayName: user.displayName,
-        photoUrl: user.photoURL
-    });
-}
-
 
 // Slack
-
-
-slack.chat.postMessage(
-    'lcarter-testing',
-    'Hello there', {
-        icon_emoji: ":dancingjulia:",
-        username: "SuperTeamAwesomeBot",
-    },
-    function(err, res) {
-    if (err) {
-        console.log('Error:', err);
-    } else {
-        console.log('Message sent: ', res);
-    }
-});
+function postSlackMessage(slack, channel, msg) {
+    slack.chat.postMessage(
+        channel,
+        message, {
+            icon_emoji: ":rice_ball:",
+            username: "SuperTeamAwesomeBot",
+        },
+        function(err, res) {
+        if (err) {
+            console.log('Error:', err);
+        } else {
+            console.log('Message sent: ', res);
+        }
+    });
+}
