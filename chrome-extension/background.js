@@ -41,7 +41,7 @@ function handleChromeRuntimeConnect(port) {
             var puzzleRef = db.ref("puzzles/" + data.puzzleKey);
             var huntRef = db.ref("hunts/" + data.huntKey);
 
-            onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
+            var detachPuzzleAndHuntRefs = onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
                 port.postMessage({
                     msg: "puzzle",
                     data: {
@@ -53,10 +53,7 @@ function handleChromeRuntimeConnect(port) {
                 });
             });
 
-            var viewRef = db.ref("puzzleViewers").child(data.puzzleKey)
-                .child(currentUser.uid).child(tabId);
-            var isConnectedRef = db.ref(".info/connected");
-            isConnectedRef.on("value", function(snap) {
+            function handleConnectedValue(snap) {
                 if (snap.val()) {
                     // When firebase is next disconnected, remove self as viewer
                     viewRef.onDisconnect().remove();
@@ -66,11 +63,9 @@ function handleChromeRuntimeConnect(port) {
                         idle: false
                     });
                 }
-            });
+            }
 
-            var currentViewersChangeId = 0;
-            var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey);
-            viewersRef.on("value", function(snap) {
+            function handlePuzzleViewersValue(snap) {
                 var changeId = ++currentViewersChangeId;
                 var viewers = [];
                 var numViewers = snap.numChildren();
@@ -101,13 +96,21 @@ function handleChromeRuntimeConnect(port) {
                         }
                     });
                 });
-            });
+            }
+
+            var viewRef = db.ref("puzzleViewers").child(data.puzzleKey)
+                .child(currentUser.uid).child(tabId);
+            var isConnectedRef = db.ref(".info/connected");
+            isConnectedRef.on("value", handleConnectedValue);
+
+            var currentViewersChangeId = 0;
+            var viewersRef = db.ref("puzzleViewers/" + data.puzzleKey);
+            viewersRef.on("value", handlePuzzleViewersValue);
 
             port.onDisconnect.addListener(function() {
-                puzzleRef.off();
-                huntRef.off();
-                isConnectedRef.off();
-                viewersRef.off();
+                detachPuzzleAndHuntRefs();
+                isConnectedRef.off("value", handleConnectedValue);
+                viewersRef.off("value", handlePuzzleViewersValue);
 
                 // Remove self as viewer. Note that this must happen last;
                 // Otherwise, the viewersRef will be notified of changes and
