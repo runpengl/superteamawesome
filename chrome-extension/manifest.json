@@ -18,15 +18,6 @@
     "default_icon": "popup/popup.png"
   },
 
-  "content_scripts": [
-    {
-      "matches": ["*://*/*"],
-      "js": [
-        "content_script.js"
-      ]
-    }
-  ],
-
   "content_security_policy": "script-src 'self' https://*.firebaseio.com; object-src 'self'",
 
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1keXs6nWJ40Ky0Rn4FFc3oryXV9Hr3sHQlT9dWmhyPIRNMMrP4WwFcBujPrtkM2j2eU8YyoxlVDtusVm7OhK6jhhMZGk+jsP9AHUv9hD91uwtKThas8CI0+nr7/4CVsL2dONHA0aQGvo6mTNFxngLiIpAk41TdejmU+CNZX41tpKdsSzRrn5vcSxrH9f6JZY/NurqLUkCG1q+e8ulbrRdYFN6XOyKjuGqMg/eWWd+0uuMjWDqlGauNB0TjWO1IChYZVyWFSCYDO7CmQKmZm3cbbSgFW+S+ar6nEi9vVH2lXeT14N4RlEmI65Swswho6kKCt2fq22Fuk+JkW8akR4gwIDAQAB",
@@ -40,7 +31,10 @@
   },
 
   "permissions": [
-    "identity"
+    "http://*/",
+    "https://*/",
+    "identity",
+    "tabs"
   ],
 
   "web_accessible_resources": [

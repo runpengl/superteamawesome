@@ -1,40 +1,11 @@
-/**
- * Toolbar Data Flow
- *
- * - content_script.js: sendMessage("contentScriptLoad", window.location)
- *
- * - background.js: onMessage("contentScriptLoad", location, sendResponse)
- *   - if location matches puzzle, increment puzzleViewers/$puzzleKey/$userKey
- *   - if location matches hunt, save path to huntPages (unconfirmed)
- *   - in both cases, sendResponse("initToolbar"); otherwise do nothing
- *
- * - content_script.js: receive response; injectToolbar
- * - toolbar.js: connect("toolbarLoad")
- *
- * - background.js: onConnect("toolbarLoad", port)
- *   - listen to firebase updates and send them to the toolbar via port.postMessage
- *   - add disconnect listener to clean up firebase listeners
- *
- * - toolbar.js: port.onMessage(data); render with React
- */
-// Ask the background script if we should inject a toolbar onto this page
-chrome.runtime.sendMessage({
-    msg: "contentScriptLoad",
-    location: window.location,
-    title: document.title
-}, function(response) {
-    if (!response) {
-        return;
-    }
-    switch (response.msg) {
-        case "initToolbar":
-            injectToolbar();
-            monitorPresence();
-            break;
-    }
-});
+console.log("xcxc inject_toolbar.js reporting for duty");
+injectToolbar();
 
 function injectToolbar() {
+    if (document.body.__staToolbarInjected) {
+        return;
+    }
+    console.log("xcxc injecting toolbar");
     var toolbarHeight = "24px";
 
     // Set up iframe
@@ -64,6 +35,9 @@ function injectToolbar() {
         // Shift the body down so that the toolbar doesn't obscure it
         document.body.style.transform = "translateY(" + toolbarHeight + ")";
     }
+    document.body.__staToolbarInjected = true;
+
+    monitorPresence();
 }
 
 function monitorPresence() {

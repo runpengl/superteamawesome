@@ -1,19 +1,33 @@
 var puzzleData = null;
 var puzzleViewers = null;
 
-// Initialize a connection with the background script, which
-// will continue to send data as long as this connection is open.
-var port = chrome.runtime.connect({ name: "toolbarLoad" });
-port.onMessage.addListener(function(event) {
-    switch (event.msg) {
-        case "puzzle":
-            puzzleData = event.data;
-            return renderToolbar();
-        case "puzzleViewers":
-            puzzleViewers = event.data.viewers;
-            return renderToolbar();
+var port;
+function refreshConnection() {
+    if (port) {
+        port.disconnect();
+    }
+    // Initialize a connection with the background script, which
+    // will continue to send data as long as this connection is open.
+    port = chrome.runtime.connect({ name: "toolbarLoad" });
+    port.onMessage.addListener(function(event) {
+        switch (event.msg) {
+            case "puzzle":
+                puzzleData = event.data;
+                return renderToolbar();
+            case "puzzleViewers":
+                puzzleViewers = event.data.viewers;
+                return renderToolbar();
+        }
+    });
+}
+
+refreshConnection();
+chrome.runtime.onMessage.addListener(function(request) {
+    if (request.msg === "refreshConnection") {
+        refreshConnection();
     }
 });
+
 
 function renderToolbar() {
     ReactDOM.render(
