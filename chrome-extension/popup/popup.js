@@ -12,28 +12,33 @@ function initApp() {
     firebase.initializeApp(config.firebase);
     firebase.auth().onAuthStateChanged(function(userOrNull) {
         renderPopup();
-    });
-    renderPopup(/*initialRender=*/true);
+        if (!userOrNull) {
+            return;
+        }
 
-    var db = firebase.database();
-    db.ref("currentHunt").once("value", function(snap) {
-        var huntKey = snap.val();
-        db.ref("hunts/" + huntKey).on("value", function(hunt) {
-            currentHunt = hunt.val();
-            renderPopup();
-        });
-        db.ref("puzzles")
-            .orderByChild("hunt")
-            .equalTo(huntKey)
-            .on("value", function(snapshot) {
-                var puzzles = [];
-                snapshot.forEach(function(puzzle) {
-                    puzzles.push(puzzle.val())
-                });
-                currentHuntPuzzles = puzzles;
+        var db = firebase.database();
+        db.ref("currentHunt").once("value", function(snap) {
+            var huntKey = snap.val();
+            db.ref("hunts/" + huntKey).on("value", function(hunt) {
+                currentHunt = hunt.val();
                 renderPopup();
             });
+            db.ref("puzzles")
+                .orderByChild("hunt")
+                .equalTo(huntKey)
+                .on("value", function(snapshot) {
+                    var puzzles = [];
+                    snapshot.forEach(function(puzzle) {
+                        puzzles.push(Object.assign({}, puzzle.val(), {
+                            key: puzzle.key
+                        }))
+                    });
+                    currentHuntPuzzles = puzzles;
+                    renderPopup();
+                });
+        });
     });
+    renderPopup(/*initialRender=*/true);
 }
 
 /**
@@ -41,6 +46,8 @@ function initApp() {
  * @param{boolean} interactive True if the OAuth flow should request with an interactive mode.
  */
 function startAuth(interactive) {
+    renderPopup(/*initialRender=*/true);
+
     // Request an OAuth token from the Chrome Identity API.
     chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
         if (chrome.runtime.lastError) {
@@ -66,13 +73,27 @@ function startAuth(interactive) {
 // Rendering
 // ----------------------------------------------------------------------------
 
+var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
+
 function renderPopup(initialRender) {
+    var puzzlesByStatus = {
+        "new": [],
+        inProgress: [],
+        stuck: [],
+        solved: []
+    };
+    if (currentHuntPuzzles) {
+        currentHuntPuzzles.forEach(function(puzzle) {
+            puzzlesByStatus[puzzle.status].push(puzzle);
+        });
+    }
     ReactDOM.render(
         React.createElement(Popup, {
             initialRender: !!initialRender,
             currentUser: firebase.auth().currentUser,
             currentHunt: currentHunt,
-            currentHuntPuzzles: currentHuntPuzzles
+            numPuzzles: currentHuntPuzzles ? currentHuntPuzzles.length : 0,
+            puzzlesByStatus: puzzlesByStatus
         }),
         document.getElementById("popup")
     );
@@ -101,36 +122,61 @@ function Popup(props) {
                                 chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
                             }
                         }, r.strong(null, props.currentHunt.name)),
-                        props.currentHuntPuzzles
+                        props.numPuzzles
                             ? r.div(null,
                                 "Puzzles Solved: ",
                                 r.strong(null,
-                                    numPuzzlesSolved(props.currentHuntPuzzles),
-                                    "/", props.currentHuntPuzzles.length
+                                    props.puzzlesByStatus.solved.length,
+                                    "/", props.numPuzzles
                                 )
                             )
                             : null
                     )
                     : r.img({ className: "Popup-loading", src: "ripple.svg" }),
-                props.currentHuntPuzzles.map(function(puzzle) {
-                    return null;
+                PUZZLE_STATUSES.map(function(status) {
+                    var puzzles = props.puzzlesByStatus[status];
+                    if (puzzles.length === 0) {
+                        return;
+                    }
+                    return React.createElement(PuzzleList, {
+                        key: status,
+                        huntDomain: props.currentHunt.domain,
+                        puzzles: puzzles
+                    });
                 })
             )
             : r.div({ className: "Popup-loginPrompt" + (props.isLoading ? " isLoading" : "") },
                 props.initialRender
                     ? r.img({ className: "Popup-loading", src: "ripple.svg" })
-                    : r.button({
-                        className: "Popup-button",
+                    : r.div({
+                        className: "Popup-signInButton",
                         onClick: function() { startAuth(true); }
                     }, "Sign in with Google")
             )
     );
 }
 
-function numPuzzlesSolved(puzzles) {
-    var n = 0;
-    puzzles.forEach(function(puzzle) {
-        if (puzzle.status === "solved") n++;
-    });
-    return n;
+function PuzzleList(props) {
+    return r.ul({ className: "PuzzleList" },
+        props.puzzles.map(function(puzzle) {
+            return r.li({
+                key: puzzle.key,
+                className: "PuzzleList-puzzle"
+            },
+                r.a({
+                    onClick: function() {
+                        chrome.tabs.update({
+                            url: "http://" + props.huntDomain + puzzle.path
+                        });
+                    }
+                }, puzzle.name),
+                r.div({ className: "PuzzleList-puzzleStatus " + puzzle.status },
+                    toHumanReadable(puzzle.status))
+            );
+        })
+    );
+}
+
+function toHumanReadable(statusStr) {
+    return statusStr.replace(/([A-Z])/g, " $1").toLowerCase();
 }

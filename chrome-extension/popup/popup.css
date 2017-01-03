@@ -15,6 +15,10 @@ a:hover {
   width: 300px;
 }
 
+/**
+ * Popup
+ */
+
 .Popup-toolbar {
   align-items: center;
   border-top: 3px solid #fbb03b;
@@ -29,6 +33,23 @@ a:hover {
 .Popup-userImage {
   height: 100%;
   margin-right: 10px;
+}
+
+.Popup-signInButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  background: #d6d6d6;
+  color: white;
+  border-radius: 2px;
+  margin: 0 auto;
+  padding: 10px 15px;
+}
+.Popup-signInButton:hover {
+  background: #fbb03b;
+  outline: none;
 }
 
 .Popup-signOutButton {
@@ -57,4 +78,42 @@ a:hover {
 
 .Popup-currentHuntInfo {
   margin: 10px 15px;
+}
+
+/**
+ * PuzzleList
+ */
+.PuzzleList {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.PuzzleList-puzzle {
+  display: flex;
+  line-height: 20px;
+  padding-left: 15px;
+  background: #f2f2f2;
+  margin-bottom: 1px;
+}
+
+.PuzzleList-puzzleStatus {
+  color: white;
+  display: inline-block;
+  font-size: 10px;
+  margin-left: auto;
+  padding: 0 10px;
+  text-transform: uppercase;
+}
+.PuzzleList-puzzleStatus.new {
+  background: #9050d4;
+}
+.PuzzleList-puzzleStatus.inProgress {
+  background: #e88714;
+}
+.PuzzleList-puzzleStatus.stuck {
+  background: #e12548;
+}
+.PuzzleList-puzzleStatus.solved {
+  background: #07b05a;
 }
