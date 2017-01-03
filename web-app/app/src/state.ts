@@ -14,7 +14,7 @@ export interface IHuntState {
     year: number;
 }
 
-export interface IDiscoveredPuzzle {
+export interface IDiscoveredPage {
     host: string;
     ignored?: boolean;
     path: string;
@@ -23,6 +23,6 @@ export interface IDiscoveredPuzzle {
 
 export interface IAppState {
     auth?: IAuthState;
-    discoveredPuzzles?: IAsyncLoaded<IDiscoveredPuzzle[]>;
+    discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     hunt?: IAsyncLoaded<IHuntState>;
 }
