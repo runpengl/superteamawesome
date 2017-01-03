@@ -5,7 +5,7 @@ import { bindActionCreators, Dispatch } from "redux";
 
 import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction, saveHuntInfoAction } from "./actions";
 import { firebaseAuth } from "./auth";
-import { DiscoveredPuzzles } from "./puzzles";
+import { DiscoveredPages } from "./puzzles";
 import { IAppState, IHuntState } from "./state";
 
 interface IAdminDashboardState {
@@ -139,7 +139,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     </div>
                     <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
-                <DiscoveredPuzzles huntKey={hunt.year} titleRegex={hunt.titleRegex} />
+                <DiscoveredPages huntKey={hunt.year} titleRegex={hunt.titleRegex} />
             </div>
         )
     }

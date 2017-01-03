@@ -2,8 +2,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPuzzlesAction } from "../actions";
-import { IAppState, IDiscoveredPuzzle } from "../state";
+import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
+import { IAppState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
     huntKey: number;
@@ -11,42 +11,42 @@ interface IOwnProps {
 }
 
 interface IDispatchProps {
-    loadDiscoveredPuzzles?: (huntKey: number) => void;
+    loadDiscoveredPages?: (huntKey: number) => void;
 }
 
 interface IStateProps {
-    discoveredPuzzles?: IAsyncLoaded<IDiscoveredPuzzle[]>;
+    discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
 }
-interface IDiscoveredPuzzlesProps extends IOwnProps, IDispatchProps, IStateProps {}
+interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {}
 
-class UnconnectedDiscoveredPuzzles extends React.Component<IDiscoveredPuzzlesProps, {}> {
+class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, {}> {
     public componentDidMount() {
-        const { huntKey, loadDiscoveredPuzzles } = this.props;
-        loadDiscoveredPuzzles(huntKey);
+        const { huntKey, loadDiscoveredPages } = this.props;
+        loadDiscoveredPages(huntKey);
     }
 
     public render() {
-        const { discoveredPuzzles } = this.props;
+        const { discoveredPages } = this.props;
         return (
             <div className="discovered-puzzles-container">
                 <h3><em>discovered</em> puzzle pages</h3>
-                { !isAsyncLoaded(discoveredPuzzles) ? "Loading..." : this.renderDiscoveredPuzzles() }
+                { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
             </div>
         );
     }
 
-    private renderDiscoveredPuzzles() {
-        const discoveredPuzzles = this.props.discoveredPuzzles.value;
-        const discoveredPuzzleRows = discoveredPuzzles
-            .filter((discoveredPuzzle) => !discoveredPuzzle.ignored)
-            .map((discoveredPuzzle) => {
+    private renderDiscoveredPages() {
+        const discoveredPages = this.props.discoveredPages.value;
+        const discoveredPageRows = discoveredPages
+            .filter((discoveredPage) => !discoveredPage.ignored)
+            .map((discoveredPage) => {
                 return (
-                    <tr key={discoveredPuzzle.title}>
-                        <td>{this.getRegexedTitle(discoveredPuzzle.title)}</td>
+                    <tr key={discoveredPage.title}>
+                        <td>{this.getRegexedTitle(discoveredPage.title)}</td>
                         <td><button>generate slack & doc</button></td>
                         <td><button>ignore</button></td>
                         <td>
-                            <input type="text" defaultValue={this.getPuzzleUrl(discoveredPuzzle.host, discoveredPuzzle.path)} />
+                            <input type="text" defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)} />
                         </td>
                     </tr>
                 )
@@ -54,7 +54,7 @@ class UnconnectedDiscoveredPuzzles extends React.Component<IDiscoveredPuzzlesPro
         return (
             <table cellPadding="0" cellSpacing="0">
                 <tbody>
-                    {discoveredPuzzleRows}
+                    {discoveredPageRows}
                 </tbody>
             </table>
         );
@@ -77,16 +77,16 @@ class UnconnectedDiscoveredPuzzles extends React.Component<IDiscoveredPuzzlesPro
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { discoveredPuzzles } = state;
+    const { discoveredPages } = state;
     return {
-        discoveredPuzzles,
+        discoveredPages,
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
-        loadDiscoveredPuzzles: loadDiscoveredPuzzlesAction,
+        loadDiscoveredPages: loadDiscoveredPagesAction,
     }, dispatch);
 }
 
-export const DiscoveredPuzzles = connect(mapStateToProps, mapDispatchToProps)(UnconnectedDiscoveredPuzzles);
+export const DiscoveredPages = connect(mapStateToProps, mapDispatchToProps)(UnconnectedDiscoveredPages);
