@@ -42,16 +42,25 @@ function injectToolbar() {
     iframe.src = chrome.extension.getURL("toolbar/toolbar.html");
     iframe.style.background = "#fff";
     iframe.style.border = "0";
+    iframe.style.display = "block";
     iframe.style.height = toolbarHeight;
-    iframe.style.left = "0";
-    iframe.style.position = "fixed";
-    iframe.style.top = "0";
     iframe.style.width = "100vw";
     iframe.style.zIndex = "99999";
-    document.documentElement.appendChild(iframe);
 
-    // Shift the body down so that the toolbar doesn't obscure it
-    document.body.style.transform = "translateY(" + toolbarHeight + ")";
+    if (window.location.hostname === "docs.google.com") {
+        // Special-case injection on google docs because it doesn't respond
+        // well to body transforms.
+        var docsChrome = document.getElementById("docs-chrome");
+        docsChrome.insertBefore(iframe, docsChrome.firstChild);
+    } else {
+        iframe.style.left = "0";
+        iframe.style.position = "fixed";
+        iframe.style.top = "0";
+        document.documentElement.appendChild(iframe);
+
+        // Shift the body down so that the toolbar doesn't obscure it
+        document.body.style.transform = "translateY(" + toolbarHeight + ")";
+    }
 }
 
 function monitorPresence() {
