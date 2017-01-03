@@ -182,7 +182,7 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                 .equalTo(match[1])
                 .limitToFirst(1)
                 .once("value", function(puzzleSnapshot) {
-                    puzzleSnapshot.forEach(function (puzzle) {
+                    puzzleSnapshot.forEach(function(puzzle) {
                         maybeInitToolbar({
                             type: "puzzle",
                             location: "spreadsheet",
@@ -192,8 +192,25 @@ function handleContentScriptLoadMessage(request, sender, sendResponse) {
                     });
                 });
         }
+    } else if (hostname === "superteamawesome.slack.com") {
+        var match = pathname.match(/\/messages\/([^\/?]+)/);
+        if (match) {
+            firebase.database().ref("puzzles")
+                .orderByChild("slackChannel")
+                .equalTo(match[1])
+                .limitToFirst(1)
+                .once("value", function(puzzleSnapshot) {
+                    puzzleSnapshot.forEach(function(puzzle) {
+                        maybeInitToolbar({
+                            type: "puzzle",
+                            location: "slack",
+                            huntKey: puzzle.val().hunt,
+                            puzzleKey: puzzle.key
+                        });
+                    });
+                });
+        }
     } else if (
-        hostname === "superteamawesome.slack.com" ||
         (hostname.endsWith("web.mit.edu") && pathname.startsWith("/puzzle")) ||
         (hostname.endsWith("mit.edu") && pathname.startsWith("/~puzzle"))
     ) {

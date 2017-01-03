@@ -54,6 +54,11 @@ function Toolbar(props) {
             target: "_blank",
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
+        props.location === "slack" ? null : r.a({
+            className: "Toolbar-link",
+            target: "_blank",
+            href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel
+        }, "slack"),
 
         React.createElement(React.addons.CSSTransitionGroup, {
             className: "Toolbar-right",

@@ -47,11 +47,14 @@ function injectToolbar() {
     iframe.style.width = "100vw";
     iframe.style.zIndex = "99999";
 
+    // Some full-screen web-apps like google docs and slack don't respond well
+    // to transform styles on the body, so we special-case their injection here.
     if (window.location.hostname === "docs.google.com") {
-        // Special-case injection on google docs because it doesn't respond
-        // well to body transforms.
         var docsChrome = document.getElementById("docs-chrome");
         docsChrome.insertBefore(iframe, docsChrome.firstChild);
+    } else if (window.location.hostname === "superteamawesome.slack.com") {
+        var clientUi = document.getElementById("client-ui");
+        clientUi.insertBefore(iframe, clientUi.firstChild);
     } else {
         iframe.style.left = "0";
         iframe.style.position = "fixed";
