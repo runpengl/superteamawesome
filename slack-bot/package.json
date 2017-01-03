@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "@slack/client": "^3.8.1",
-    "firebase": "^3.6.4"
+    "firebase-admin": "^4.0.4"
   }
 }
