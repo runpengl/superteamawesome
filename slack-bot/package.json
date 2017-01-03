@@ -1,0 +1,15 @@
+{
+  "name": "superteamawesome-slackbot",
+  "version": "0.0.0",
+  "description": "SuperTeamAwesome's SlackBot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/client": "^3.8.1",
+    "firebase": "^3.6.4"
+  }
+}
