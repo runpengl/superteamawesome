@@ -1,31 +1,39 @@
-firebase.initializeApp(config.firebase);
-
-var authButton = document.getElementById("google_auth_button");
+var currentHunt = null;
+var currentHuntPuzzles = [];
+window.onload = function() {
+    initApp();
+};
 
 /**
  * initApp handles setting up the Firebase context and registering
  * callbacks for the auth status.
  */
 function initApp() {
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            document.getElementById("user_photo").src = user.photoURL;
-            document.getElementById("user_name").textContent = user.displayName;
-            authButton.textContent = "Sign out";
-        } else {
-            authButton.textContent = "Sign in with Google";
-        }
-        authButton.disabled = false;
+    firebase.initializeApp(config.firebase);
+    firebase.auth().onAuthStateChanged(function(userOrNull) {
+        renderPopup();
     });
+    renderPopup(/*initialRender=*/true);
 
-    firebase.database().ref("hunts").orderByChild("isCurrent").equalTo(true).limitToFirst(1)
-        .on("value", function(snapshot) {
-            snapshot.forEach(function(child) {
-                document.getElementById("current_hunt_name").textContent = child.val().name;
-            });
+    var db = firebase.database();
+    db.ref("currentHunt").once("value", function(snap) {
+        var huntKey = snap.val();
+        db.ref("hunts/" + huntKey).on("value", function(hunt) {
+            currentHunt = hunt.val();
+            renderPopup();
         });
-
-    authButton.addEventListener("click", startSignIn);
+        db.ref("puzzles")
+            .orderByChild("hunt")
+            .equalTo(huntKey)
+            .on("value", function(snapshot) {
+                var puzzles = [];
+                snapshot.forEach(function(puzzle) {
+                    puzzles.push(puzzle.val())
+                });
+                currentHuntPuzzles = puzzles;
+                renderPopup();
+            });
+    });
 }
 
 /**
@@ -54,18 +62,75 @@ function startAuth(interactive) {
     });
 }
 
-/**
- * Starts the sign-in process.
- */
-function startSignIn() {
-    authButton.disabled = true;
-    if (firebase.auth().currentUser) {
-        firebase.auth().signOut();
-    } else {
-        startAuth(true);
-    }
+//
+// Rendering
+// ----------------------------------------------------------------------------
+
+function renderPopup(initialRender) {
+    ReactDOM.render(
+        React.createElement(Popup, {
+            initialRender: !!initialRender,
+            currentUser: firebase.auth().currentUser,
+            currentHunt: currentHunt,
+            currentHuntPuzzles: currentHuntPuzzles
+        }),
+        document.getElementById("popup")
+    );
 }
 
-window.onload = function() {
-    initApp();
-};
+var r = React.DOM;
+function Popup(props) {
+    return r.div({ className: "Popup" },
+        props.currentUser
+            ? r.div({ className: "Popup-contents" },
+                r.div({ className: "Popup-toolbar" },
+                    r.img({
+                        className: "Popup-userImage",
+                        src: props.currentUser.photoURL
+                    }),
+                    r.div({ className: "Popup-userName" }, props.currentUser.displayName),
+                    r.div({
+                        className: "Popup-signOutButton",
+                        onClick: function() { firebase.auth().signOut(); }
+                    }, "Sign out")
+                ),
+                props.currentHunt
+                    ? r.div({ className: "Popup-currentHuntInfo" },
+                        "Current Hunt: ", r.a({
+                            onClick: function() {
+                                chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
+                            }
+                        }, r.strong(null, props.currentHunt.name)),
+                        props.currentHuntPuzzles
+                            ? r.div(null,
+                                "Puzzles Solved: ",
+                                r.strong(null,
+                                    numPuzzlesSolved(props.currentHuntPuzzles),
+                                    "/", props.currentHuntPuzzles.length
+                                )
+                            )
+                            : null
+                    )
+                    : r.img({ className: "Popup-loading", src: "ripple.svg" }),
+                props.currentHuntPuzzles.map(function(puzzle) {
+                    return null;
+                })
+            )
+            : r.div({ className: "Popup-loginPrompt" + (props.isLoading ? " isLoading" : "") },
+                props.initialRender
+                    ? r.img({ className: "Popup-loading", src: "ripple.svg" })
+                    : r.button({
+                        className: "Popup-button",
+                        onClick: function() { startAuth(true); }
+                    }, "Sign in with Google")
+            )
+    );
+}
+
+function numPuzzlesSolved(puzzles) {
+    var n = 0;
+    puzzles.forEach(function(puzzle) {
+        if (puzzle.status === "solved") n++;
+    });
+    return n;
+}
