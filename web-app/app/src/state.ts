@@ -16,6 +16,7 @@ export interface IHuntState {
 
 export interface IDiscoveredPage {
     host: string;
+    key: string;
     ignored?: boolean;
     path: string;
     title: string;
