@@ -16,9 +16,9 @@ export function loadDiscoveredPagesAction(huntKey: string) {
         firebaseDatabase
             .ref(`discoveredPages/${huntKey}`)
             .once("value", (snapshot: firebase.database.DataSnapshot) => {
-                let discoveredPuzzles: IDiscoveredPuzzle[] = [];
+                let discoveredPages: IDiscoveredPage[] = [];
                 snapshot.forEach((discoveredPuzzleSnapshot: firebase.database.DataSnapshot) => {
-                    discoveredPuzzles.push(Object.assign({}, discoveredPuzzleSnapshot.val(), { key: discoveredPuzzleSnapshot.key }));
+                    discoveredPages.push(Object.assign({}, discoveredPuzzleSnapshot.val(), { key: discoveredPuzzleSnapshot.key }));
                     return false;
                 });
                 dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(LOAD_DISCOVERED_PUZZLES_ACTION, discoveredPages));
