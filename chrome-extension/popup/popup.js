@@ -1,5 +1,6 @@
 var currentHunt = null;
 var currentHuntPuzzles = [];
+var puzzleViewersSnapshot = null;
 window.onload = function() {
     initApp();
 };
@@ -36,6 +37,11 @@ function initApp() {
                     currentHuntPuzzles = puzzles;
                     renderPopup();
                 });
+        });
+
+        db.ref("puzzleViewers").on("value", function(snap) {
+            puzzleViewersSnapshot = snap;
+            renderPopup();
         });
     });
     renderPopup(/*initialRender=*/true);
@@ -93,6 +99,7 @@ function renderPopup(initialRender) {
             currentUser: firebase.auth().currentUser,
             currentHunt: currentHunt,
             numPuzzles: currentHuntPuzzles ? currentHuntPuzzles.length : 0,
+            puzzleViewersSnapshot: puzzleViewersSnapshot,
             puzzlesByStatus: puzzlesByStatus
         }),
         document.getElementById("popup")
@@ -141,7 +148,8 @@ function Popup(props) {
                     return React.createElement(PuzzleList, {
                         key: status,
                         huntDomain: props.currentHunt.domain,
-                        puzzles: puzzles
+                        puzzles: puzzles,
+                        puzzleViewersSnapshot: props.puzzleViewersSnapshot
                     });
                 })
             )
@@ -159,9 +167,11 @@ function Popup(props) {
 function PuzzleList(props) {
     return r.ul({ className: "PuzzleList" },
         props.puzzles.map(function(puzzle) {
+            var numViewers = props.puzzleViewersSnapshot
+                .child(puzzle.key).numChildren();
             return r.li({
                 key: puzzle.key,
-                className: "PuzzleList-puzzle"
+                className: "PuzzleList-puzzle " + puzzle.status
             },
                 r.a({
                     onClick: function() {
@@ -170,9 +180,22 @@ function PuzzleList(props) {
                         });
                     }
                 }, puzzle.name),
-                r.div({ className: "PuzzleList-puzzleStatus " + puzzle.status },
-                    toHumanReadable(puzzle.status))
+                numViewers === 0 ? null : r.div({
+                    className: "PuzzleList-puzzleViewerCount"
+                },
+                    React.createElement(PersonIcon),
+                    numViewers
+                )
             );
+        })
+    );
+}
+
+function PersonIcon() {
+    return r.svg({ className: "PersonIcon", viewBox: "0 0 24 24" },
+        r.circle({ cx: 12, cy: 8, r: 4 }),
+        r.path({
+            d: "M12,14c-6.1,0-8,4-8,4v2h16v-2C20,18,18.1,14,12,14z"
         })
     );
 }

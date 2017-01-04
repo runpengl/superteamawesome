@@ -90,30 +90,38 @@ a:hover {
 }
 
 .PuzzleList-puzzle {
+  border-left: 5px solid;
   display: flex;
   line-height: 20px;
-  padding-left: 15px;
+  padding-left: 10px;
   background: #f2f2f2;
   margin-bottom: 1px;
 }
+.PuzzleList-puzzle.new {
+  border-color: #9050d4;
+}
+.PuzzleList-puzzle.inProgress {
+  border-color: #e88714;
+}
+.PuzzleList-puzzle.stuck {
+  border-color: #e12548;
+}
+.PuzzleList-puzzle.solved {
+  border-color: #07b05a;
+}
 
-.PuzzleList-puzzleStatus {
-  color: white;
+.PuzzleList-puzzleViewerCount {
   display: inline-block;
-  font-size: 10px;
   margin-left: auto;
-  padding: 0 10px;
-  text-transform: uppercase;
+  font-size: 10px;
+  padding: 0 5px;
 }
-.PuzzleList-puzzleStatus.new {
-  background: #9050d4;
-}
-.PuzzleList-puzzleStatus.inProgress {
-  background: #e88714;
-}
-.PuzzleList-puzzleStatus.stuck {
-  background: #e12548;
-}
-.PuzzleList-puzzleStatus.solved {
-  background: #07b05a;
+
+.PersonIcon {
+  display: inline-block;
+  height: 10px;
+  margin: 5px 0;
+  margin-left: auto;
+  width: 10px;
+  vertical-align: top;
 }
