@@ -177,7 +177,7 @@ function PuzzleList(props) {
                     viewer.forEach(function(tab) {
                         if (!tab.val().idle) {
                             numActiveViewers++;
-                            return;
+                            return true; // stop iterating
                         }
                     });
                 });

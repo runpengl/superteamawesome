@@ -201,8 +201,9 @@ function Avatar(props) {
         ),
         r.div({ className: "Avatar-tooltip" },
             props.displayName,
-            props.isPuzzleVisible || props.isIdle ? null : " (tab hidden)",
-            props.isIdle ? " (idle)" : ""
+            props.isIdle
+                ? " (idle)"
+                : (props.isInvisible ? " (tab hidden)" : "")
         )
     );
 }
