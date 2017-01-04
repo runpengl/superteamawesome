@@ -125,6 +125,7 @@ body {
 .Avatar {
   align-self: flex-end;
   display: inline-block;
+  height: 24px;
   margin-right: 1px;
   position: relative;
 }

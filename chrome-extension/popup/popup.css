@@ -96,6 +96,7 @@ a:hover {
   padding-left: 10px;
   background: #f2f2f2;
   margin-bottom: 1px;
+  white-space: nowrap;
 }
 .PuzzleList-puzzle.new {
   border-color: #9050d4;
@@ -110,9 +111,16 @@ a:hover {
   border-color: #07b05a;
 }
 
+.PuzzleList-puzzleLink {
+  min-width: 1px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .PuzzleList-puzzleViewerCount {
   display: inline-block;
   margin-left: auto;
+  flex-shrink: 0;
   font-size: 10px;
   padding: 0 5px;
 }

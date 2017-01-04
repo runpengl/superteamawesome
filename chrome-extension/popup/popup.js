@@ -125,7 +125,11 @@ function Popup(props) {
                 props.currentHunt
                     ? r.div({ className: "Popup-currentHuntInfo" },
                         "Current Hunt: ", r.a({
-                            onClick: function() {
+                            href: "http://" + props.currentHunt.domain,
+                            onClick: function(event) {
+                                if (event.shiftKey || event.metaKey) {
+                                    return;
+                                }
                                 chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
                             }
                         }, r.strong(null, props.currentHunt.name)),
@@ -167,24 +171,37 @@ function Popup(props) {
 function PuzzleList(props) {
     return r.ul({ className: "PuzzleList" },
         props.puzzles.map(function(puzzle) {
-            var numViewers = props.puzzleViewersSnapshot
-                .child(puzzle.key).numChildren();
+            var numActiveViewers = 0;
+            props.puzzleViewersSnapshot
+                .child(puzzle.key).forEach(function(viewer) {
+                    viewer.forEach(function(tab) {
+                        if (!tab.val().idle) {
+                            numActiveViewers++;
+                            return;
+                        }
+                    });
+                });
             return r.li({
                 key: puzzle.key,
                 className: "PuzzleList-puzzle " + puzzle.status
             },
                 r.a({
-                    onClick: function() {
+                    className: "PuzzleList-puzzleLink",
+                    href: "http://" + props.huntDomain + puzzle.path,
+                    onClick: function(event) {
+                        if (event.shiftKey || event.metaKey) {
+                            return;
+                        }
                         chrome.tabs.update({
                             url: "http://" + props.huntDomain + puzzle.path
                         });
                     }
                 }, puzzle.name),
-                numViewers === 0 ? null : r.div({
+                numActiveViewers === 0 ? null : r.div({
                     className: "PuzzleList-puzzleViewerCount"
                 },
                     React.createElement(PersonIcon),
-                    numViewers
+                    numActiveViewers
                 )
             );
         })
@@ -198,8 +215,4 @@ function PersonIcon() {
             d: "M12,14c-6.1,0-8,4-8,4v2h16v-2C20,18,18.1,14,12,14z"
         })
     );
-}
-
-function toHumanReadable(statusStr) {
-    return statusStr.replace(/([A-Z])/g, " $1").toLowerCase();
 }
