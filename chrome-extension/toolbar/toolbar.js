@@ -29,7 +29,10 @@ function refreshConnection() {
                 toolbarData = Object.assign({}, toolbarData, {
                     slackChannel: event.data.channel
                 });
-                return renderToolbar();
+                if (toolbarType !== "none") {
+                    renderToolbar();
+                }
+                break;
             default:
                 toolbarType = null;
                 toolbarData = null;
