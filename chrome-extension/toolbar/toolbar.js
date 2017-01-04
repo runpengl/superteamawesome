@@ -25,6 +25,11 @@ function refreshConnection() {
                     viewers: event.data.viewers
                 });
                 return renderToolbar();
+            case "slackChannel":
+                toolbarData = Object.assign({}, toolbarData, {
+                    slackChannel: event.data.channel
+                });
+                return renderToolbar();
             default:
                 toolbarType = null;
                 toolbarData = null;
@@ -124,6 +129,13 @@ function PuzzleToolbar(props) {
             target: "_blank",
             href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel
         }, "slack"),
+        props.location === "slack"
+            ? null
+            : props.slackChannel && props.slackChannel.unread_count_display > 0
+                ? r.span({ className: "Toolbar-slackUnreadCount" },
+                    props.slackChannel.unread_count_display
+                )
+                : null,
 
         React.createElement(React.addons.CSSTransitionGroup, {
             className: "Toolbar-right",

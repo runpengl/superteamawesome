@@ -39,14 +39,23 @@ body {
 }
 
 .Toolbar-link {
-  border-bottom: 1px dotted;
   color: #1c71b9;
   display: inline-block;
   margin-left: 10px;
   text-decoration: none;
 }
 .Toolbar-link:hover {
-  border-bottom-style: solid;
+  text-decoration: underline;
+}
+
+.Toolbar-slackUnreadCount {
+  background: #e12548;
+  border-radius: 2px;
+  color: white;
+  font-size: 10px;
+  margin-left: 5px;
+  margin-top: -1px;
+  padding: 0 3px 1px;
 }
 
 .Toolbar-right {
