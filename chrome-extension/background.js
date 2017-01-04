@@ -79,17 +79,32 @@ function handleChromeTabsRemoved(tabId, removeInfo) {
 function handleChromeRuntimeConnect(port) {
     var tabId = port.sender.tab.id;
 
+    var db = firebase.database();
     var currentUser = firebase.auth().currentUser;
     var toolbarInfo = toolbarInfoByTabId[tabId];
+
     switch (toolbarInfo.toolbarType) {
         case "general":
+            port.postMessage({
+                msg: "refresh"
+            });
             break;
 
         case "hunt":
+            var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
+            huntRef.on("value", function(hunt) {
+                port.postMessage({
+                    msg: "hunt",
+                    data: {
+                        hunt: hunt.val(),
+                        currentUser: currentUser,
+                        location: toolbarInfo.locationType
+                    }
+                });
+            });
             break;
 
         case "puzzle":
-            var db = firebase.database();
             var puzzleRef = db.ref("puzzles/" + toolbarInfo.puzzleKey);
             var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
 
@@ -246,8 +261,8 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                         foundPuzzle(p, "slack");
                     } else {
                         // Always display hunt toolbar in STA.slack subdomain
-                        // TODO: get current hunt key?
-                        callback({ toolbarType: "hunt" });
+                        // TODO: get current hunt and display that?
+                        callback({ toolbarType: "general" });
                     }
                 });
         }

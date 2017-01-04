@@ -1,5 +1,5 @@
-var puzzleData = null;
-var puzzleViewers = null;
+var toolbarType = null;
+var toolbarData = null;
 
 var port;
 function refreshConnection() {
@@ -11,12 +11,24 @@ function refreshConnection() {
     port = chrome.runtime.connect({ name: "toolbarLoad" });
     port.onMessage.addListener(function(event) {
         switch (event.msg) {
+            case "hunt":
+                toolbarType = "hunt";
+                toolbarData = event.data;
+                return renderToolbar();
             case "puzzle":
-                puzzleData = event.data;
+                toolbarType = "puzzle";
+                toolbarData = Object.assign({}, toolbarData, event.data);
                 return renderToolbar();
             case "puzzleViewers":
-                puzzleViewers = event.data.viewers;
+                toolbarType = "puzzle";
+                toolbarData = Object.assign({}, toolbarData, {
+                    viewers: event.data.viewers
+                });
                 return renderToolbar();
+            default:
+                toolbarType = null;
+                toolbarData = null;
+                renderToolbar();
         }
     });
 }
@@ -24,22 +36,61 @@ function refreshConnection() {
 refreshConnection();
 chrome.runtime.onMessage.addListener(function(request) {
     if (request.msg === "refreshConnection") {
+        toolbarType = "none";
         refreshConnection();
     }
 });
 
-
 function renderToolbar() {
-    ReactDOM.render(
-        React.createElement(Toolbar, {
-            currentUser: puzzleData.currentUser,
-            location: puzzleData.location,
-            hunt: puzzleData.hunt,
-            puzzle: puzzleData.puzzle,
-            viewers: puzzleViewers,
-            onPuzzleStatusChange: handlePuzzleStatusChange
-        }),
-        document.getElementById("toolbar")
+    switch (toolbarType) {
+        case "hunt":
+            ReactDOM.render(
+                React.createElement(HuntToolbar, toolbarData),
+                document.getElementById("toolbar")
+            );
+            break;
+        case "puzzle":
+            ReactDOM.render(
+                React.createElement(PuzzleToolbar, Object.assign({}, toolbarData, {
+                    onPuzzleStatusChange: handlePuzzleStatusChange
+                })),
+                document.getElementById("toolbar")
+            );
+            break;
+        default:
+            ReactDOM.render(
+                React.createElement(BasicToolbar),
+                document.getElementById("toolbar")
+            )
+    }
+}
+
+function BasicToolbar(props) {
+    return r.div({ className: "Toolbar" },
+        r.img({ className: "Toolbar-loadingIndicator", src: "../ripple.svg" }),
+        "SuperTeamAwesome Puzzle Tool"
+    )
+}
+
+function HuntToolbar(props) {
+    return r.div({ className: "Toolbar" },
+        r.img({ className: "Toolbar-loadingIndicator", src: "../ripple.svg" }),
+        "Current Hunt: ",
+        r.div({ className: "Toolbar-huntName" }, props.hunt.name),
+        r.a({
+            className: "Toolbar-link",
+            target: "_blank",
+            href: "https://superteamawesome.slack.com/"
+        }, "slack"),
+        r.div({ className: "Toolbar-right" },
+            r.span({ className: "Toolbar-currentUserName" },
+                props.currentUser.displayName),
+            React.createElement(Avatar, {
+                photoUrl: props.currentUser.photoURL,
+                isInvisible: false,
+                isIdle: false
+            })
+        )
     );
 }
 
@@ -51,7 +102,7 @@ function handlePuzzleStatusChange(newStatus) {
 }
 
 var r = React.DOM;
-function Toolbar(props) {
+function PuzzleToolbar(props) {
     return r.div({ className: "Toolbar" },
         React.createElement(PuzzleStatusPicker, {
             currentStatus: props.puzzle.status,
@@ -86,7 +137,7 @@ function Toolbar(props) {
                     displayName: user.displayName,
                     photoUrl: user.photoUrl,
                     isIdle: user.isIdle,
-                    isPuzzleVisible: user.isPuzzleVisible
+                    isInvisible: !user.isPuzzleVisible
                 });
             })
         )
@@ -139,7 +190,7 @@ var PuzzleStatusPicker = React.createClass({
 function Avatar(props) {
     return r.div({
         className: "Avatar" +
-            (props.isPuzzleVisible ? " isPuzzleVisible" : "") +
+            (props.isInvisible ? " isInvisible" : "") +
             (props.isIdle ? " isIdle" : "")
     },
         r.div({ className: "Avatar-imageFrame" },

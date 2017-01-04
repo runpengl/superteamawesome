@@ -1,11 +1,9 @@
-console.log("xcxc inject_toolbar.js reporting for duty");
 injectToolbar();
 
 function injectToolbar() {
     if (document.body.__staToolbarInjected) {
         return;
     }
-    console.log("xcxc injecting toolbar");
     var toolbarHeight = "24px";
 
     // Set up iframe
@@ -15,7 +13,7 @@ function injectToolbar() {
     iframe.style.border = "0";
     iframe.style.display = "block";
     iframe.style.height = toolbarHeight;
-    iframe.style.width = "100vw";
+    iframe.style.width = "100%";
     iframe.style.zIndex = "99999";
 
     // Some full-screen web-apps like google docs and slack don't respond well

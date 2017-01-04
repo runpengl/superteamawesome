@@ -143,7 +143,7 @@ function Popup(props) {
                             )
                             : null
                     )
-                    : r.img({ className: "Popup-loading", src: "ripple.svg" }),
+                    : r.img({ className: "Popup-loading", src: "../ripple.svg" }),
                 PUZZLE_STATUSES.map(function(status) {
                     var puzzles = props.puzzlesByStatus[status];
                     if (puzzles.length === 0) {
@@ -159,7 +159,7 @@ function Popup(props) {
             )
             : r.div({ className: "Popup-loginPrompt" + (props.isLoading ? " isLoading" : "") },
                 props.initialRender
-                    ? r.img({ className: "Popup-loading", src: "ripple.svg" })
+                    ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
                     : r.div({
                         className: "Popup-signInButton",
                         onClick: function() { startAuth(true); }

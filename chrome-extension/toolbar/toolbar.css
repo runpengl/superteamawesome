@@ -12,17 +12,11 @@ body {
   white-space: nowrap;
 }
 
-.loading-title {
-  font-size: 16px;
-  font-weight: bold;
-  line-height: 100vh;
-  margin-left: 10px;
-}
-
-.loading-subtitle {
-  font-style: italic;
-  line-height: 100vh;
-  margin-left: 5px;
+#loading-indicator,
+.Toolbar-loadingIndicator {
+  height: 20px;
+  margin: 2px 10px 2px 5px;
+  vertical-align: top;
 }
 
 /**
@@ -33,10 +27,15 @@ body {
   display: flex;
 }
 
+.Toolbar-huntName,
 .Toolbar-puzzleName {
   color: #333;
   margin-top: -2px;
   font-weight: 500;
+}
+
+.Toolbar-huntName {
+  margin-left: 5px;
 }
 
 .Toolbar-link {
@@ -54,6 +53,11 @@ body {
   display: flex;
   height: 100vh;
   margin-left: auto;
+}
+
+.Toolbar-currentUserName {
+  line-height: 100vh;
+  margin: 0 10px;
 }
 
 /**
@@ -140,12 +144,11 @@ body {
 .Avatar-image {
   display: block;
   height: 24px;
-  opacity: .5;
   width: 24px;
   transition: .2s margin-bottom .2s, .2s margin-right;
 }
-.Avatar.isPuzzleVisible .Avatar-image {
-  opacity: 1;
+.Avatar.isInvisible .Avatar-image {
+  opacity: .5;
 }
 .Avatar.isIdle .Avatar-image,
 .Avatar-enter .Avatar-image,
