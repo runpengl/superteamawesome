@@ -52,7 +52,7 @@ function handleFirebaseNewPuzzle(snap) {
 
 // Slack
 function postSlackMessage(channel, message, emoji) {
-    emoji = (typeof emoji !== 'undefined') ? emoji : ':rice_ball:';
+    emoji = (typeof emoji !== 'undefined') ? emoji : ':callitin:';
     slack.chat.postMessage(
         channel,
         message, {
