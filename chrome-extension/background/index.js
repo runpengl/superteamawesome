@@ -236,6 +236,10 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
                 .child(currentUserId).child(sender.tab.id)
                 .child("idle").set(request.isIdle);
             break;
+        case "signOut":
+            firebase.auth().signOut();
+            Slack.disconnect();
+            break;
     }
 }
 

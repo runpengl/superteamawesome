@@ -5,6 +5,7 @@ var slackUserId = null;
 var slackChannelById = {};
 var slackChannelIdByName = {};
 var subscriberTabIdsByChannelId = {};
+var webSocket = null;
 
 /**
  * Retrieves a slack access token for the given user and initializes a
@@ -43,7 +44,16 @@ function connect(userId) {
             }
         });
     });
-};
+}
+
+function disconnect() {
+    if (webSocket) {
+        webSocket.close();
+        webSocket = null;
+    }
+    slackChannelById = {};
+    slackChannelIdByName = {};
+}
 
 function initSlackRtm() {
     xhrGet("https://slack.com/api/rtm.start", {
@@ -51,8 +61,8 @@ function initSlackRtm() {
         simple_latest: true
     }, function(response) {
         console.log("[slack/rtm.start]", response);
-        var ws = new WebSocket(response.url);
-        ws.onmessage = handleSlackWsMessage;
+        webSocket = new WebSocket(response.url);
+        webSocket.onmessage = handleSlackWsMessage;
 
         slackUserId = response.self.id;
         response.channels.forEach(function(channel) {
@@ -134,6 +144,7 @@ function notifySubscribers(channel) {
 
 return {
     connect: connect,
+    disconnect: disconnect,
     joinChannel: joinChannel,
     subscribeToChannel: subscribeToChannel
 };

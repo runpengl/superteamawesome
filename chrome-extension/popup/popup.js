@@ -119,7 +119,9 @@ function Popup(props) {
                     r.div({ className: "Popup-userName" }, props.currentUser.displayName),
                     r.div({
                         className: "Popup-signOutButton",
-                        onClick: function() { firebase.auth().signOut(); }
+                        onClick: function() {
+                            chrome.runtime.sendMessage({ msg: "signOut" });
+                        }
                     }, "Sign out")
                 ),
                 props.currentHunt
