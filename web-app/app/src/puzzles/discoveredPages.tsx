@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
+import { createPuzzleAction, IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
 import { IAppState, IHuntState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
@@ -11,6 +11,7 @@ interface IOwnProps {
 
 interface IDispatchProps {
     loadDiscoveredPages?: (huntKey: string) => void;
+    createPuzzle?: (puzzleName: string, discoveredPage: IDiscoveredPage) => void;
 }
 
 interface IStateProps {
@@ -18,10 +19,36 @@ interface IStateProps {
 }
 interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {}
 
-class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, {}> {
+interface IDiscoveredPagesState {
+    generatingPuzzles?: string[];
+}
+
+class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, IDiscoveredPagesState> {
+    public state: IDiscoveredPagesState = {
+        generatingPuzzles: [],
+    };
+
     public componentDidMount() {
         const { hunt, loadDiscoveredPages } = this.props;
         loadDiscoveredPages(hunt.year);
+    }
+    
+    public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
+        const { discoveredPages } = this.props;
+        if (isAsyncLoaded(oldProps.discoveredPages) && isAsyncLoaded(discoveredPages)
+            && oldProps.discoveredPages.value.length !== discoveredPages.value.length) {
+            const newPageKeys = discoveredPages.value.map((page) => page.key);
+            const oldPageKeys = oldProps.discoveredPages.value.map((page) => page.key);
+            const removedPageKeys = oldPageKeys.filter((oldPageKey) => {
+                return newPageKeys.indexOf(oldPageKey) < 0;
+            });
+            let { generatingPuzzles } = this.state;
+            removedPageKeys.forEach((key) => {
+                const removeIndex = generatingPuzzles.findIndex((puzzleKey) => puzzleKey === key);
+                generatingPuzzles = generatingPuzzles.splice(removeIndex, 1);
+            });
+            this.setState({ generatingPuzzles });
+        }
     }
 
     public render() {
@@ -36,6 +63,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
 
     private renderDiscoveredPages() {
         const { hunt } = this.props;
+        const { generatingPuzzles } = this.state;
         const discoveredPages = this.props.discoveredPages.value;
         const discoveredPageRows = discoveredPages
             .filter((discoveredPage) => !discoveredPage.ignored)
@@ -47,9 +75,9 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                         <td>
                             <button
                                 disabled={hunt.driveFolderId === undefined || hunt.templateSheetId === undefined}
-                                onClick={this.handleCreatePuzzle(title)}
+                                onClick={this.handleCreatePuzzle(title, discoveredPage)}
                             >
-                                generate slack & doc
+                                { generatingPuzzles.indexOf(discoveredPage.key) >= 0 ? "generating..." : "generate slack & doc" }
                             </button>
                         </td>
                         <td><button>ignore</button></td>
@@ -83,10 +111,11 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         }
     }
 
-    private handleCreatePuzzle = (_title: string) => {
-        // const { hunt } = this.props;
+    private handleCreatePuzzle = (title: string, discoveredPage: IDiscoveredPage) => {
+        const { createPuzzle } = this.props;
         return () => {
-        //     // createSheet(hunt.templateSheetId, hunt.driveFolderId, title);
+            createPuzzle(title, discoveredPage);
+            this.setState({ generatingPuzzles: this.state.generatingPuzzles.concat(discoveredPage.key) });
         };
     }
 }
@@ -100,6 +129,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
+        createPuzzle: createPuzzleAction,
         loadDiscoveredPages: loadDiscoveredPagesAction,
     }, dispatch);
 }
