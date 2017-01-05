@@ -10,10 +10,12 @@ import {
     loadHuntAndUserInfoAction,
     logoutAction,
     saveHuntInfoAction,
+    loadIgnoredPagesAction,
+    loadDiscoveredPagesAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages } from "./puzzles";
-import { IAppState, IHuntState } from "./state";
+import { IAppState, IDiscoveredPage, IHuntState } from "./state";
 import { getSlackAuthUrl } from "./services";
 
 interface IAdminDashboardState {
@@ -34,13 +36,17 @@ interface IOwnProps {}
 
 interface IDispatchProps {
     loadHuntAndUserInfo: () => void;
+    loadIgnoredPages: (huntKey: string) => void;
+    loadDiscoveredPages: (huntKey: string) => void;
     logout: () => void;
     saveHuntInfo: (hunt: IHuntState) => void;
 }
 
 interface IStateProps {
+    discoveredPages: IAsyncLoaded<IDiscoveredPage[]>;
     hunt: IAsyncLoaded<IHuntState>;
     huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
+    ignoredPages: IAsyncLoaded<IDiscoveredPage[]>;
     slackToken?: string;
 }
 
@@ -72,10 +78,12 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     public componentDidUpdate(oldProps: IAdminDashboardProps) {
-        const { hunt, huntDriveFolder } = this.props;
+        const { hunt, huntDriveFolder, loadIgnoredPages, loadDiscoveredPages } = this.props;
 
         if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;
+            loadIgnoredPages(hunt.year);
+            loadDiscoveredPages(hunt.year);
             this.setState({
                 hunt,
                 isLoading: false,
@@ -225,9 +233,19 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     private maybeRenderDiscoveredPages() {
-        const { hunt, slackToken } = this.props;
+        const { discoveredPages, hunt, ignoredPages, slackToken } = this.props;
         if (slackToken !== undefined) {
-            return <DiscoveredPages hunt={hunt.value} />;
+            return (
+                <div className="tables-container">
+                    <DiscoveredPages hunt={hunt.value} discoveredPages={discoveredPages} title="discovered"/>
+                    <DiscoveredPages
+                        hunt={hunt.value}
+                        discoveredPages={ignoredPages}
+                        title="ignored"
+                        hideIgnoreButton={true}
+                    />
+                </div>
+            );
         } else {
             return (
                 <div>
@@ -239,17 +257,21 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { auth, huntDriveFolder, hunt } = state;
+    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages } = state;
     return {
+        discoveredPages,
         hunt,
         huntDriveFolder,
+        ignoredPages,
         slackToken: auth.slackToken,
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
+        loadDiscoveredPages: loadDiscoveredPagesAction,
         loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+        loadIgnoredPages: loadIgnoredPagesAction,
         logout: logoutAction,
         saveHuntInfo: saveHuntInfoAction,
     }, dispatch);

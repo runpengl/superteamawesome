@@ -20,7 +20,9 @@ export function loadDiscoveredPagesAction(huntKey: string) {
             .once("value", (snapshot: firebase.database.DataSnapshot) => {
                 let discoveredPages: IDiscoveredPage[] = [];
                 snapshot.forEach((discoveredPuzzleSnapshot: firebase.database.DataSnapshot) => {
-                    discoveredPages.push(Object.assign({}, discoveredPuzzleSnapshot.val(), { key: discoveredPuzzleSnapshot.key }));
+                    if (!discoveredPuzzleSnapshot.val().ignored) {
+                        discoveredPages.push(Object.assign({}, discoveredPuzzleSnapshot.val(), { key: discoveredPuzzleSnapshot.key }));
+                    }
                     return false;
                 });
                 dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(LOAD_DISCOVERED_PUZZLES_ACTION, discoveredPages));
@@ -28,6 +30,45 @@ export function loadDiscoveredPagesAction(huntKey: string) {
                 asyncActionFailedPayload<IDiscoveredPage[]>(LOAD_DISCOVERED_PUZZLES_ACTION, error);
             });
     };
+}
+
+export const LOAD_IGNORED_PAGES_ACTION = "LOAD_IGNORED_PAGES";
+export function loadIgnoredPagesAction(huntKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(LOAD_IGNORED_PAGES_ACTION));
+        firebaseDatabase
+            .ref(`discoveredPages/${huntKey}`)
+            .once("value", (snapshot: firebase.database.DataSnapshot) => {
+                let ignoredPages: IDiscoveredPage[] = [];
+                snapshot.forEach((discoveredPuzzleSnapshot: firebase.database.DataSnapshot) => {
+                    if (discoveredPuzzleSnapshot.val().ignored) {
+                        ignoredPages.push(Object.assign({}, discoveredPuzzleSnapshot.val(), { key: discoveredPuzzleSnapshot.key }));
+                    }
+                    return false;
+                });
+                dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(LOAD_IGNORED_PAGES_ACTION, ignoredPages));
+            }, (error: Error) => {
+                asyncActionFailedPayload<IDiscoveredPage[]>(LOAD_IGNORED_PAGES_ACTION, error);
+            });
+    }
+}
+
+export const IGNORE_DISCOVERED_PAGE_ACTION = "IGNORE_PAGE";
+export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        const hunt = getState().hunt.value;
+        dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(IGNORE_DISCOVERED_PAGE_ACTION));
+        firebaseDatabase
+            .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}/ignored`)
+            .set(true)
+            .then(() => {
+                dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(IGNORE_DISCOVERED_PAGE_ACTION,
+                    [Object.assign({}, discoveredPage, { ignored: true })],
+                ));
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<IDiscoveredPage[]>(IGNORE_DISCOVERED_PAGE_ACTION, error));
+            });
+    }
 }
 
 export const CREATE_PUZZLE_ACTION = "CREATE_PUZZLE";

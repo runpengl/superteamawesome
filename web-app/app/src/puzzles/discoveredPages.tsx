@@ -2,21 +2,27 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { createPuzzleAction, IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
+import {
+    createPuzzleAction,
+    IAsyncLoaded,
+    ignoreDiscoveredPageAction,
+    isAsyncLoaded,
+} from "../actions";
 import { IAppState, IHuntState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
     hunt: IHuntState;
+    discoveredPages: IAsyncLoaded<IDiscoveredPage[]>;
+    hideIgnoreButton?: boolean;
+    title: string;
 }
 
 interface IDispatchProps {
-    loadDiscoveredPages?: (huntKey: string) => void;
     createPuzzle?: (puzzleName: string, discoveredPage: IDiscoveredPage) => void;
+    ignoreDiscoveredPage?: (discoveredPage: IDiscoveredPage) => void;
 }
 
-interface IStateProps {
-    discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
-}
+interface IStateProps {}
 interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {}
 
 interface IDiscoveredPagesState {
@@ -27,11 +33,6 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     public state: IDiscoveredPagesState = {
         generatingPuzzles: [],
     };
-
-    public componentDidMount() {
-        const { hunt, loadDiscoveredPages } = this.props;
-        loadDiscoveredPages(hunt.year);
-    }
     
     public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
         const { discoveredPages } = this.props;
@@ -52,10 +53,10 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 
     public render() {
-        const { discoveredPages } = this.props;
+        const { discoveredPages, title } = this.props;
         return (
             <div className="discovered-puzzles-container">
-                <h3><em>discovered</em> puzzle pages</h3>
+                <h3><em>{title}</em> puzzle pages</h3>
                 { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
             </div>
         );
@@ -66,7 +67,6 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         const { generatingPuzzles } = this.state;
         const discoveredPages = this.props.discoveredPages.value;
         const discoveredPageRows = discoveredPages
-            .filter((discoveredPage) => !discoveredPage.ignored)
             .map((discoveredPage) => {
                 const title = this.getRegexedTitle(discoveredPage.title);
                 return (
@@ -80,7 +80,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                                 { generatingPuzzles.indexOf(discoveredPage.key) >= 0 ? "generating..." : "generate slack & doc" }
                             </button>
                         </td>
-                        <td><button>ignore</button></td>
+                        {this.maybeRenderIgnoreButton(discoveredPage)}
                         <td>
                             <input type="text" defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)} />
                         </td>
@@ -94,6 +94,14 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                 </tbody>
             </table>
         );
+    }
+
+    private maybeRenderIgnoreButton(discoveredPage: IDiscoveredPage) {
+        const { hideIgnoreButton } = this.props;
+        if (!hideIgnoreButton) {
+            return <td><button onClick={this.handleIgnorePage(discoveredPage)}>ignore</button></td>;
+        }
+        return undefined;
     }
 
     private getPuzzleUrl(host: string, path: string) {
@@ -118,19 +126,23 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
             this.setState({ generatingPuzzles: this.state.generatingPuzzles.concat(discoveredPage.key) });
         };
     }
+
+    private handleIgnorePage = (discoveredPage: IDiscoveredPage) => {
+        const { ignoreDiscoveredPage } = this.props;
+        return () => {
+            ignoreDiscoveredPage(discoveredPage);
+        }
+    }
 }
 
-function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { discoveredPages } = state;
-    return {
-        discoveredPages,
-    };
+function mapStateToProps(): IStateProps {
+    return { };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         createPuzzle: createPuzzleAction,
-        loadDiscoveredPages: loadDiscoveredPagesAction,
+        ignoreDiscoveredPage: ignoreDiscoveredPageAction,
     }, dispatch);
 }
 

@@ -48,4 +48,5 @@ export interface IAppState {
     discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     hunt?: IAsyncLoaded<IHuntState>;
     huntDriveFolder?: IAsyncLoaded<IGoogleDriveFile>;
+    ignoredPages?: IAsyncLoaded<IDiscoveredPage[]>;
 }
