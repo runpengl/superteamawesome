@@ -144,7 +144,7 @@ function PuzzleToolbar(props) {
                     }
                 }
             }, "slack"),
-            props.slackChannel && props.slackChannel.is_member ? null : r.div({
+            !props.slackChannel || props.slackChannel.is_member ? null : r.div({
                 className: "Toolbar-linkTooltip"
             }, "Working on this puzzle? Join the Slack channel."),
             props.slackChannel && props.slackChannel.unread_count_display > 0

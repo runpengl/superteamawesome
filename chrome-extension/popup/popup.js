@@ -112,44 +112,52 @@ function renderPopup() {
 
 var r = React.DOM;
 function Popup(props) {
+    if (!props.currentUser) {
+        return props.isLoggingIn
+            ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
+            : r.div({
+                className: "Popup-signInButton",
+                onClick: function() { startAuth(true); }
+            }, "Sign in with Google");
+    }
     return r.div({ className: "Popup" },
-        props.currentUser
-            ? r.div({ className: "Popup-contents" },
-                r.div({ className: "Popup-toolbar" },
-                    r.img({
-                        className: "Popup-userImage",
-                        src: props.currentUser.photoURL
-                    }),
-                    r.div({ className: "Popup-userName" }, props.currentUser.displayName),
-                    r.div({
-                        className: "Popup-signOutButton",
-                        onClick: function() {
-                            chrome.runtime.sendMessage({ msg: "signOut" });
-                        }
-                    }, "Sign out")
-                ),
-                props.currentHunt
-                    ? r.div({ className: "Popup-currentHuntInfo" },
-                        "Current Hunt: ", r.a({
-                            href: "http://" + props.currentHunt.domain,
-                            onClick: function(event) {
-                                if (event.shiftKey || event.metaKey) {
-                                    return;
-                                }
-                                chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
+        r.div({ className: "Popup-toolbar" },
+            r.img({
+                className: "Popup-userImage",
+                src: props.currentUser.photoURL
+            }),
+            r.div({ className: "Popup-userName" }, props.currentUser.displayName),
+            r.div({
+                className: "Popup-signOutButton",
+                onClick: function() {
+                    chrome.runtime.sendMessage({ msg: "signOut" });
+                }
+            }, "Sign out")
+        ),
+        r.div({ className: "Popup-contents" },
+            props.currentHunt
+                ? r.div({ className: "Popup-currentHuntInfo" },
+                    "Current Hunt: ", r.a({
+                        href: "http://" + props.currentHunt.domain,
+                        onClick: function(event) {
+                            if (event.shiftKey || event.metaKey) {
+                                return;
                             }
-                        }, r.strong(null, props.currentHunt.name)),
-                        props.numPuzzles
-                            ? r.div(null,
-                                "Puzzles Solved: ",
-                                r.strong(null,
-                                    props.puzzlesByStatus.solved.length,
-                                    "/", props.numPuzzles
-                                )
+                            chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
+                        }
+                    }, r.strong(null, props.currentHunt.name)),
+                    props.numPuzzles
+                        ? r.div(null,
+                            "Puzzles Solved: ",
+                            r.strong(null,
+                                props.puzzlesByStatus.solved.length,
+                                "/", props.numPuzzles
                             )
-                            : null
-                    )
-                    : r.img({ className: "Popup-loading", src: "../ripple.svg" }),
+                        )
+                        : null
+                )
+                : r.img({ className: "Popup-loading", src: "../ripple.svg" }),
+            r.div({ className: "Popup-allPuzzles" },
                 PUZZLE_STATUSES.map(function(status) {
                     var puzzles = props.puzzlesByStatus[status];
                     if (puzzles.length === 0) {
@@ -163,14 +171,7 @@ function Popup(props) {
                     });
                 })
             )
-            : r.div({ className: "Popup-loginPrompt" + (props.isLoading ? " isLoading" : "") },
-                props.isLoggingIn
-                    ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
-                    : r.div({
-                        className: "Popup-signInButton",
-                        onClick: function() { startAuth(true); }
-                    }, "Sign in with Google")
-            )
+        )
     );
 }
 
