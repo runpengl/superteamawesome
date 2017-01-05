@@ -2,7 +2,9 @@ import { Dispatch } from "redux";
 
 import { firebaseAuth, firebaseDatabase } from "../auth";
 import { IAppState, IHuntState } from "../state";
-import { LOGIN_ACTION, ILoginActionPayload } from "./authActions";
+import { getAccessToken, LOGIN_ACTION, ILoginActionPayload } from "./authActions";
+import { loadFolder, loadGoogleApi } from "./googleActions";
+
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload, 
@@ -22,35 +24,71 @@ export interface ILoadHuntActionPayload extends IHunt {
 }
 
 export function loadHuntAndUserInfoAction() {
-    return (dispatch: Dispatch<IAppState>, _getState: () => IAppState) => {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
-        dispatch(asyncActionInProgressPayload<ILoginActionPayload>(LOGIN_ACTION));
-        firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            dispatch(asyncActionSucceededPayload<ILoginActionPayload>(
-                LOGIN_ACTION,
-                {
-                    googleToken: (user as any).refreshToken,
-                    user,
+        let authPromise: Promise<firebase.UserInfo>;
+        
+        const { auth } = getState();
+        const isLoggedIn = auth.user !== undefined;
+
+        if (!isLoggedIn) {
+            dispatch(asyncActionInProgressPayload<ILoginActionPayload>(LOGIN_ACTION));
+            authPromise = new Promise((resolve) => {
+                firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
+            });
+        } else {
+            authPromise = new Promise((resolve) => resolve(auth.user));
+        }
+
+        let user: firebase.UserInfo;
+        let accessToken: string;
+        authPromise
+            .then((firebaseUser: firebase.UserInfo) => {
+                user = firebaseUser;
+
+                if (isLoggedIn) {
+                    return new Promise((resolve) => resolve(auth.googleToken));
+                } else {
+                    return getAccessToken(user.uid);
                 }
-            ));
-            firebaseDatabase
-                .ref("hunts")
-                .orderByChild("isCurrent")
-                .equalTo(true)
-                .limitToFirst(1)
-                .on("value", (huntSnapshots) => {
-                    huntSnapshots.forEach((huntSnapshot) => {
-                        const hunt = huntSnapshot.val() as IHunt;
-                        dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                            LOAD_HUNT_ACTION,
-                            Object.assign({}, hunt, { year: Number(huntSnapshot.key) }),
-                        ));
-                        return true;
+            })
+            .then((googleAccessToken: string) => {
+                if (!isLoggedIn) {
+                    accessToken = googleAccessToken;
+                    return loadGoogleApi(accessToken, (user as any).refreshToken);
+                } else {
+                    return new Promise((resolve) => resolve());
+                }
+            })
+            .then(() => {
+                if (!isLoggedIn) {
+                    dispatch(asyncActionSucceededPayload<ILoginActionPayload>(
+                        LOGIN_ACTION,
+                        {
+                            googleToken: accessToken,
+                            user,
+                        }
+                    ));
+                }
+
+                firebaseDatabase
+                    .ref("hunts")
+                    .orderByChild("isCurrent")
+                    .equalTo(true)
+                    .limitToFirst(1)
+                    .on("value", (huntSnapshots) => {
+                        huntSnapshots.forEach((huntSnapshot) => {
+                            const hunt = huntSnapshot.val() as IHunt;
+                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                LOAD_HUNT_ACTION,
+                                Object.assign({}, hunt, { year: Number(huntSnapshot.key) }),
+                            ));
+                            return true;
+                        });
+                    }, (error: Error) => {
+                        dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
                     });
-                }, (error: Error) => {
-                    dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
-                });
-        });
+            });
     }
 }
 
@@ -58,18 +96,36 @@ export const SAVE_HUNT_ACTION = "SAVE_HUNT_INFO";
 export interface ISaveHuntActionPayload extends IHunt { }
 
 export function saveHuntInfoAction(hunt: IHuntState) {
-    return (dispatch: Dispatch<IAppState>, _getState: () => IAppState) => {
+    return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION));
         let huntInfo = Object.assign({}, hunt);
         delete huntInfo["year"];
         firebaseDatabase
             .ref(`hunts/${hunt.year}`)
             .set(huntInfo)
-            .then((a) => {
-                console.log(a);
+            .then(() => {
                 dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, huntInfo));
             }, (error: Error) => {
                 dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
             })
     };
+}
+
+export const SET_HUNT_DRIVE_FOLDER_ACTION = "SET_HUNT_DRIVE_FOLDER";
+
+export function setHuntDriveFolderAction(folderId: string, huntKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION));
+        firebaseDatabase
+            .ref(`hunts/${huntKey}/driveFolderId`)
+            .set(folderId)
+            .then(() => {
+                return loadFolder(dispatch, folderId);
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION, error));
+            })
+            .then(() => {
+                dispatch(asyncActionSucceededPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION, folderId));
+            });
+    }
 }

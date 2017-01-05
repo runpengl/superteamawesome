@@ -35,6 +35,7 @@
     "es6-shim": "^0.35.2",
     "express": "^4.14.0",
     "firebase": "^3.6.4",
+    "google-client-api": "^1.0.4",
     "hbs": "~4.0.1",
     "morgan": "~1.7.0",
     "node": "0.0.0",

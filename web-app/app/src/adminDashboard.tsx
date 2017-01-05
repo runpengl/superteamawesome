@@ -2,8 +2,15 @@ import * as React from "react";
 import { IRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
+import { IGoogleDriveFile } from "gapi";
 
-import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction, saveHuntInfoAction } from "./actions";
+import {
+    IAsyncLoaded,
+    isAsyncLoaded,
+    loadHuntAndUserInfoAction,
+    logoutAction,
+    saveHuntInfoAction,
+} from "./actions";
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages } from "./puzzles";
 import { IAppState, IHuntState } from "./state";
@@ -11,6 +18,9 @@ import { IAppState, IHuntState } from "./state";
 interface IAdminDashboardState {
     hasChanges?: boolean;
     hunt?: IHuntState;
+    huntDriveFolder?: IGoogleDriveFile;
+    isCurrentDriveFolderRoot?: boolean;
+    isFolderDialogShown?: boolean;
     isLoading?: boolean;
     loggedIn?: boolean;
 }
@@ -20,13 +30,17 @@ interface IRouterContext {
 }
 
 interface IOwnProps {}
+
 interface IDispatchProps {
     loadHuntAndUserInfo: () => void;
+    logout: () => void;
     saveHuntInfo: (hunt: IHuntState) => void;
 }
 
 interface IStateProps {
+    childFolders: IAsyncLoaded<IGoogleDriveFile[]>;
     hunt: IAsyncLoaded<IHuntState>;
+    huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
 }
 
 interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
@@ -57,11 +71,20 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     public componentDidUpdate(oldProps: IAdminDashboardProps) {
-        if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(this.props.hunt)) {
+        const { hunt, huntDriveFolder } = this.props;
+
+        if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;
             this.setState({
                 hunt,
                 isLoading: false,
+                isCurrentDriveFolderRoot: hunt.driveFolderId === undefined,
+            });
+        }
+
+        if (!isAsyncLoaded(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
+            this.setState({
+                huntDriveFolder: huntDriveFolder.value,
             });
         }
     }
@@ -109,9 +132,26 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
+    private handleHuntDriveFolderChange = (event: React.FormEvent) => {
+        const newValue = (event.target as HTMLInputElement).value;
+        const folderIdRegex = new RegExp(/https:\/\/drive.google.com\/drive\/u\/0\/folders\/(.+)$/g);
+        const matches = folderIdRegex.exec(newValue);
+        if (matches.length > 1 && matches[1] !== this.props.hunt.value.driveFolderId) {
+            this.setState({
+                hasChanges: true,
+                hunt: Object.assign({}, this.state.hunt, { driveFolderId: matches[1] }),
+            });
+        } 
+    }
+
     private handleSave = () => {
         this.props.saveHuntInfo(this.state.hunt);
         this.setState({ hasChanges: false });
+    }
+
+    private handleLogout = () => {
+        const { logout } = this.props;
+        logout();
     }
 
     private renderDashboard() {
@@ -122,6 +162,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     <h1>STAPH [ADMIN]</h1>
                     <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                 </div>
+                <button onClick={this.handleLogout}>Logout</button>
                 <div className="hunt-edit-container">
                     <div className="hunt-information">
                         <div className="edit-info-line">
@@ -136,6 +177,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <label>match title</label>
                             <input type="text" defaultValue={hunt.titleRegex} onChange={this.handleHuntTitleRegexChange} />
                         </div>
+                        <div className="edit-info-line">
+                            <label>google drive folder</label>
+                            <input type="text" defaultValue={this.getHuntFolderLink()} onChange={this.handleHuntDriveFolderChange} />
+                        </div>
                     </div>
                     <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
@@ -143,18 +188,30 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             </div>
         )
     }
+
+    private getHuntFolderLink() {
+        const { hunt } = this.state;
+        if (hunt.driveFolderId === undefined) {
+            return undefined;
+        } else {
+            return `https://drive.google.com/drive/u/0/folders/${hunt.driveFolderId}`;
+        }
+    }
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { hunt } = state;
+    const { childFolders, huntDriveFolder, hunt } = state;
     return {
+        childFolders,
         hunt,
+        huntDriveFolder,
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+        logout: logoutAction,
         saveHuntInfo: saveHuntInfoAction,
     }, dispatch);
 }

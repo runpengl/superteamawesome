@@ -6,12 +6,12 @@ import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actio
 import { IAppState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
-    huntKey: number;
+    huntKey: string;
     titleRegex: string;
 }
 
 interface IDispatchProps {
-    loadDiscoveredPages?: (huntKey: number) => void;
+    loadDiscoveredPages?: (huntKey: string) => void;
 }
 
 interface IStateProps {

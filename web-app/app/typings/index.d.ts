@@ -1,3 +1,4 @@
+/// <reference path="custom/gapi.d.ts" />
 /// <reference path="globals/classnames/index.d.ts" />
 /// <reference path="globals/es6-shim/index.d.ts" />
 /// <reference path="globals/react-addons-css-transition-group/index.d.ts" />
