@@ -13,9 +13,11 @@ function handleFirebaseAuthStateChange(user) {
     if (!user) {
         return;
     }
+
     // Save info so other clients can display a list of users viewing a puzzle
     firebase.database().ref("users/" + user.uid).set({
         displayName: user.displayName,
+        email: user.email,
         photoUrl: user.photoURL
     });
 

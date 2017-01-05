@@ -3,7 +3,7 @@ import { IRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadHuntAndUserInfoAction } from "./actions";
+import { IAsyncLoaded, isAsyncLoaded, logoutAction, loadHuntAndUserInfoAction } from "./actions";
 import { firebaseAuth } from "./auth";
 import { IAppState, IHuntState } from "./state";
 
@@ -17,8 +17,10 @@ interface IRouterContext {
 }
 
 interface IOwnProps {}
+
 interface IDispatchProps {
     loadHuntAndUserInfo: () => void;
+    logout: () => void;
 }
 
 interface IStateProps {
@@ -75,6 +77,11 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
         this.context.router.push("/admin");
     }
 
+    private handleLogout = () => {
+        const { logout } = this.props;
+        logout();
+    }
+
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
@@ -84,6 +91,7 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
                     <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     <button onClick={this.goToAdmin}>Admin View</button>
                 </div>
+                <button onClick={this.handleLogout}>Logout</button>
                 <div className="hunt-header">
                     <div className="label">Current Hunt: {hunt.name}</div>
                 </div>
@@ -102,6 +110,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+        logout: logoutAction,
     }, dispatch);
 }
 
