@@ -10,6 +10,7 @@ import { reducers } from "./reducers";
 import { AdminDashboard } from "./adminDashboard";
 import { Dashboard } from "./dashboard";
 import { Login } from "./login";
+import { SlackAuth } from "./slackAuth";
 
 interface IAppProps {
     children?: JSX.Element[];
@@ -31,6 +32,7 @@ ReactDOM.render(
             <IndexRoute component={Dashboard} />
             <Route path="admin" component={AdminDashboard} />
             <Route path="login" component={Login} />
+            <Route path="slack/auth" component={SlackAuth} />
         </Route>
     </Router>
   </Provider>,

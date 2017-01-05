@@ -3,11 +3,10 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
-import { IAppState, IDiscoveredPage } from "../state";
+import { IAppState, IHuntState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
-    huntKey: string;
-    titleRegex: string;
+    hunt: IHuntState;
 }
 
 interface IDispatchProps {
@@ -21,8 +20,8 @@ interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {
 
 class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, {}> {
     public componentDidMount() {
-        const { huntKey, loadDiscoveredPages } = this.props;
-        loadDiscoveredPages(huntKey);
+        const { hunt, loadDiscoveredPages } = this.props;
+        loadDiscoveredPages(hunt.year);
     }
 
     public render() {
@@ -36,14 +35,23 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 
     private renderDiscoveredPages() {
+        const { hunt } = this.props;
         const discoveredPages = this.props.discoveredPages.value;
         const discoveredPageRows = discoveredPages
             .filter((discoveredPage) => !discoveredPage.ignored)
             .map((discoveredPage) => {
+                const title = this.getRegexedTitle(discoveredPage.title);
                 return (
                     <tr key={discoveredPage.title}>
-                        <td>{this.getRegexedTitle(discoveredPage.title)}</td>
-                        <td><button>generate slack & doc</button></td>
+                        <td>{title}</td>
+                        <td>
+                            <button
+                                disabled={hunt.driveFolderId === undefined || hunt.templateSheetId === undefined}
+                                onClick={this.handleCreatePuzzle(title)}
+                            >
+                                generate slack & doc
+                            </button>
+                        </td>
                         <td><button>ignore</button></td>
                         <td>
                             <input type="text" defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)} />
@@ -65,14 +73,21 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 
     private getRegexedTitle(title: string) {
-        const { titleRegex } = this.props;
-        const matches = title.match(titleRegex);
+        const { hunt } = this.props;
+        const matches = title.match(hunt.titleRegex);
         if (matches == null) {
             // didn't match regex
             return title;
         } else {
             return matches[0].trim();
         }
+    }
+
+    private handleCreatePuzzle = (_title: string) => {
+        // const { hunt } = this.props;
+        return () => {
+        //     // createSheet(hunt.templateSheetId, hunt.driveFolderId, title);
+        };
     }
 }
 

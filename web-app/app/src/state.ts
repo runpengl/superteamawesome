@@ -5,6 +5,7 @@ import { IAsyncLoaded } from "./actions";
 
 export interface IAuthState {
     googleToken?: string;
+    slackToken?: string;
     user?: firebase.UserInfo;
 }
 

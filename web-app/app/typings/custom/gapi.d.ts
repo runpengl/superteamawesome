@@ -19,6 +19,7 @@ declare module "gapi" {
         }
 
         export interface IGoogleDriveFilesClient {
+            copy: (params: { fileId: string, resource: IGoogleDriveFile }) => IGoogleRequest<IGoogleDriveFile>;
             get: (params: { fileId: string }) => IGoogleRequest<IGoogleDriveFile>;
             list: (params: { q?: string }) => IGoogleRequest<IGoogleDriveFilesList>;
         }
@@ -32,24 +33,24 @@ declare module "gapi" {
         }
 
         export interface IGoogleDriveFile {
-            alternateLink: string;
-            createdDate: string;
-            iconLink: string;
-            id: string;
-            kind: string;
-            modifiedDate: string;
-            labels: IGoogleDriveFileLabel;
-            lastModifyingUserName: string;
-            mimeType: string;
+            alternateLink?: string;
+            createdDate?: string;
+            iconLink?: string;
+            id?: string;
+            kind?: string;
+            modifiedDate?: string;
+            labels?: IGoogleDriveFileLabel;
+            lastModifyingUserName?: string;
+            mimeType?: string;
             parents: IGoogleDriveParentReference[];
             title: string;
         }
 
         export interface IGoogleDriveParentReference {
             id: string;
-            selfLink: string;
-            parentLink: string;
-            isRoot: boolean;
+            selfLink?: string;
+            parentLink?: string;
+            isRoot?: boolean;
         }
 
         export interface IGoogleDriveFileLabel {

@@ -1,9 +1,10 @@
 import { Dispatch } from "redux";
 
 import { firebaseAuth, firebaseDatabase } from "../auth";
-import { IAppState, IHuntState } from "../state";
-import { getAccessToken, LOGIN_ACTION, ILoginActionPayload } from "./authActions";
-import { loadFolder, loadGoogleApi } from "./googleActions";
+import { loadGoogleApi } from "../services";
+import { IAppState, IAuthState, IHuntState } from "../state";
+import { getAccessTokens, LOGIN_ACTION, IUserPrivateData } from "./authActions";
+import { loadFolder } from "./googleActions";
 
 import {
     asyncActionFailedPayload,
@@ -32,7 +33,7 @@ export function loadHuntAndUserInfoAction() {
         const isLoggedIn = auth.user !== undefined;
 
         if (!isLoggedIn) {
-            dispatch(asyncActionInProgressPayload<ILoginActionPayload>(LOGIN_ACTION));
+            dispatch(asyncActionInProgressPayload<IAuthState>(LOGIN_ACTION));
             authPromise = new Promise((resolve) => {
                 firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
             });
@@ -41,7 +42,7 @@ export function loadHuntAndUserInfoAction() {
         }
 
         let user: firebase.UserInfo;
-        let accessToken: string;
+        let userPrivateInfo: IUserPrivateData;
         authPromise
             .then((firebaseUser: firebase.UserInfo) => {
                 user = firebaseUser;
@@ -49,23 +50,24 @@ export function loadHuntAndUserInfoAction() {
                 if (isLoggedIn) {
                     return new Promise((resolve) => resolve(auth.googleToken));
                 } else {
-                    return getAccessToken(user.uid);
+                    return getAccessTokens(user.uid);
                 }
             })
-            .then((googleAccessToken: string) => {
+            .then((userInfo: IUserPrivateData) => {
                 if (!isLoggedIn) {
-                    accessToken = googleAccessToken;
-                    return loadGoogleApi(accessToken, (user as any).refreshToken);
+                    userPrivateInfo = userInfo;
+                    return loadGoogleApi(userInfo.googleAccessToken, (user as any).refreshToken);
                 } else {
                     return new Promise((resolve) => resolve());
                 }
             })
             .then(() => {
                 if (!isLoggedIn) {
-                    dispatch(asyncActionSucceededPayload<ILoginActionPayload>(
+                    dispatch(asyncActionSucceededPayload<IAuthState>(
                         LOGIN_ACTION,
                         {
-                            googleToken: accessToken,
+                            googleToken: userPrivateInfo.googleAccessToken,
+                            slackToken: userPrivateInfo.slackAccessToken,
                             user,
                         }
                     ));

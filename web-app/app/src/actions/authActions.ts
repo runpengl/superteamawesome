@@ -2,8 +2,8 @@ import { Dispatch } from "redux";
 import * as firebase from "firebase";
 
 import { firebaseAuth, firebaseDatabase, provider } from "../auth";
-import { IAppState } from "../state";
-import { loadGoogleApi } from "./googleActions";
+import { IAppState, IAuthState } from "../state";
+import { loadGoogleApi } from "../services";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload, 
@@ -11,14 +11,10 @@ import {
 } from "./loading";
 
 export const LOGIN_ACTION = "LOGIN";
-export interface ILoginActionPayload {
-    googleToken: string;
-    user: firebase.UserInfo;
-}
 
 export function loginAction() {
     return (dispatch: Dispatch<IAppState>, _getState: () => IAppState) => {
-        dispatch(asyncActionInProgressPayload<ILoginActionPayload>(LOGIN_ACTION));
+        dispatch(asyncActionInProgressPayload<IAuthState>(LOGIN_ACTION));
 
         let token: string;
         let user: firebase.UserInfo;
@@ -33,6 +29,9 @@ export function loginAction() {
                 return loadGoogleApi(token, (user as any).refreshToken);
             })
             .then(() => {
+                return getAccessTokens(user.uid);
+            })
+            .then((userPrivateInfo: IUserPrivateData) => {
                 firebaseDatabase.ref(`userPrivateData/${user.uid}`).set({
                     googleAccessToken: token,
                 });
@@ -42,16 +41,17 @@ export function loginAction() {
                     photoUrl: user.photoURL,
                 });
 
-                dispatch(asyncActionSucceededPayload<ILoginActionPayload>(
+                dispatch(asyncActionSucceededPayload<IAuthState>(
                     LOGIN_ACTION,
                     {
                         googleToken: token,
+                        slackToken: userPrivateInfo.slackAccessToken,
                         user,
                     }
                 ));
             })
             .catch((error) => {
-                dispatch(asyncActionFailedPayload<ILoginActionPayload>(LOGIN_ACTION, error));
+                dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, error));
             });
     }
 }
@@ -77,13 +77,13 @@ export interface IUserPrivateData {
     slackAccessToken: string;
 }
 
-export function getAccessToken(userUid: string) {
+export function getAccessTokens(userUid: string) {
     return new Promise((resolve) => {
         firebaseDatabase
             .ref(`userPrivateData/${userUid}`)
             .once("value", (snapshot: firebase.database.DataSnapshot) => {
                 const userInfo = snapshot.val() as IUserPrivateData;
-                resolve(userInfo.googleAccessToken);
+                resolve(userInfo);
             });
     });
 }

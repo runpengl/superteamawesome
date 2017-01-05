@@ -14,6 +14,7 @@ import {
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages } from "./puzzles";
 import { IAppState, IHuntState } from "./state";
+import { getSlackAuthUrl } from "./services";
 
 interface IAdminDashboardState {
     hasChanges?: boolean;
@@ -40,6 +41,7 @@ interface IDispatchProps {
 interface IStateProps {
     hunt: IAsyncLoaded<IHuntState>;
     huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
+    slackToken?: string;
 }
 
 interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
@@ -192,14 +194,14 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <label>google drive folder</label>
                             <input type="text" defaultValue={this.getHuntFolderLink()} onChange={this.handleHuntDriveFolderChange} />
                         </div>
-                        <div classname="edit-info-line">
+                        <div className="edit-info-line">
                             <label>spreadsheet template</label>
                             <input type="text" defaultValue={this.getTemplateSheetLink()} onChange={this.handleTemplateSheetChange} />
                         </div>
                     </div>
                     <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
-                <DiscoveredPages huntKey={hunt.year} titleRegex={hunt.titleRegex} />
+                {this.maybeRenderDiscoveredPages()}
             </div>
         )
     }
@@ -221,13 +223,27 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             return `https://drive.google.com/drive/u/0/folders/${hunt.driveFolderId}`;
         }
     }
+
+    private maybeRenderDiscoveredPages() {
+        const { hunt, slackToken } = this.props;
+        if (slackToken !== undefined) {
+            return <DiscoveredPages hunt={hunt.value} />;
+        } else {
+            return (
+                <div>
+                    <a href={getSlackAuthUrl()}>Login</a> to Slack to manage puzzles
+                </div>
+            );
+        }
+    }
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { huntDriveFolder, hunt } = state;
+    const { auth, huntDriveFolder, hunt } = state;
     return {
         hunt,
         huntDriveFolder,
+        slackToken: auth.slackToken,
     };
 }
 

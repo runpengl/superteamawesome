@@ -8,5 +8,8 @@ export const provider = new firebase.auth.GoogleAuthProvider();
 provider.addScope("https://www.googleapis.com/auth/drive");
 provider.addScope("https://www.googleapis.com/auth/drive.file");
 provider.addScope("https://www.googleapis.com/auth/spreadsheets");
+provider.setCustomParameters({
+    access_type: "offline",
+});
 export const firebaseAuth = firebase.auth;
 export const firebaseDatabase = firebase.database();
