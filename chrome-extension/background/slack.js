@@ -38,7 +38,7 @@ function connect(userId) {
                     code: matchCode[1]
                 }, function(response) {
                     slackTokenRef.set(response.access_token);
-                    accessToken = response.access_token
+                    accessToken = response.access_token;
                     initSlackRtm();
                 });
             }
@@ -47,7 +47,7 @@ function connect(userId) {
 }
 
 function disconnect() {
-    if (webSocket) {
+    if (webSocket && webSocket.readyState !== WebSocket.CLOSED) {
         webSocket.close();
         webSocket = null;
     }
@@ -63,6 +63,9 @@ function initSlackRtm() {
         console.log("[slack/rtm.start]", response);
         webSocket = new WebSocket(response.url);
         webSocket.onmessage = handleSlackWsMessage;
+        webSocket.onclose = function() {
+            disconnect(); // clean up
+        };
 
         slackUserId = response.self.id;
         response.channels.forEach(function(channel) {

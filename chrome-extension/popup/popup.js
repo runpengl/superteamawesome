@@ -1,3 +1,4 @@
+var isLoggingIn = false;
 var currentHunt = null;
 var currentHuntPuzzles = [];
 var puzzleViewersSnapshot = null;
@@ -12,8 +13,8 @@ window.onload = function() {
 function initApp() {
     firebase.initializeApp(config.firebase);
     firebase.auth().onAuthStateChanged(function(userOrNull) {
-        renderPopup();
         if (!userOrNull) {
+            renderPopup();
             return;
         }
 
@@ -44,7 +45,8 @@ function initApp() {
             renderPopup();
         });
     });
-    renderPopup(/*initialRender=*/true);
+
+    startAuth(/*interactive=*/false);
 }
 
 /**
@@ -52,15 +54,17 @@ function initApp() {
  * @param{boolean} interactive True if the OAuth flow should request with an interactive mode.
  */
 function startAuth(interactive) {
-    renderPopup(/*initialRender=*/true);
+    isLoggingIn = true;
+    renderPopup();
 
     // Request an OAuth token from the Chrome Identity API.
     chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
+        isLoggingIn = false;
         if (chrome.runtime.lastError) {
-            // TODO surface this better
             console.error(chrome.runtime.lastError);
+            renderPopup();
         } else if (token) {
-            // Authrorize Firebase with the OAuth Access Token.
+            // Sign in to Firebase with the Google Access Token.
             var credential = firebase.auth.GoogleAuthProvider.credential(null, token);
             firebase.auth().signInWithCredential(credential).catch(function(error) {
                 // The OAuth token might have been invalidated. Let's remove it from cache.
@@ -81,7 +85,7 @@ function startAuth(interactive) {
 
 var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
 
-function renderPopup(initialRender) {
+function renderPopup() {
     var puzzlesByStatus = {
         "new": [],
         inProgress: [],
@@ -95,7 +99,7 @@ function renderPopup(initialRender) {
     }
     ReactDOM.render(
         React.createElement(Popup, {
-            initialRender: !!initialRender,
+            isLoggingIn: isLoggingIn,
             currentUser: firebase.auth().currentUser,
             currentHunt: currentHunt,
             numPuzzles: currentHuntPuzzles ? currentHuntPuzzles.length : 0,
@@ -160,7 +164,7 @@ function Popup(props) {
                 })
             )
             : r.div({ className: "Popup-loginPrompt" + (props.isLoading ? " isLoading" : "") },
-                props.initialRender
+                props.isLoggingIn
                     ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
                     : r.div({
                         className: "Popup-signInButton",
