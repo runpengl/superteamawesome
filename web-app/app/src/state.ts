@@ -12,6 +12,7 @@ export interface IHuntState {
     domain: string;
     name: string;
     driveFolderId?: string;
+    templateSheetId?: string;
     titleRegex?: string;
     year: string;
 }

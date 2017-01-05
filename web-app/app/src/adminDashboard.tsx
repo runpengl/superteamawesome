@@ -38,7 +38,6 @@ interface IDispatchProps {
 }
 
 interface IStateProps {
-    childFolders: IAsyncLoaded<IGoogleDriveFile[]>;
     hunt: IAsyncLoaded<IHuntState>;
     huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
 }
@@ -144,6 +143,18 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         } 
     }
 
+    private handleTemplateSheetChange = (event: React.FormEvent) => {
+        const newValue = (event.target as HTMLInputElement).value;
+        const sheetIdRegex = new RegExp(/https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g);
+        const matches = sheetIdRegex.exec(newValue);
+        if (matches.length > 1 && matches[1] !== this.props.hunt.value.templateSheetId) {
+            this.setState({
+                hasChanges: true,
+                hunt: Object.assign({}, this.state.hunt, { templateSheetId: matches[1] }),
+            });
+        }
+    }
+
     private handleSave = () => {
         this.props.saveHuntInfo(this.state.hunt);
         this.setState({ hasChanges: false });
@@ -181,12 +192,25 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <label>google drive folder</label>
                             <input type="text" defaultValue={this.getHuntFolderLink()} onChange={this.handleHuntDriveFolderChange} />
                         </div>
+                        <div classname="edit-info-line">
+                            <label>spreadsheet template</label>
+                            <input type="text" defaultValue={this.getTemplateSheetLink()} onChange={this.handleTemplateSheetChange} />
+                        </div>
                     </div>
                     <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
                 <DiscoveredPages huntKey={hunt.year} titleRegex={hunt.titleRegex} />
             </div>
         )
+    }
+
+    private getTemplateSheetLink() {
+        const { hunt } = this.state;
+        if (hunt.templateSheetId === undefined) {
+            return undefined;
+        } else {
+            return `https://docs.google.com/spreadsheets/d/${hunt.templateSheetId}/edit`;
+        }
     }
 
     private getHuntFolderLink() {
@@ -200,9 +224,8 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { childFolders, huntDriveFolder, hunt } = state;
+    const { huntDriveFolder, hunt } = state;
     return {
-        childFolders,
         hunt,
         huntDriveFolder,
     };
