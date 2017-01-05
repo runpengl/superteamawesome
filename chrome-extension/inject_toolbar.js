@@ -21,6 +21,17 @@ function injectToolbar() {
     if (window.location.hostname === "docs.google.com") {
         var docsChrome = document.getElementById("docs-chrome");
         docsChrome.insertBefore(iframe, docsChrome.firstChild);
+
+        var chatContainer = document.getElementById("docs-chat-mole");
+        if (chatContainer) {
+            injectChatBanner(chatContainer);
+        } else {
+            forEachChildNodeAdded(document.body, function(addedNode) {
+                if (addedNode.id === "docs-chat-mole") {
+                    injectChatBanner(addedNode);
+                }
+            });
+        }
     } else if (window.location.hostname === "superteamawesome.slack.com") {
         var clientUi = document.getElementById("client-ui");
         clientUi.insertBefore(iframe, clientUi.firstChild);
@@ -63,4 +74,57 @@ function monitorPresence() {
             isIdle = isIdleNow;
         }
     }, 1000);
+}
+
+/**
+ * If the user tries to use google docs chat, let them—but also inject a banner
+ * to tell them to use Slack, pretty please.
+ */
+function injectChatBanner(chatContainer) {
+    if (document.getElementById("sta_toolbar_chat_banner")) {
+        // Already injected
+        return;
+    }
+    function maybeInjectBanner(node) {
+        if (node.id && node.id.startsWith("gtn") &&
+            node.className === "talk_chat_widget") {
+            var slackPromptBanner = document.createElement("div");
+            slackPromptBanner.id = "sta_toolbar_chat_banner";
+            slackPromptBanner.style.background = "#e12548";
+            slackPromptBanner.style.color = "#fff";
+            slackPromptBanner.style.fontSize = "12px";
+            slackPromptBanner.style.height = "20px";
+            slackPromptBanner.style.lineHeight = "20px";
+            slackPromptBanner.style.padding = "0 10px";
+            slackPromptBanner.innerText = "Use the Slack channel, please!";
+            node.insertBefore(
+                slackPromptBanner,
+                node.firstChild);
+            return true;
+        }
+    }
+    if (chatContainer.childNodes.length) {
+        for (var i = 0; i < chatContainer.childNodes.length; ++i) {
+            maybeInjectBanner(chatContainer.childNodes[i]);
+        }
+    } else {
+        forEachChildNodeAdded(chatContainer, function(addedNode) {
+            return maybeInjectBanner(addedNode);
+        });
+    }
+}
+
+function forEachChildNodeAdded(node, callback) {
+    var mutationObserver = new MutationObserver(function(records) {
+        records.forEach(function(record) {
+            for (var i = 0; i < record.addedNodes.length; ++i) {
+                if (callback(record.addedNodes[i])) {
+                    mutationObserver.disconnect();
+                }
+            }
+        });
+    });
+    mutationObserver.observe(node, {
+        childList: true
+    });
 }
