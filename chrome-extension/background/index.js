@@ -206,6 +206,9 @@ function handleChromeRuntimeConnect(port) {
  */
 function handleChromeRuntimeMessage(request, sender, sendResponse) {
     switch (request.msg) {
+        case "joinChannel":
+            Slack.joinChannel(request.name);
+            break;
         case "puzzleStatusChange":
             firebase.database()
                 .ref("puzzles/" + toolbarInfoByTabId[sender.tab.id].puzzleKey + "/status")

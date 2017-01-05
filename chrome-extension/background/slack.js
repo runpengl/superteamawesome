@@ -1,5 +1,6 @@
 var Slack = (function() {
 
+var accessToken = null;
 var slackUserId = null;
 var slackChannelById = {};
 var slackChannelIdByName = {};
@@ -15,7 +16,8 @@ function connect(userId) {
         .child(userId).child("slackAccessToken");
     slackTokenRef.once("value", function(snap) {
         if (snap.val()) {
-            initSlackRtm(snap.val());
+            accessToken = snap.val();
+            initSlackRtm();
             return;
         }
         // Authorize Slack via chrome.identity API
@@ -35,17 +37,15 @@ function connect(userId) {
                     code: matchCode[1]
                 }, function(response) {
                     slackTokenRef.set(response.access_token);
-                    initSlackRtm(response.access_token);
+                    accessToken = response.access_token
+                    initSlackRtm();
                 });
             }
         });
     });
 };
 
-/**
- * @param accessToken
- */
-function initSlackRtm(accessToken) {
+function initSlackRtm() {
     xhrGet("https://slack.com/api/rtm.start", {
         token: accessToken,
         simple_latest: true
@@ -70,6 +70,15 @@ function handleSlackWsMessage(event) {
             slackChannelById[msg.channel.id] = msg.channel;
             slackChannelIdByName[msg.channel.name] = msg.channel.id;
             break;
+        case "channel_joined":
+            slackChannelById[msg.channel.id] = msg.channel;
+            notifySubscribers(msg.channel);
+            break;
+        case "channel_left":
+            var channel = slackChannelById[msg.channel];
+            channel.is_member = false;
+            notifySubscribers(channel);
+            break;
         case "channel_marked":
             var channel = slackChannelById[msg.channel];
             channel.unread_count = msg.unread_count;
@@ -77,6 +86,9 @@ function handleSlackWsMessage(event) {
             notifySubscribers(channel);
             break;
         case "message":
+            if (msg.subtype === "message_deleted") {
+                return;
+            }
             var channel = slackChannelById[msg.channel];
             if (msg.user !== slackUserId && channel) {
                 channel.unread_count++;
@@ -85,6 +97,13 @@ function handleSlackWsMessage(event) {
             }
             break;
     }
+}
+
+function joinChannel(channelName) {
+    xhrGet("https://slack.com/api/channels.join", {
+        token: accessToken,
+        name: channelName
+    });
 }
 
 function subscribeToChannel(tabId, channelName, callback) {
@@ -115,6 +134,7 @@ function notifySubscribers(channel) {
 
 return {
     connect: connect,
+    joinChannel: joinChannel,
     subscribeToChannel: subscribeToChannel
 };
 })();
@@ -136,7 +156,9 @@ function xhrGet(url, params, callback) {
 
     function handleReadyStateChange() {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-            callback(JSON.parse(xhr.responseText));
+            if (callback) {
+                callback(JSON.parse(xhr.responseText));
+            }
         }
     }
 }

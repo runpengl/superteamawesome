@@ -39,6 +39,9 @@ function refreshConnection() {
                 renderToolbar();
         }
     });
+    port.onDisconnect.addListener(function() {
+        refreshConnection();
+    });
 }
 
 refreshConnection();
@@ -127,18 +130,29 @@ function PuzzleToolbar(props) {
             target: "_blank",
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
-        props.location === "slack" ? null : r.a({
-            className: "Toolbar-link",
-            target: "_blank",
-            href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel
-        }, "slack"),
-        props.location === "slack"
-            ? null
-            : props.slackChannel && props.slackChannel.unread_count_display > 0
+        props.location === "slack" ? null : r.div({ className: "Toolbar-slackInfo" },
+            r.a({
+                className: "Toolbar-link",
+                target: "_blank",
+                href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel,
+                onClick: function() {
+                    if (props.slackChannel && !props.slackChannel.is_member) {
+                        chrome.runtime.sendMessage({
+                            msg: "joinChannel",
+                            name: props.puzzle.slackChannel
+                        });
+                    }
+                }
+            }, "slack"),
+            props.slackChannel && props.slackChannel.is_member ? null : r.div({
+                className: "Toolbar-linkTooltip"
+            }, "Working on this puzzle? Join the Slack channel."),
+            props.slackChannel && props.slackChannel.unread_count_display > 0
                 ? r.span({ className: "Toolbar-slackUnreadCount" },
                     props.slackChannel.unread_count_display
                 )
-                : null,
+                : null
+        ),
 
         React.createElement(React.addons.CSSTransitionGroup, {
             className: "Toolbar-right",

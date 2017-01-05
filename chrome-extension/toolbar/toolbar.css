@@ -32,10 +32,18 @@ body {
   color: #333;
   margin-top: -2px;
   font-weight: 500;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .Toolbar-huntName {
   margin-left: 5px;
+}
+
+.Toolbar-slackInfo {
+  display: inline-block;
+  position: relative;
 }
 
 .Toolbar-link {
@@ -46,6 +54,33 @@ body {
 }
 .Toolbar-link:hover {
   text-decoration: underline;
+}
+
+.Toolbar-linkTooltip {
+  background: #fbb03b;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .5);
+  color: #fff;
+  line-height: 20px;
+  margin-left: 10px;
+  padding: 0 5px;
+  pointer-events: none;
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: .2s opacity;
+}
+.Toolbar-linkTooltip::after {
+  border: 5px solid;
+  border-color: transparent #fbb03b;
+  border-left: none;
+  content: "";
+  display: block;
+  right: 100%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .Toolbar-slackUnreadCount {
@@ -139,7 +174,7 @@ body {
   align-self: flex-end;
   display: inline-block;
   height: 24px;
-  margin-right: 1px;
+  margin-left: 1px;
   position: relative;
 }
 .Avatar.isIdle {
@@ -147,14 +182,16 @@ body {
 }
 
 .Avatar-imageFrame {
+  height: 100%;
   overflow: hidden;
 }
 
 .Avatar-image {
   display: block;
   height: 24px;
+  position: relative;
   width: 24px;
-  transition: .2s margin-bottom .2s, .2s margin-right;
+  transition: .2s top .2s, .2s margin-right;
 }
 .Avatar.isInvisible .Avatar-image {
   opacity: .5;
@@ -163,14 +200,16 @@ body {
 .Avatar-enter .Avatar-image,
 .Avatar-leave-active .Avatar-image {
   margin-right: -24px;
-  margin-bottom: -24px;
+  top: 24px;
 }
 .Avatar-enter-active .Avatar-image {
   margin: 0;
+  top: 0;
 }
 
 .Avatar-tooltip {
   background: #333;
+  border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, .5);
   color: #fff;
   line-height: 20px;
@@ -191,8 +230,8 @@ body {
   display: block;
   left: 100%;
   position: absolute;
-  transform: translateY(-50%);
   top: 50%;
+  transform: translateY(-50%);
 }
 .Avatar:hover .Avatar-tooltip {
   opacity: 1;
