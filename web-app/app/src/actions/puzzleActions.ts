@@ -154,7 +154,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         const hunt = asyncHunt.value;
         const lowerCasePuzzleName = puzzleName.replace(/\ /g, "").toLowerCase();
         const puzzleKey = lowerCasePuzzleName + "-" + hunt.year;
-        const slackChannelName = lowerCasePuzzleName.substring(0, 16) + "-" + hunt.year;
+        const slackChannelName = "x-" + lowerCasePuzzleName.substring(0, 19);
 
         dispatch(asyncActionInProgressPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION));
         // remove from db first

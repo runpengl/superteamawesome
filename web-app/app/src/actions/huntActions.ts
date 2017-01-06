@@ -81,10 +81,19 @@ export function loadHuntAndUserInfoAction() {
                     .on("value", (huntSnapshots) => {
                         huntSnapshots.forEach((huntSnapshot) => {
                             const hunt = huntSnapshot.val() as IHunt;
-                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                LOAD_HUNT_ACTION,
-                                Object.assign({}, hunt, { year: huntSnapshot.key }),
-                            ));
+                            if (userPrivateInfo.slackAccessToken !== undefined) {
+                                slack.team.info(userPrivateInfo.slackAccessToken).then((teamInfo) => {
+                                    dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                        LOAD_HUNT_ACTION,
+                                        Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
+                                    ));
+                                });
+                            } else {
+                                dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                    LOAD_HUNT_ACTION,
+                                    Object.assign({}, hunt, { year: huntSnapshot.key }),
+                                ));
+                            }
                             return true;
                         });
                     }, (error: Error) => {
