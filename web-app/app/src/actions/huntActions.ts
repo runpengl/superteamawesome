@@ -54,8 +54,8 @@ export function loadHuntAndUserInfoAction() {
                 }
             })
             .then((userInfo: IUserPrivateData) => {
+                userPrivateInfo = userInfo;
                 if (!isLoggedIn) {
-                    userPrivateInfo = userInfo;
                     return loadGoogleApi(userInfo.googleAccessToken, (user as any).refreshToken);
                 } else {
                     return new Promise((resolve) => resolve());
@@ -81,12 +81,10 @@ export function loadHuntAndUserInfoAction() {
                     .on("value", (huntSnapshots) => {
                         huntSnapshots.forEach((huntSnapshot) => {
                             const hunt = huntSnapshot.val() as IHunt;
-                            slack.team.info(userPrivateInfo.slackAccessToken).then((teamInfo) => {
-                                dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                    LOAD_HUNT_ACTION,
-                                    Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
-                                ));
-                            })
+                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                LOAD_HUNT_ACTION,
+                                Object.assign({}, hunt, { year: huntSnapshot.key }),
+                            ));
                             return true;
                         });
                     }, (error: Error) => {

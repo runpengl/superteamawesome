@@ -36,14 +36,14 @@ export const PuzzleStatus = {
 export interface IPuzzle {
     createdAt: string;
     hunt: string;
-    index: number;
-    key: string;
+    index?: number;
+    key?: string;
     name: string;
-    parent: string;
+    parent?: string;
     path: string;
     slackChannel: string;
     slackChannelId: string;
-    solution: string;
+    solution?: string;
     spreadsheetId: string;
     status: PuzzleStatus;
 }

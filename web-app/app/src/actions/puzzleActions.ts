@@ -144,6 +144,10 @@ export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
 }
 
 export const CREATE_PUZZLE_ACTION = "CREATE_PUZZLE";
+export interface ICreatePuzzleActionPayload {
+    changedPages: IDiscoveredPage[];
+    newPuzzles: IPuzzle[];
+}
 export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         const { auth, hunt: asyncHunt } = getState();
@@ -152,7 +156,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         const puzzleKey = lowerCasePuzzleName + "-" + hunt.year;
         const slackChannelName = lowerCasePuzzleName.substring(0, 16) + "-" + hunt.year;
 
-        dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(CREATE_PUZZLE_ACTION));
+        dispatch(asyncActionInProgressPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION));
         // remove from db first
         const removeFirebasePromise = new Promise((resolve) => {
             firebaseDatabase
@@ -193,28 +197,32 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 return slack.channels.create(auth.slackToken, slackChannelName);
             })
             .then((channel) => {
+                const newPuzzle: IPuzzle = {
+                    createdAt: spreadsheet.createdDate,
+                    hunt: hunt.year,
+                    name: puzzleName,
+                    path: discoveredPage.path,
+                    slackChannel: channel.name,
+                    slackChannelId: channel.id,
+                    spreadsheetId: spreadsheet.id,
+                    status: PuzzleStatus.NEW,
+                };
                 firebaseDatabase
                     .ref(`puzzles/${puzzleKey}`)
-                    .set({
-                        createdAt: spreadsheet.createdDate,
-                        hunt: hunt.year,
-                        name: puzzleName,
-                        path: discoveredPage.path,
-                        slackChannel: channel.name,
-                        slackChannelId: channel.id,
-                        spreadsheetId: spreadsheet.id,
-                        status: PuzzleStatus.NEW,
-                    })
+                    .set(newPuzzle)
                     .then(() => {
                         removeFirebasePromise.then(() => {
-                            dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(CREATE_PUZZLE_ACTION, [discoveredPage]));
+                            dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
+                                changedPages: [discoveredPage],
+                                newPuzzles: [newPuzzle],
+                            }));
                         });
                     }, (error) => {
-                        dispatch(asyncActionFailedPayload<IDiscoveredPage>(CREATE_PUZZLE_ACTION, error));
+                        dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
                     })
             })
             .catch((error) => {
-                dispatch(asyncActionFailedPayload<IDiscoveredPage>(CREATE_PUZZLE_ACTION, error));
+                dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
             })
     }
 }

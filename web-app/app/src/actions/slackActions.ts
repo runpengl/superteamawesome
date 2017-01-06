@@ -10,6 +10,7 @@ import {
 } from "./loading";
 
 export const LOAD_SLACK_TOKEN_ACTION = "LOAD_SLACK_TOKEN";
+export const LOAD_SLACK_TEAM_ID_ACTION = "LOAD_SLACK_TEAM_ID";
 export function loadSlackTokenAction(code: string) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<string>(LOAD_SLACK_TOKEN_ACTION));
@@ -20,7 +21,10 @@ export function loadSlackTokenAction(code: string) {
                         .ref(`userPrivateData/${user.uid}/slackAccessToken`)
                         .set(token)
                         .then(() => {
-                            dispatch(asyncActionSucceededPayload<string>(LOAD_SLACK_TOKEN_ACTION, token));
+                            slack.team.info(token).then((teamInfo) => {
+                                dispatch(asyncActionSucceededPayload<string>(LOAD_SLACK_TEAM_ID_ACTION, teamInfo.id));
+                                dispatch(asyncActionSucceededPayload<string>(LOAD_SLACK_TOKEN_ACTION, token));
+                            })
                         });
                 })
                 .catch((error: Error) => {

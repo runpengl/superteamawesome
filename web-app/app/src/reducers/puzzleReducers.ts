@@ -10,6 +10,7 @@ import {
     LOAD_IGNORED_PAGES_ACTION,
     LOAD_PUZZLES_ACTION,
     SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
+    ICreatePuzzleActionPayload,
 } from "../actions";
 import { IDiscoveredPage, IPuzzle } from "../state";
 
@@ -18,10 +19,16 @@ const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
 };
 
 export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialState,
-    action: IAsyncAction<IPuzzle[]>) {
+    action: IAsyncAction<any>) {
     switch (action.type) {
         case LOAD_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
+        case CREATE_PUZZLE_ACTION:
+            if (isAsyncSucceeded(action)) {
+                let payload = action.value as ICreatePuzzleActionPayload;
+                let newPuzzles = state.value.concat(payload.newPuzzles);
+                return Object.assign({}, state, { value: newPuzzles });
+            }
         default: return state;
     }
 }
@@ -31,7 +38,7 @@ const initialState: IAsyncLoaded<IDiscoveredPage[]> = {
 }
 
 export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = initialState,
-    action: IAsyncAction<IDiscoveredPage[]>) {
+    action: IAsyncAction<any>) {
     switch (action.type) {
         case LOAD_DISCOVERED_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
@@ -39,7 +46,8 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
             if (isAsyncSucceeded(action)) {
                 let discoveredPages = state.value;
                 // for now only create one puzzle at a time
-                const createdPuzzlePage = action.value[0];
+                let payload = action.value as ICreatePuzzleActionPayload;
+                const createdPuzzlePage = payload.changedPages[0];
                 discoveredPages = discoveredPages.filter((page) => page.key !== createdPuzzlePage.key);
                 return Object.assign({}, state, { value: discoveredPages });
             }
@@ -52,7 +60,8 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
             }
         case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:
             if (isAsyncSucceeded(action)) {
-                let changedPages = action.value.filter((page) => !page.ignored);
+                const changedPagesValue = action.value as IDiscoveredPage[];
+                let changedPages = changedPagesValue.filter((page) => !page.ignored);
                 let discoveredPages = state.value.slice();
                 changedPages.forEach((changedPage) => {
                     const changedIndex = discoveredPages.findIndex((page) => page.key === changedPage.key);
@@ -66,7 +75,7 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
 }
 
 export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = initialState,
-    action: IAsyncAction<IDiscoveredPage[]>) {
+    action: IAsyncAction<any>) {
     switch (action.type) {
         case LOAD_IGNORED_PAGES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
@@ -78,13 +87,15 @@ export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = ini
             if (isAsyncSucceeded(action)) {
                 let ignoredPages = state.value;
                 // for now only create one puzzle at a time
-                const createdPuzzlePage = action.value[0];
+                let changedPages = action.value as ICreatePuzzleActionPayload;
+                const createdPuzzlePage = changedPages.changedPages[0];
                 ignoredPages = ignoredPages.filter((page) => page.key !== createdPuzzlePage.key);
                 return Object.assign({}, state, { value: ignoredPages });
             }
         case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:
             if (isAsyncSucceeded(action)) {
-                let changedPages = action.value.filter((page) => page.ignored);
+                const changedPagesValue = action.value as IDiscoveredPage[];
+                let changedPages = changedPagesValue.filter((page) => page.ignored);
                 let discoveredPages = state.value.slice();
                 changedPages.forEach((changedPage) => {
                     const changedIndex = discoveredPages.findIndex((page) => page.key === changedPage.key);
