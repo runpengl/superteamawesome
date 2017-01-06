@@ -13,6 +13,7 @@ export interface IHuntState {
     domain: string;
     name: string;
     driveFolderId?: string;
+    slackTeamId?: string;
     templateSheetId?: string;
     titleRegex?: string;
     year: string;
@@ -35,9 +36,13 @@ export const PuzzleStatus = {
 export interface IPuzzle {
     createdAt: string;
     hunt: string;
+    index: number;
+    key: string;
     name: string;
+    parent: string;
     path: string;
     slackChannel: string;
+    slackChannelId: string;
     solution: string;
     spreadsheetId: string;
     status: PuzzleStatus;
@@ -49,4 +54,5 @@ export interface IAppState {
     hunt?: IAsyncLoaded<IHuntState>;
     huntDriveFolder?: IAsyncLoaded<IGoogleDriveFile>;
     ignoredPages?: IAsyncLoaded<IDiscoveredPage[]>;
+    puzzles?: IAsyncLoaded<IPuzzle[]>;
 }

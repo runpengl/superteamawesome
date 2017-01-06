@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 
 import { firebaseAuth, firebaseDatabase } from "../auth";
-import { loadGoogleApi } from "../services";
+import { loadGoogleApi, slack } from "../services";
 import { IAppState, IAuthState, IHuntState } from "../state";
 import { getAccessTokens, LOGIN_ACTION, IUserPrivateData } from "./authActions";
 import { loadFolder } from "./googleActions";
@@ -81,10 +81,12 @@ export function loadHuntAndUserInfoAction() {
                     .on("value", (huntSnapshots) => {
                         huntSnapshots.forEach((huntSnapshot) => {
                             const hunt = huntSnapshot.val() as IHunt;
-                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                LOAD_HUNT_ACTION,
-                                Object.assign({}, hunt, { year: huntSnapshot.key }),
-                            ));
+                            slack.team.info(userPrivateInfo.slackAccessToken).then((teamInfo) => {
+                                dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                    LOAD_HUNT_ACTION,
+                                    Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
+                                ));
+                            })
                             return true;
                         });
                     }, (error: Error) => {

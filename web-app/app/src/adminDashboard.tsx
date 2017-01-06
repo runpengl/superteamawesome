@@ -14,7 +14,7 @@ import {
     loadDiscoveredPagesAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
-import { DiscoveredPages } from "./puzzles";
+import { DiscoveredPages, Puzzles } from "./puzzles";
 import { IAppState, IDiscoveredPage, IHuntState } from "./state";
 import { getSlackAuthUrl } from "./services";
 
@@ -209,7 +209,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     </div>
                     <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
                 </div>
-                {this.maybeRenderDiscoveredPages()}
+                {this.maybeRenderPuzzles()}
             </div>
         )
     }
@@ -232,12 +232,13 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
-    private maybeRenderDiscoveredPages() {
+    private maybeRenderPuzzles() {
         const { discoveredPages, hunt, ignoredPages, slackToken } = this.props;
         if (slackToken !== undefined) {
             return (
                 <div className="tables-container">
                     <DiscoveredPages hunt={hunt.value} discoveredPages={discoveredPages} title="discovered"/>
+                    <Puzzles huntKey={hunt.value.year} huntDomain={hunt.value.domain} slackTeamId={hunt.value.slackTeamId} />
                     <DiscoveredPages
                         hunt={hunt.value}
                         discoveredPages={ignoredPages}

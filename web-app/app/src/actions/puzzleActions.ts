@@ -4,12 +4,41 @@ import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
 import { createSheet, slack } from "../services";
-import { IAppState, IDiscoveredPage, PuzzleStatus } from "../state";
+import { IAppState, IDiscoveredPage, IPuzzle, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,
     asyncActionSucceededPayload,
 } from "./loading";
+
+export const LOAD_PUZZLES_ACTION = "LOAD_PUZZLES";
+export function loadPuzzlesAction(huntKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<IPuzzle[]>(LOAD_PUZZLES_ACTION));
+        firebaseDatabase
+            .ref("puzzles")
+            .orderByChild("hunt")
+            .equalTo(huntKey)
+            .once("value", (snapshot) => {
+                let puzzles: IPuzzle[] = [];
+                snapshot.forEach((puzzleSnapshot) => {
+                    puzzles.push(Object.assign({}, puzzleSnapshot.val(), { key: puzzleSnapshot.key }));
+                    return false;
+                });
+
+                puzzles = puzzles.sort((a: IPuzzle, b: IPuzzle) => {
+                    const aDate = new Date(a.createdAt);
+                    const bDate = new Date(b.createdAt);
+                    return aDate.valueOf() - bDate.valueOf();
+                });
+
+                puzzles = puzzles.map((puzzle, index) => Object.assign({}, puzzle, { index }));
+                dispatch(asyncActionSucceededPayload<IPuzzle[]>(LOAD_PUZZLES_ACTION, puzzles));
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<IPuzzle[]>(LOAD_PUZZLES_ACTION, error));
+            });
+    }
+}
 
 export const LOAD_DISCOVERED_PUZZLES_ACTION = "LOAD_DISCOVERED_PUZZLES";
 export function loadDiscoveredPagesAction(huntKey: string) {
