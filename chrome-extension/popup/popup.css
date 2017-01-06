@@ -1,0 +1,138 @@
+body {
+  margin: 0;
+}
+
+a {
+  color: #1c71b9;
+  cursor: pointer;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+#popup {
+  width: 300px;
+}
+
+/**
+ * Popup
+ */
+
+.Popup-signInButton {
+  background: #d6d6d6;
+  border-radius: 2px;
+  color: white;
+  cursor: pointer;
+  display: block;
+  font-size: 14px;
+  height: 30px;
+  line-height: 30px;
+  margin: 60px auto;
+  text-align: center;
+  width: 150px;
+}
+.Popup-signInButton:hover {
+  background: #fbb03b;
+  outline: none;
+}
+
+.Popup-loading {
+  display: block;
+  margin: 60px auto;
+  width: 30px;
+}
+
+.Popup-toolbar {
+  align-items: center;
+  border-top: 3px solid #fbb03b;
+  background: linear-gradient(to top, #f5f5f5, #eee);
+  border-bottom: 1px solid #d9d9d9;
+  color: #6d6d6d;
+  display: flex;
+  font-size: 12px;
+  height: 24px;
+}
+
+.Popup-userImage {
+  height: 100%;
+  margin-right: 10px;
+}
+
+.Popup-signOutButton {
+  background: #ddd;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 24px;
+  margin-left: auto;
+  padding: 0 10px;
+}
+.Popup-signOutButton:hover {
+  background: #e12548;
+}
+
+.Popup-currentHuntInfo {
+  margin: 10px 15px;
+}
+
+.Popup-allPuzzles {
+  max-height: 283px;
+  overflow-y: auto;
+}
+
+/**
+ * PuzzleList
+ */
+.PuzzleList {
+  list-style-type: none;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.PuzzleList-puzzle {
+  border-left: 5px solid;
+  display: flex;
+  line-height: 20px;
+  padding-left: 10px;
+  background: #f2f2f2;
+  margin-bottom: 1px;
+  white-space: nowrap;
+}
+.PuzzleList-puzzle.new {
+  border-color: #9050d4;
+}
+.PuzzleList-puzzle.inProgress {
+  border-color: #e88714;
+}
+.PuzzleList-puzzle.stuck {
+  border-color: #e12548;
+}
+.PuzzleList-puzzle.solved {
+  border-color: #07b05a;
+}
+
+.PuzzleList-puzzleLink {
+  min-width: 1px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.PuzzleList-puzzleViewerCount {
+  display: inline-block;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 0 5px;
+}
+
+.PersonIcon {
+  display: inline-block;
+  height: 10px;
+  margin: 5px 0;
+  margin-left: auto;
+  width: 10px;
+  vertical-align: top;
+}

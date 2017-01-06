@@ -1,16 +1,44 @@
 {
   "manifest_version": 2,
 
-  "name": "Getting started example",
-  "description": "This extension shows a Google Image search result for the current page",
-  "version": "1.0",
+  "name": "SuperTeamAwesome Toolbar",
+  "description": "MIT Mystery Hunt Helper",
+  "version": "0.3.1",
+
+  "background": {
+    "scripts": [
+      "firebase-3.6.2.js",
+      "config.js",
+      "background/slack.js",
+      "background/index.js"
+    ]
+  },
 
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup/popup.html",
+    "default_icon": "popup/popup.png"
   },
+
+  "content_security_policy": "script-src 'self' https://*.firebaseio.com; object-src 'self'",
+
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjAnCKpXYqXb6iioTS6kIo8gC7Cozl8iubaqvaKscVvJc+CgaEZmqewkYDBxnENiiUoAouBBwmXZyuTf97nPK7aBFQUPgFmeCZj7CJDjYis3rga0ZUDt2peWge3XJCc3cf6KStVba1TY1F72HXaRhPEPMvjh/JxN4PJufYlENcbId+N91/eCqITRDRb9G0SJN6XEHNBEVJqEFv05PPEJMXFpJDR/fLr3qBaDVubRQJkA1WyMSTSXLt7O81zjgj3RXMJr/T8DTj5E6RP/AbDK9+6+AN2UJjSL3VTILnpdkCYuEmUgRm6QFn/N8piuXhWaKb79KZ2rIrC60tZy+GxWRwIDAQAB",
+
+  "oauth2": {
+    "client_id": "78972050192-anjdpjl8bnjvvfnavigkaonr0rq71ueg.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
+
   "permissions": [
-    "activeTab",
-    "https://ajax.googleapis.com/"
+    "http://*/",
+    "https://*/",
+    "identity",
+    "tabs"
+  ],
+
+  "web_accessible_resources": [
+    "toolbar/toolbar.html"
   ]
 }
