@@ -8,9 +8,23 @@ import {
     isAsyncSucceeded,
     LOAD_DISCOVERED_PUZZLES_ACTION,
     LOAD_IGNORED_PAGES_ACTION,
+    LOAD_PUZZLES_ACTION,
     SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
 } from "../actions";
-import { IDiscoveredPage } from "../state";
+import { IDiscoveredPage, IPuzzle } from "../state";
+
+const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
+    status: AsyncActionStatus.NONE,
+};
+
+export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialState,
+    action: IAsyncAction<IPuzzle[]>) {
+    switch (action.type) {
+        case LOAD_PUZZLES_ACTION:
+            return Object.assign({}, state, getAsyncLoadedValue(action));
+        default: return state;
+    }
+}
 
 const initialState: IAsyncLoaded<IDiscoveredPage[]> = {
     status: AsyncActionStatus.NONE,

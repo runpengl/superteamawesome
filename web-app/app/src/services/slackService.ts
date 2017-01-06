@@ -5,10 +5,11 @@ const { slack: slackConfig } = config;
 
 export function getSlackAuthUrl() {
     const { slack: slackConfig } = config;
+    const scope = "channels:write team:read";
     return `https://slack.com/oauth/authorize?client_id=${slackConfig.clientId}`
         + `&redirect_uri=${slackConfig.redirectURL}`
         + `&team=${slackConfig.team}`
-        + `&scope=channels:write`;
+        + `&scope=${scope}`;
 }
 
 const slackApi = "https://slack.com/api";
@@ -66,7 +67,31 @@ const channels = {
     create: createChannel,
 };
 
+export interface ISlackTeamInfo {
+    id: string;
+    name: string;
+}
+
+export interface ISlackTeamInfoResponse extends ISlackResponse {
+    team: ISlackTeamInfo;
+}
+
+function getTeamInfo(token: string): Promise<ISlackTeamInfo> {
+    return makeRequest<ISlackTeamInfoResponse>(`${slackApi}/team.info?token=${token}`, "GET").then((response) => {
+        if (response.ok) {
+            return response.team;
+        } else {
+            throw new Error(response.error);
+        }
+    });
+}
+
+const team = {
+    info: getTeamInfo,
+};
+
 export const slack = {
     channels,
     oauth,
+    team,
 };
