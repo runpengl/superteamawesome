@@ -42,7 +42,7 @@ function isToolbarInfoEqual(info1, info2) {
 }
 
 function handleChromeTabsUpdated(tabId, changeInfo, tab) {
-    if (changeInfo.status === "loading") {
+    if (changeInfo.status === "complete") {
         var a = document.createElement("a");
         a.href = tab.url;
 
