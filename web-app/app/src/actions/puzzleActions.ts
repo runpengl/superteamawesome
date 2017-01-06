@@ -26,7 +26,7 @@ export function loadPuzzlesAction(huntKey: string) {
                     return false;
                 });
 
-                puzzles = puzzles.sort((a: IPuzzle, b: IPuzzle) => {
+                puzzles.sort((a: IPuzzle, b: IPuzzle) => {
                     const aDate = new Date(a.createdAt);
                     const bDate = new Date(b.createdAt);
                     return aDate.valueOf() - bDate.valueOf();
@@ -157,17 +157,6 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         const slackChannelName = "x-" + lowerCasePuzzleName.substring(0, 19);
 
         dispatch(asyncActionInProgressPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION));
-        // remove from db first
-        const removeFirebasePromise = new Promise((resolve) => {
-            firebaseDatabase
-                .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}`)
-                .set(null)
-                .then(() => {
-                    resolve();
-                }, (error: Error) => {
-                    throw error;
-                });
-        });
 
         const checkPuzzleExists = new Promise((resolve, reject) => {
             firebaseDatabase
@@ -200,6 +189,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
                     hunt: hunt.year,
+                    key: puzzleKey,
                     name: puzzleName,
                     path: discoveredPage.path,
                     slackChannel: channel.name,
@@ -211,6 +201,16 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                     .ref(`puzzles/${puzzleKey}`)
                     .set(newPuzzle)
                     .then(() => {
+                        const removeFirebasePromise = new Promise((resolve) => {
+                            firebaseDatabase
+                                .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}`)
+                                .set(null)
+                                .then(() => {
+                                    resolve();
+                                }, (error: Error) => {
+                                    throw error;
+                                });
+                        });
                         removeFirebasePromise.then(() => {
                             dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
                                 changedPages: [discoveredPage],

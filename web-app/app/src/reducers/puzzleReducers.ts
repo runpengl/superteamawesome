@@ -26,7 +26,8 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
         case CREATE_PUZZLE_ACTION:
             if (isAsyncSucceeded(action)) {
                 let payload = action.value as ICreatePuzzleActionPayload;
-                let newPuzzles = state.value.concat(payload.newPuzzles);
+                let newPuzzles: IPuzzle[] = state.value.concat(payload.newPuzzles);
+                newPuzzles[newPuzzles.length - 1].index = newPuzzles.length - 1;
                 return Object.assign({}, state, { value: newPuzzles });
             }
         default: return state;

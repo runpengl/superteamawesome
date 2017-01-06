@@ -10,7 +10,7 @@ import {
     isAsyncLoaded,
     saveDiscoveredPageChangesAction,
 } from "../actions";
-import { IAppState, IHuntState, IDiscoveredPage } from "../state";
+import { IAppState, IAppLifecycle, IHuntState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
     hunt: IHuntState;
@@ -25,10 +25,13 @@ interface IDispatchProps {
     saveDiscoveredPageChanges?: (changedPages: { [key: string]: IDiscoveredPageChanges }) => void;
 }
 
-interface IStateProps {}
+interface IStateProps {
+    lifecycle?: IAppLifecycle;
+}
 interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {}
 
 interface IDiscoveredPagesState {
+    error?: string;
     generatingPuzzles?: string[];
     hasChanges: boolean;
     updatedPages?: { [key: string]: IDiscoveredPageChanges };
@@ -42,7 +45,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     };
     
     public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
-        const { discoveredPages } = this.props;
+        const { lifecycle, discoveredPages } = this.props;
         if (isAsyncLoaded(oldProps.discoveredPages) && isAsyncLoaded(discoveredPages)
             && oldProps.discoveredPages.value.length !== discoveredPages.value.length) {
             const newPageKeys = discoveredPages.value.map((page) => page.key);
@@ -57,15 +60,24 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
             });
             this.setState({ generatingPuzzles, hasChanges: false });
         }
+
+        if (oldProps.lifecycle.createPuzzleFailure === undefined && lifecycle.createPuzzleFailure !== undefined) {
+            this.setState({
+                error: lifecycle.createPuzzleFailure.message,
+                generatingPuzzles: [],
+                hasChanges: false,
+            });
+        }
     }
 
     public render() {
         const { discoveredPages, title } = this.props;
-        const { hasChanges } = this.state;
+        const { error, hasChanges } = this.state;
         return (
             <div className="discovered-puzzles-container">
                 <h3><em>{title}</em> puzzle pages</h3>
                 <button disabled={!hasChanges} onClick={this.handleSaveChanges}>{ hasChanges ? "Save" : "Saved" }</button>
+                { error !== undefined ? `There was an error creating the puzzle: ${error}` : undefined }
                 { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
             </div>
         );
@@ -163,6 +175,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         const { hasChanges, updatedPages } = this.state;
         if (hasChanges) {
             saveDiscoveredPageChanges(updatedPages);
+            this.setState({ hasChanges: false });
         }
     }
 
@@ -182,8 +195,8 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 }
 
-function mapStateToProps(): IStateProps {
-    return { };
+function mapStateToProps(state: IAppState): IStateProps {
+    return { lifecycle: state.lifecycle };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
