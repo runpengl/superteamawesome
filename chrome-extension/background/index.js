@@ -57,11 +57,10 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
                     // switching channels, so we need to trigger a reconnection so
                     // that the toolbar can subscribe to a different set of data.
                     chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
-
-                    if (info.toolbarType === "hunt" &&
-                        info.locationType === "huntDomain") {
-                        maybeAddDiscoveredPage(info.huntKey, a.pathname, tab.title);
-                    }
+                }
+                if (info.toolbarType === "hunt" &&
+                    info.locationType === "huntDomain") {
+                    maybeAddDiscoveredPage(info.huntKey, a.pathname, tab.title);
                 }
                 if (info.toolbarType !== "none") {
                     // Try and inject a toolbar onto the page. If we have previously

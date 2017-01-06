@@ -99,7 +99,9 @@ function handleSlackWsMessage(event) {
             notifySubscribers(channel);
             break;
         case "message":
-            if (msg.subtype === "message_deleted") {
+            if (msg.subtype) {
+                // We only care about regular messages.
+                // See https://api.slack.com/events/message for more details.
                 return;
             }
             var channel = slackChannelById[msg.channel];
