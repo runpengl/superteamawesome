@@ -5,8 +5,10 @@ import { bindActionCreators, Dispatch } from "redux";
 import {
     createPuzzleAction,
     IAsyncLoaded,
+    IDiscoveredPageChanges,
     ignoreDiscoveredPageAction,
     isAsyncLoaded,
+    saveDiscoveredPageChangesAction,
 } from "../actions";
 import { IAppState, IHuntState, IDiscoveredPage } from "../state";
 
@@ -20,6 +22,7 @@ interface IOwnProps {
 interface IDispatchProps {
     createPuzzle?: (puzzleName: string, discoveredPage: IDiscoveredPage) => void;
     ignoreDiscoveredPage?: (discoveredPage: IDiscoveredPage) => void;
+    saveDiscoveredPageChanges?: (changedPages: { [key: string]: IDiscoveredPageChanges }) => void;
 }
 
 interface IStateProps {}
@@ -27,11 +30,15 @@ interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {
 
 interface IDiscoveredPagesState {
     generatingPuzzles?: string[];
+    hasChanges: boolean;
+    updatedPages?: { [key: string]: IDiscoveredPageChanges };
 }
 
 class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, IDiscoveredPagesState> {
     public state: IDiscoveredPagesState = {
         generatingPuzzles: [],
+        hasChanges: false,
+        updatedPages: {},
     };
     
     public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
@@ -48,15 +55,17 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                 const removeIndex = generatingPuzzles.findIndex((puzzleKey) => puzzleKey === key);
                 generatingPuzzles = generatingPuzzles.splice(removeIndex, 1);
             });
-            this.setState({ generatingPuzzles });
+            this.setState({ generatingPuzzles, hasChanges: false });
         }
     }
 
     public render() {
         const { discoveredPages, title } = this.props;
+        const { hasChanges } = this.state;
         return (
             <div className="discovered-puzzles-container">
                 <h3><em>{title}</em> puzzle pages</h3>
+                <button disabled={!hasChanges} onClick={this.handleSaveChanges}>{ hasChanges ? "Save" : "Saved" }</button>
                 { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
             </div>
         );
@@ -71,7 +80,9 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                 const title = this.getRegexedTitle(discoveredPage.title);
                 return (
                     <tr key={discoveredPage.title}>
-                        <td>{title}</td>
+                        <td>
+                            <input type="text" defaultValue={title} onChange={this.handlePageTitleChange(discoveredPage)} />
+                        </td>
                         <td>
                             <button
                                 disabled={hunt.driveFolderId === undefined || hunt.templateSheetId === undefined}
@@ -82,7 +93,11 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                         </td>
                         {this.maybeRenderIgnoreButton(discoveredPage)}
                         <td>
-                            <input type="text" defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)} />
+                            <input
+                                type="text"
+                                defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)}
+                                onChange={this.handlePageLinkChange(discoveredPage)}
+                            />
                         </td>
                     </tr>
                 )
@@ -94,6 +109,30 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                 </tbody>
             </table>
         );
+    }
+
+    private handlePageLinkChange = (discoveredPage: IDiscoveredPage) => {
+        return (event: React.FormEvent) => {
+            const newValue = (event.target as HTMLInputElement).value;
+            const newUpdatedPages = Object.assign({}, this.state.updatedPages);
+            if (newUpdatedPages[discoveredPage.key] === undefined) {
+                newUpdatedPages[discoveredPage.key] = {};
+            }
+            newUpdatedPages[discoveredPage.key].link = newValue;
+            this.setState({ hasChanges: true, updatedPages: newUpdatedPages });
+        }
+    }
+
+    private handlePageTitleChange = (discoveredPage: IDiscoveredPage) => {
+        return (event: React.FormEvent) => {
+            const newValue = (event.target as HTMLInputElement).value;
+            const newUpdatedPages = Object.assign({}, this.state.updatedPages);
+            if (newUpdatedPages[discoveredPage.key] === undefined) {
+                newUpdatedPages[discoveredPage.key] = {};
+            }
+            newUpdatedPages[discoveredPage.key].title = newValue;
+            this.setState({ hasChanges: true, updatedPages: newUpdatedPages });
+        };
     }
 
     private maybeRenderIgnoreButton(discoveredPage: IDiscoveredPage) {
@@ -119,11 +158,19 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         }
     }
 
+    private handleSaveChanges = () => {
+        const { saveDiscoveredPageChanges } = this.props;
+        const { hasChanges, updatedPages } = this.state;
+        if (hasChanges) {
+            saveDiscoveredPageChanges(updatedPages);
+        }
+    }
+
     private handleCreatePuzzle = (title: string, discoveredPage: IDiscoveredPage) => {
         const { createPuzzle } = this.props;
         return () => {
             createPuzzle(title, discoveredPage);
-            this.setState({ generatingPuzzles: this.state.generatingPuzzles.concat(discoveredPage.key) });
+            this.setState({ hasChanges: this.state.hasChanges, generatingPuzzles: this.state.generatingPuzzles.concat(discoveredPage.key) });
         };
     }
 
@@ -143,6 +190,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         createPuzzle: createPuzzleAction,
         ignoreDiscoveredPage: ignoreDiscoveredPageAction,
+        saveDiscoveredPageChanges: saveDiscoveredPageChangesAction,
     }, dispatch);
 }
 

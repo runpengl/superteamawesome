@@ -53,6 +53,49 @@ export function loadIgnoredPagesAction(huntKey: string) {
     }
 }
 
+export const SAVE_DISCOVERED_PAGE_CHANGES_ACTION = "SAVE_DISCOVERED_PAGE_CHANGES";
+export interface IDiscoveredPageChanges {
+    title?: string;
+    link?: string;
+}
+export function saveDiscoveredPageChangesAction(changes: { [key: string]: IDiscoveredPageChanges }) {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(SAVE_DISCOVERED_PAGE_CHANGES_ACTION));
+        const huntKey = getState().hunt.value.year;
+        let changePromises: Promise<IDiscoveredPage>[] = [];
+        Object.keys(changes).forEach((key) => {
+            const updates: { [key: string]: string } = {};
+            if (changes[key].title !== undefined) {
+                updates[`/discoveredPages/${huntKey}/${key}/title`] = changes[key].title;
+            }
+            if (changes[key].link !== undefined) {
+                updates[`/discoveredPages/${huntKey}/${key}/link`] = changes[key].link;
+            }
+            if (Object.keys(updates).length > 0) {
+                const changePromise = new Promise<IDiscoveredPage>((resolve) => {
+                    firebaseDatabase.ref().update(updates).then(() => {
+                        firebaseDatabase.ref(`discoveredPages/${huntKey}/${key}`)
+                            .once("value", (snapshot: firebase.database.DataSnapshot) => {
+                                resolve(Object.assign({}, snapshot.val(), { key: snapshot.key }));
+                            })
+                    }, (error) => {
+                        throw error;
+                    })
+                });
+                changePromises.push(changePromise);
+            }
+        });
+
+        Promise.all(changePromises)
+            .then((changedPages: IDiscoveredPage[]) => {
+                dispatch(asyncActionSucceededPayload<IDiscoveredPage[]>(SAVE_DISCOVERED_PAGE_CHANGES_ACTION, changedPages));
+            })
+            .catch((error: Error) => {
+                dispatch(asyncActionFailedPayload<IDiscoveredPage[]>(SAVE_DISCOVERED_PAGE_CHANGES_ACTION, error));
+            })
+    }
+}
+
 export const IGNORE_DISCOVERED_PAGE_ACTION = "IGNORE_PAGE";
 export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
