@@ -8,6 +8,7 @@ import {
     isAsyncSucceeded,
     LOAD_DISCOVERED_PUZZLES_ACTION,
     LOAD_IGNORED_PAGES_ACTION,
+    SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
 } from "../actions";
 import { IDiscoveredPage } from "../state";
 
@@ -35,6 +36,16 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
                 discoveredPages = discoveredPages.filter((page) => page.key !== ignoredPuzzlePage.key);
                 return Object.assign({}, state, { value: discoveredPages });
             }
+        case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:
+            if (isAsyncSucceeded(action)) {
+                let changedPages = action.value.filter((page) => !page.ignored);
+                let discoveredPages = state.value.slice();
+                changedPages.forEach((changedPage) => {
+                    const changedIndex = discoveredPages.findIndex((page) => page.key === changedPage.key);
+                    discoveredPages[changedIndex] = changedPage;
+                });
+                return Object.assign({}, state, { value: discoveredPages });
+            }
         default:
             return state;
     }
@@ -56,6 +67,16 @@ export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = ini
                 const createdPuzzlePage = action.value[0];
                 ignoredPages = ignoredPages.filter((page) => page.key !== createdPuzzlePage.key);
                 return Object.assign({}, state, { value: ignoredPages });
+            }
+        case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:
+            if (isAsyncSucceeded(action)) {
+                let changedPages = action.value.filter((page) => page.ignored);
+                let discoveredPages = state.value.slice();
+                changedPages.forEach((changedPage) => {
+                    const changedIndex = discoveredPages.findIndex((page) => page.key === changedPage.key);
+                    discoveredPages[changedIndex] = changedPage;
+                });
+                return Object.assign({}, state, { value: discoveredPages });
             }
         default:
             return state;
