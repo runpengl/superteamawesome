@@ -74,11 +74,37 @@ a:hover {
 
 .Popup-currentHuntInfo {
   margin: 10px 15px;
+  position: relative;
 }
 
-.Popup-allPuzzles {
+.Popup-sortToggle {
+  bottom: -5px;
+  color: #6d6d6d;
+  fill: #6d6d6d;
+  cursor: pointer;
+  font-size: 10px;
+  position: absolute;
+  right: -10px;
+}
+
+.Popup-sortToggle:hover {
+  color: #1c71b9;
+  fill: #1c71b9;
+}
+
+.Popup-sortIcon {
+  height: 12px;
+  vertical-align: middle;
+  width: 12px;
+}
+
+/**
+ * AllPuzzles
+ */
+.AllPuzzles {
   max-height: 283px;
   overflow-y: auto;
+  position: relative;
 }
 
 /**
