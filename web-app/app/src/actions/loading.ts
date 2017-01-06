@@ -50,7 +50,7 @@ export function asyncActionInProgressPayload<T>(type: string): IAsyncAction<T> {
     };
 }
 
-export function asyncActionSucceededPayload<T>(type: string, value: T): IAsyncAction<T> {
+export function asyncActionSucceededPayload<T>(type: string, value?: T): IAsyncAction<T> {
     return {
         status: AsyncActionStatus.SUCCEEDED,
         type,

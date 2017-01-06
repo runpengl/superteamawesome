@@ -34,6 +34,17 @@ export const PuzzleStatus = {
     SOLVED: "solved" as PuzzleStatus,
     STUCK: "stuck" as PuzzleStatus,
 }
+
+export interface IPuzzleGroup {
+    parent: IPuzzle;
+    index: number;
+    children: IPuzzle[];
+}
+
+export interface IPuzzleHierarchy {
+    [key: string]: IPuzzleGroup;
+}
+
 export interface IPuzzle {
     createdAt: string;
     hunt: string;
@@ -41,6 +52,7 @@ export interface IPuzzle {
     key: string;
     name: string;
     parent?: string;
+    parentIndex?: number;
     path: string;
     slackChannel: string;
     slackChannelId: string;

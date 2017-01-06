@@ -4,7 +4,7 @@ import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
 import { createSheet, slack } from "../services";
-import { IAppState, IDiscoveredPage, IPuzzle, PuzzleStatus } from "../state";
+import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,
@@ -225,4 +225,34 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
             })
     }
+}
+
+export const SAVE_HIERARCHY_ACTION = "SAVE_HIERARCHY";
+export function saveHierarchyAction(hierarchy: IPuzzleHierarchy) {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        let promises: Promise<void>[] = [];
+        dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
+        Object.keys(hierarchy).forEach((groupKey) => {
+            let childPromises = hierarchy[groupKey].children.map((puzzle) => {
+                const updates = {
+                    [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
+                    [`/puzzles/${puzzle.key}/parentIndex`]: hierarchy[groupKey].index,
+                };
+                return new Promise<void>((resolve) => {
+                    firebaseDatabase.ref().update(updates).then(() => {
+                        resolve();
+                    }, (error) => {
+                        throw error;
+                    });
+                });
+            });
+            promises = promises.concat(childPromises);
+        });
+        Promise.all(promises).then(() => {
+            dispatch(asyncActionSucceededPayload<void>(SAVE_HIERARCHY_ACTION));
+            loadPuzzlesAction(getState().hunt.value.year)(dispatch);
+        }).catch((error) => {
+            dispatch(asyncActionFailedPayload<void>(SAVE_HIERARCHY_ACTION, error));
+        });
+    };
 }

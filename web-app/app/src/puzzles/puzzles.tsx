@@ -2,9 +2,9 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { isAsyncLoaded, IAsyncLoaded, loadPuzzlesAction } from "../actions";
-import { IAppState, IPuzzle } from "../state";
-import { IPuzzleHierarchy, PuzzleHierarchy } from "./puzzleHierarchy";
+import { isAsyncLoaded, IAsyncLoaded, loadPuzzlesAction, saveHierarchyAction } from "../actions";
+import { IAppState, IPuzzle, IPuzzleHierarchy } from "../state";
+import { PuzzleHierarchy } from "./puzzleHierarchy";
 
 interface IOwnProps {
     huntKey: string;
@@ -14,6 +14,7 @@ interface IOwnProps {
 
 interface IDispatchProps {
     loadPuzzles?: (huntKey: string) => void;
+    saveHierarchy?: (hierarchy: IPuzzleHierarchy) => void;
 }
 
 interface IStateProps {
@@ -25,6 +26,7 @@ export interface IPuzzlesProps extends IOwnProps, IDispatchProps, IStateProps {}
 export interface IPuzzlesState {
     hasChanges?: boolean;
     hierarchy?: IPuzzleHierarchy;
+    isHierarchyLoaded?: boolean;
     parseError?: string;
     textHierarchy?: string[];
     unsortedPuzzles?: IPuzzle[];
@@ -58,6 +60,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     hierarchy[parentKey] = {
                         parent: puzzles.value.find((puzzle) => puzzle.key === parentKey),
                         children: [],
+                        index: puzzle.parentIndex,
                     };
                 }
 
@@ -66,6 +69,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
             this.setState({
                 hierarchy,
+                isHierarchyLoaded: true,
                 textHierarchy: this.translateHierarchyToText(hierarchy),
                 unsortedPuzzles: puzzles.value.filter((puzzle) => puzzle.parent === undefined),
             });
@@ -74,17 +78,15 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     public render() {
         const { huntDomain, slackTeamId, puzzles } = this.props;
-        const { hasChanges, hierarchy, parseError } = this.state;
+        const { hasChanges, hierarchy, isHierarchyLoaded, parseError } = this.state;
+        const textareaText = this.state.textHierarchy.join("\n");
         return (
             <div className="puzzles-container">
                 <h3>Puzzles</h3>
-                <button disabled={!hasChanges}>{ hasChanges ? "Save" : "Saved" }</button>
+                <button disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
                 <h5>Unsorted Puzzles</h5>
                 {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
-                <textarea
-                    defaultValue={this.state.textHierarchy.join("\n")}
-                    onChange={this.handleTextHierarchyChange}
-                />
+                { isHierarchyLoaded ? <textarea defaultValue={textareaText} onChange={this.handleTextHierarchyChange} /> : undefined}
                 <button disabled={!isAsyncLoaded(puzzles)} onClick={this.parseHierarchy}>Preview Hierarchy</button>
                 { parseError !== undefined ? <div className="error">Error parsing: {parseError}</div> : undefined }
                 <PuzzleHierarchy
@@ -94,6 +96,11 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 />
             </div>
         )
+    }
+
+    private handleSaveHierarchy = () => {
+        this.props.saveHierarchy(this.state.hierarchy);
+        this.setState({ hasChanges: false });
     }
 
     private handleTextHierarchyChange = (event: React.FormEvent) => {
@@ -107,6 +114,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         let hierarchy: IPuzzleHierarchy = {};
         let error: string;
         let currentParent: string;
+        let currentParentIndex = -1;
         let sortedPuzzleKeys: string[] = [];
         for (let i = 0; i < textHierarchy.length && error === undefined; i++) {
             const text = textHierarchy[i];
@@ -125,6 +133,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         break;
                     } else {
                         currentParent = puzzles[parentIndex].key;
+                        currentParentIndex += 1;
                         if (hierarchy[currentParent] !== undefined) {
                             error = `${hierarchy[currentParent].parent.name} is already defined as a puzzle group`;
                             break;
@@ -132,6 +141,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                             hierarchy[currentParent] = {
                                 parent: puzzles[parentIndex],
                                 children: [],
+                                index: currentParentIndex,
                             };
                         }
                     }
@@ -223,6 +233,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         loadPuzzles: loadPuzzlesAction,
+        saveHierarchy: saveHierarchyAction,
     }, dispatch);
 }
 

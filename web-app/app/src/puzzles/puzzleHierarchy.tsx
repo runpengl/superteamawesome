@@ -1,15 +1,6 @@
 import * as React from "react";
 
-import { IPuzzle, PuzzleStatus } from "../state";
-
-export interface IPuzzleGroup {
-    parent: IPuzzle;
-    children: IPuzzle[];
-}
-
-export interface IPuzzleHierarchy {
-    [key: string]: IPuzzleGroup;
-}
+import { IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state";
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
@@ -20,9 +11,13 @@ export interface IPuzzleHierarchyProps {
 export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, {}> {
     public render() {
         const { hierarchy } = this.props;
+        const hierarchyKeys = Object.keys(hierarchy);
+        hierarchyKeys.sort((a, b) => {
+            return hierarchy[a].index - hierarchy[b].index;
+        });
         return (
             <div className="hierarchy">
-                {Object.keys(hierarchy).map((key) => this.renderPuzzleGroup(hierarchy[key]))}
+                {hierarchyKeys.map((key) => this.renderPuzzleGroup(hierarchy[key]))}
             </div>
         )
     }
