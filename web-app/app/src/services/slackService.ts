@@ -34,6 +34,39 @@ const oauth = {
     access: oauthAccess,
 };
 
+export interface ISlackChannel {
+    creator: string;
+    id: string;
+    name: string;
+    is_archived: boolean;
+    is_member: boolean;
+    members: string[];
+}
+
+export interface ISlackResponse {
+    ok: boolean | string;
+    error?: string;
+}
+
+export interface ISlackChannelResponse extends ISlackResponse {
+    channel: ISlackChannel;
+}
+
+function createChannel(token: string, name: string): Promise<ISlackChannel> {
+    return makeRequest<ISlackChannelResponse>(`${slackApi}/channels.create?token=${token}&name=${name}`, "GET").then((response) => {
+        if (response.ok) {
+            return response.channel;
+        } else {
+            throw new Error(response.error);
+        }
+    });
+}
+
+const channels = {
+    create: createChannel,
+};
+
 export const slack = {
+    channels,
     oauth,
 };

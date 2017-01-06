@@ -26,9 +26,27 @@ export interface IDiscoveredPage {
     title: string;
 }
 
+export type PuzzleStatus = "inProgress" | "solved" | "new";
+export const PuzzleStatus = {
+    IN_PROGRESS: "inProgress" as PuzzleStatus,
+    NEW: "new" as PuzzleStatus,
+    SOLVED: "solved" as PuzzleStatus,
+}
+export interface IPuzzle {
+    createdAt: string;
+    hunt: string;
+    name: string;
+    path: string;
+    slackChannel: string;
+    solution: string;
+    spreadsheetId: string;
+    status: PuzzleStatus;
+}
+
 export interface IAppState {
     auth?: IAuthState;
     discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     hunt?: IAsyncLoaded<IHuntState>;
     huntDriveFolder?: IAsyncLoaded<IGoogleDriveFile>;
+    ignoredPages?: IAsyncLoaded<IDiscoveredPage[]>;
 }

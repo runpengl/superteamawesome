@@ -83,7 +83,7 @@ export function loadHuntAndUserInfoAction() {
                             const hunt = huntSnapshot.val() as IHunt;
                             dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
                                 LOAD_HUNT_ACTION,
-                                Object.assign({}, hunt, { year: Number(huntSnapshot.key) }),
+                                Object.assign({}, hunt, { year: huntSnapshot.key }),
                             ));
                             return true;
                         });

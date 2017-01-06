@@ -2,33 +2,61 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { IAsyncLoaded, isAsyncLoaded, loadDiscoveredPagesAction } from "../actions";
+import {
+    createPuzzleAction,
+    IAsyncLoaded,
+    ignoreDiscoveredPageAction,
+    isAsyncLoaded,
+} from "../actions";
 import { IAppState, IHuntState, IDiscoveredPage } from "../state";
 
 interface IOwnProps {
     hunt: IHuntState;
+    discoveredPages: IAsyncLoaded<IDiscoveredPage[]>;
+    hideIgnoreButton?: boolean;
+    title: string;
 }
 
 interface IDispatchProps {
-    loadDiscoveredPages?: (huntKey: string) => void;
+    createPuzzle?: (puzzleName: string, discoveredPage: IDiscoveredPage) => void;
+    ignoreDiscoveredPage?: (discoveredPage: IDiscoveredPage) => void;
 }
 
-interface IStateProps {
-    discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
-}
+interface IStateProps {}
 interface IDiscoveredPagesProps extends IOwnProps, IDispatchProps, IStateProps {}
 
-class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, {}> {
-    public componentDidMount() {
-        const { hunt, loadDiscoveredPages } = this.props;
-        loadDiscoveredPages(hunt.year);
+interface IDiscoveredPagesState {
+    generatingPuzzles?: string[];
+}
+
+class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, IDiscoveredPagesState> {
+    public state: IDiscoveredPagesState = {
+        generatingPuzzles: [],
+    };
+    
+    public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
+        const { discoveredPages } = this.props;
+        if (isAsyncLoaded(oldProps.discoveredPages) && isAsyncLoaded(discoveredPages)
+            && oldProps.discoveredPages.value.length !== discoveredPages.value.length) {
+            const newPageKeys = discoveredPages.value.map((page) => page.key);
+            const oldPageKeys = oldProps.discoveredPages.value.map((page) => page.key);
+            const removedPageKeys = oldPageKeys.filter((oldPageKey) => {
+                return newPageKeys.indexOf(oldPageKey) < 0;
+            });
+            let { generatingPuzzles } = this.state;
+            removedPageKeys.forEach((key) => {
+                const removeIndex = generatingPuzzles.findIndex((puzzleKey) => puzzleKey === key);
+                generatingPuzzles = generatingPuzzles.splice(removeIndex, 1);
+            });
+            this.setState({ generatingPuzzles });
+        }
     }
 
     public render() {
-        const { discoveredPages } = this.props;
+        const { discoveredPages, title } = this.props;
         return (
             <div className="discovered-puzzles-container">
-                <h3><em>discovered</em> puzzle pages</h3>
+                <h3><em>{title}</em> puzzle pages</h3>
                 { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
             </div>
         );
@@ -36,9 +64,9 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
 
     private renderDiscoveredPages() {
         const { hunt } = this.props;
+        const { generatingPuzzles } = this.state;
         const discoveredPages = this.props.discoveredPages.value;
         const discoveredPageRows = discoveredPages
-            .filter((discoveredPage) => !discoveredPage.ignored)
             .map((discoveredPage) => {
                 const title = this.getRegexedTitle(discoveredPage.title);
                 return (
@@ -47,12 +75,12 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                         <td>
                             <button
                                 disabled={hunt.driveFolderId === undefined || hunt.templateSheetId === undefined}
-                                onClick={this.handleCreatePuzzle(title)}
+                                onClick={this.handleCreatePuzzle(title, discoveredPage)}
                             >
-                                generate slack & doc
+                                { generatingPuzzles.indexOf(discoveredPage.key) >= 0 ? "generating..." : "generate slack & doc" }
                             </button>
                         </td>
-                        <td><button>ignore</button></td>
+                        {this.maybeRenderIgnoreButton(discoveredPage)}
                         <td>
                             <input type="text" defaultValue={this.getPuzzleUrl(discoveredPage.host, discoveredPage.path)} />
                         </td>
@@ -66,6 +94,14 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                 </tbody>
             </table>
         );
+    }
+
+    private maybeRenderIgnoreButton(discoveredPage: IDiscoveredPage) {
+        const { hideIgnoreButton } = this.props;
+        if (!hideIgnoreButton) {
+            return <td><button onClick={this.handleIgnorePage(discoveredPage)}>ignore</button></td>;
+        }
+        return undefined;
     }
 
     private getPuzzleUrl(host: string, path: string) {
@@ -83,24 +119,30 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         }
     }
 
-    private handleCreatePuzzle = (_title: string) => {
-        // const { hunt } = this.props;
+    private handleCreatePuzzle = (title: string, discoveredPage: IDiscoveredPage) => {
+        const { createPuzzle } = this.props;
         return () => {
-        //     // createSheet(hunt.templateSheetId, hunt.driveFolderId, title);
+            createPuzzle(title, discoveredPage);
+            this.setState({ generatingPuzzles: this.state.generatingPuzzles.concat(discoveredPage.key) });
         };
+    }
+
+    private handleIgnorePage = (discoveredPage: IDiscoveredPage) => {
+        const { ignoreDiscoveredPage } = this.props;
+        return () => {
+            ignoreDiscoveredPage(discoveredPage);
+        }
     }
 }
 
-function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { discoveredPages } = state;
-    return {
-        discoveredPages,
-    };
+function mapStateToProps(): IStateProps {
+    return { };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
-        loadDiscoveredPages: loadDiscoveredPagesAction,
+        createPuzzle: createPuzzleAction,
+        ignoreDiscoveredPage: ignoreDiscoveredPageAction,
     }, dispatch);
 }
 
