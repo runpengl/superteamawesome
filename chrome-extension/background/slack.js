@@ -4,7 +4,7 @@ var accessToken = null;
 var slackUserId = null;
 var slackChannelById = {};
 var slackChannelIdByName = {};
-var subscriberTabIdsByChannelId = {};
+var subscriberTabIdsByChannelName = {};
 var webSocket = null;
 
 /**
@@ -12,9 +12,9 @@ var webSocket = null;
  * slack RTM session. New tokens are saved to `userPrivateData/$userId`.
  * @param userId
  */
-function connect(userId) {
+function connect() {
     var slackTokenRef = firebase.database().ref("userPrivateData")
-        .child(userId).child("slackAccessToken");
+        .child(firebase.auth().currentUser.uid).child("slackAccessToken");
     slackTokenRef.once("value", function(snap) {
         if (snap.val()) {
             accessToken = snap.val();
@@ -76,6 +76,14 @@ function initSlackRtm() {
     });
 }
 
+function ensureConnected() {
+    if (!accessToken) {
+        connect();
+    } else if (!webSocket) {
+        initSlackRtm();
+    }
+}
+
 function handleSlackWsMessage(event) {
     var msg = JSON.parse(event.data);
     switch (msg.type) {
@@ -122,24 +130,25 @@ function joinChannel(channelName) {
 }
 
 function subscribeToChannel(tabId, channelName, callback) {
-    var channelId = slackChannelIdByName[channelName];
-    if (!subscriberTabIdsByChannelId.hasOwnProperty(channelId)) {
-        subscriberTabIdsByChannelId[channelId] = {};
+    ensureConnected();
+
+    if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
+        subscriberTabIdsByChannelName[channelName] = {};
     }
-    subscriberTabIdsByChannelId[channelId][tabId] = callback;
-    if (slackChannelById[channelId]) {
-        callback(slackChannelById[channelId]);
+    subscriberTabIdsByChannelName[channelName][tabId] = callback;
+    if (slackChannelIdByName[channelName]) {
+        callback(slackChannelById[slackChannelIdByName[channelName]]);
     }
     return function unsubscribe() {
-        delete subscriberTabIdsByChannelId[channelId][tabId];
-        if (Object.keys(subscriberTabIdsByChannelId[channelId]).length === 0) {
-            delete subscriberTabIdsByChannelId[channelId];
+        delete subscriberTabIdsByChannelName[channelName][tabId];
+        if (Object.keys(subscriberTabIdsByChannelName[channelName]).length === 0) {
+            delete subscriberTabIdsByChannelName[channelName];
         }
     };
 }
 
 function notifySubscribers(channel) {
-    var subscriberMap = subscriberTabIdsByChannelId[channel.id];
+    var subscriberMap = subscriberTabIdsByChannelName[channel.name];
     if (subscriberMap) {
         Object.keys(subscriberMap).forEach(function(k) {
             subscriberMap[k](channel);

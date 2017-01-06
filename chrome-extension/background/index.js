@@ -21,7 +21,7 @@ function handleFirebaseAuthStateChange(user) {
         photoUrl: user.photoURL
     });
 
-    Slack.connect(user.uid);
+    Slack.connect();
 }
 
 /**
