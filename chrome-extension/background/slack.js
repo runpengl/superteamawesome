@@ -13,6 +13,9 @@ var webSocket = null;
  * @param userId
  */
 function connect() {
+    if (accessToken) {
+        initSlackRtm();
+    }
     var slackTokenRef = firebase.database().ref("userPrivateData")
         .child(firebase.auth().currentUser.uid).child("slackAccessToken");
     slackTokenRef.once("value", function(snap) {
@@ -56,6 +59,9 @@ function disconnect() {
 }
 
 function initSlackRtm() {
+    if (webSocket) {
+        return;
+    }
     xhrGet("https://slack.com/api/rtm.start", {
         token: accessToken,
         simple_latest: true
@@ -74,14 +80,6 @@ function initSlackRtm() {
             notifySubscribers(channel);
         });
     });
-}
-
-function ensureConnected() {
-    if (!accessToken) {
-        connect();
-    } else if (!webSocket) {
-        initSlackRtm();
-    }
 }
 
 function handleSlackWsMessage(event) {
@@ -130,7 +128,7 @@ function joinChannel(channelName) {
 }
 
 function subscribeToChannel(tabId, channelName, callback) {
-    ensureConnected();
+    connect();
 
     if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
         subscriberTabIdsByChannelName[channelName] = {};
