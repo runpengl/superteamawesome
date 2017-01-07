@@ -96,10 +96,35 @@ function renderPopup() {
         stuck: [],
         solved: []
     };
+    var puzzleGroups = [];
     if (currentHuntPuzzles) {
         currentHuntPuzzles.forEach(function(puzzle) {
             puzzlesByStatus[puzzle.status].push(puzzle);
         });
+
+        // Group by meta puzzles; ungrouped puzzles at the end
+        puzzleGroups = currentHuntPuzzles
+            .filter(function(p) { return p.isMeta; })
+            .map(function(mp) { return [mp]; });
+        var otherPuzzles = [];
+        var metaIndexByKey = {};
+        puzzleGroups.forEach(function(pg, i) {
+            metaIndexByKey[pg[0].key] = i;
+        });
+        currentHuntPuzzles.forEach(function(p) {
+            if (p.parent) {
+                if (metaIndexByKey.hasOwnProperty(p.parent)) {
+                    puzzleGroups[metaIndexByKey[p.parent]].push(p);
+                    return;
+                }
+            }
+            if (!p.isMeta) {
+                otherPuzzles.push(p);
+            }
+        });
+        if (otherPuzzles.length) {
+            puzzleGroups.push(otherPuzzles);
+        }
     }
     ReactDOM.render(
         React.createElement(Popup, {
@@ -109,7 +134,8 @@ function renderPopup() {
             numPuzzles: currentHuntPuzzles ? currentHuntPuzzles.length : 0,
             puzzles: currentHuntPuzzles,
             puzzleViewersSnapshot: puzzleViewersSnapshot,
-            puzzlesByStatus: puzzlesByStatus
+            puzzlesByStatus: puzzlesByStatus,
+            puzzleGroups: puzzleGroups
         }),
         document.getElementById("popup")
     );
@@ -119,7 +145,7 @@ var r = React.DOM;
 var Popup = React.createClass({
     displayName: "Popup",
     getInitialState: function() {
-        return { sortBy: "date" }
+        return { sortBy: "rounds" };
     },
     render: function() {
         var props = this.props;
@@ -182,6 +208,7 @@ var Popup = React.createClass({
                         huntDomain: props.currentHunt.domain,
                         puzzles: props.puzzles,
                         sortBy: this.state.sortBy,
+                        puzzleGroups: props.puzzleGroups,
                         puzzlesByStatus: props.puzzlesByStatus,
                         puzzleViewersSnapshot: props.puzzleViewersSnapshot
                     })
@@ -191,11 +218,11 @@ var Popup = React.createClass({
     },
     handleSortToggleClick: function() {
         switch (this.state.sortBy) {
-            case "date":
+            case "rounds":
                 this.setState({ sortBy: "status" });
                 break;
             case "status":
-                this.setState({ sortBy: "date" });
+                this.setState({ sortBy: "rounds" });
                 break;
         }
     }
@@ -210,12 +237,16 @@ var AllPuzzles = React.createClass({
     },
     renderPuzzles: function() {
         switch (this.props.sortBy) {
-            case "date":
-                return React.createElement(PuzzleList, {
-                    huntDomain: this.props.huntDomain,
-                    puzzles: this.props.puzzles,
-                    puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
-                })
+            case "rounds":
+                return this.props.puzzleGroups.map(function(pg) {
+                    return React.createElement(PuzzleList, {
+                        key: pg[0].isMeta ? pg[0].key : "other",
+                        groupName: pg[0].isMeta ? pg[0].name : "Other Puzzles",
+                        huntDomain: this.props.huntDomain,
+                        puzzles: pg,
+                        puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
+                    });
+                }, this);
             case "status":
                 return PUZZLE_STATUSES.map(function(status) {
                     var puzzles = this.props.puzzlesByStatus[status];
@@ -224,6 +255,7 @@ var AllPuzzles = React.createClass({
                     }
                     return React.createElement(PuzzleList, {
                         key: status,
+                        groupName: status.replace(/([A-Z])/g, " $1").toLowerCase(),
                         huntDomain: this.props.huntDomain,
                         puzzles: puzzles,
                         puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
@@ -234,7 +266,7 @@ var AllPuzzles = React.createClass({
 });
 
 function PuzzleList(props) {
-    return r.ul({ className: "PuzzleList" },
+    var puzzleList = r.ul({ className: "PuzzleList-list" },
         props.puzzles.map(function(puzzle) {
             var numActiveViewers = 0;
             props.puzzleViewersSnapshot
@@ -264,8 +296,8 @@ function PuzzleList(props) {
                 }, puzzle.name),
                 r.div({ className: "PuzzleList-puzzleMetadata" },
                     numActiveViewers === 0 ? null : r.div({
-                            className: "PuzzleList-puzzleViewerCount"
-                        },
+                        className: "PuzzleList-puzzleViewerCount"
+                    },
                         React.createElement(PersonIcon),
                         numActiveViewers
                     ),
@@ -275,6 +307,18 @@ function PuzzleList(props) {
                 )
             );
         })
+    );
+
+    return r.div({ className: "PuzzleList" },
+        r.div({ className: "PuzzleList-groupHeader" },
+            props.groupName,
+            r.span({ className: "PuzzleList-numSolved" },
+                props.puzzles.filter(function(p) { return p.status === "solved" }).length,
+                "/",
+                props.puzzles.length
+            )
+        ),
+        puzzleList
     );
 }
 

@@ -102,6 +102,7 @@ a:hover {
  * AllPuzzles
  */
 .AllPuzzles {
+  background: #eceff1;
   border-top: 1px solid #ccc;
   max-height: 283px;
   overflow-y: auto;
@@ -112,11 +113,30 @@ a:hover {
  * PuzzleList
  */
 .PuzzleList {
-  background: #eceff1;
-  box-shadow: 0 1px #ddd;
+  margin-bottom: 10px;
+}
+
+.PuzzleList-groupHeader {
+  color: #6d6d6d;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 5px;
+  padding: 5px 10px;
+}
+
+.PuzzleList-numSolved {
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .14);
+  font-size: 12px;
+  margin-left: 5px;
+  padding: 2px 5px;
+}
+
+.PuzzleList-list {
   list-style-type: none;
   margin: 0;
-  padding: 5px 10px;
+  padding: 0 10px;
 }
 
 .PuzzleList-puzzle {
