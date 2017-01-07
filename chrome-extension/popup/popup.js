@@ -264,11 +264,16 @@ function PuzzleList(props) {
                         });
                     }
                 }, puzzle.name),
-                numActiveViewers === 0 ? null : r.div({
-                    className: "PuzzleList-puzzleViewerCount"
-                },
-                    React.createElement(PersonIcon),
-                    numActiveViewers
+                r.div({ className: "PuzzleList-puzzleMetadata" },
+                    numActiveViewers === 0 ? null : r.div({
+                            className: "PuzzleList-puzzleViewerCount"
+                        },
+                        React.createElement(PersonIcon),
+                        numActiveViewers
+                    ),
+                    puzzle.status !== "solved" ? null : r.span({
+                        className: "PuzzleList-puzzleSolution"
+                    }, puzzle.solution)
                 )
             );
         })
