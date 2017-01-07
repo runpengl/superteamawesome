@@ -265,12 +265,37 @@ var AllPuzzles = React.createClass({
     }
 });
 
-function PuzzleList(props) {
-    var puzzleList = r.ul({ className: "PuzzleList-list" },
-        props.puzzles.map(function(puzzle) {
-            var numActiveViewers = 0;
-            props.puzzleViewersSnapshot
-                .child(puzzle.key).forEach(function(viewer) {
+var PuzzleList = React.createClass({
+    displayName: "PuzzleList",
+    getInitialState: function() {
+        return { isCollapsed: false };
+    },
+    render: function() {
+        var props = this.props;
+        return r.div({
+            className: "PuzzleList" + (this.state.isCollapsed ? " isCollapsed" : "")
+        },
+            r.div({
+                className: "PuzzleList-groupHeader",
+                onClick: this.handleHeaderClick
+            },
+                props.groupName,
+                r.span({ className: "PuzzleList-numSolved" },
+                    props.puzzles.filter(function(p) { return p.status === "solved" }).length,
+                    "/",
+                    props.puzzles.length
+                )
+            ),
+            this.renderPuzzles()
+        );
+    },
+    renderPuzzles: function() {
+        var props = this.props;
+        return r.ul({ className: "PuzzleList-list" },
+            props.puzzles.map(function(puzzle) {
+                var numActiveViewers = 0;
+                props.puzzleViewersSnapshot
+                    .child(puzzle.key).forEach(function(viewer) {
                     viewer.forEach(function(tab) {
                         if (!tab.val().idle) {
                             numActiveViewers++;
@@ -278,48 +303,43 @@ function PuzzleList(props) {
                         }
                     });
                 });
-            return r.li({
-                key: puzzle.key,
-                className: "PuzzleList-puzzle " + puzzle.status
-            },
-                r.a({
-                    className: "PuzzleList-puzzleLink",
-                    href: "http://" + props.huntDomain + puzzle.path,
-                    onClick: function(event) {
-                        if (event.shiftKey || event.metaKey) {
-                            return;
-                        }
-                        chrome.tabs.update({
-                            url: "http://" + props.huntDomain + puzzle.path
-                        });
-                    }
-                }, puzzle.name),
-                r.div({ className: "PuzzleList-puzzleMetadata" },
-                    numActiveViewers === 0 ? null : r.div({
-                        className: "PuzzleList-puzzleViewerCount"
-                    },
-                        React.createElement(PersonIcon),
-                        numActiveViewers
-                    ),
-                    puzzle.status !== "solved" ? null : r.span({
-                        className: "PuzzleList-puzzleSolution"
-                    }, puzzle.solution)
-                )
-            );
-        })
-    );
-
-    return r.div({ className: "PuzzleList" },
-        r.div({ className: "PuzzleList-groupHeader" },
-            props.groupName,
-            r.span({ className: "PuzzleList-numSolved" },
-                props.puzzles.filter(function(p) { return p.status === "solved" }).length,
-                "/",
-                props.puzzles.length
-            )
-        ),
-        puzzleList
-    );
+                return r.li({ key: puzzle.key },
+                    r.a({
+                            className: "PuzzleList-puzzle " + puzzle.status,
+                            href: "http://" + props.huntDomain + puzzle.path,
+                            onClick: function(event) {
+                                if (event.shiftKey || event.metaKey) {
+                                    return;
+                                }
+                                chrome.tabs.update({
+                                    url: "http://" + props.huntDomain + puzzle.path
+                                });
+                            }
+                        },
+                        r.span({ className: "PuzzleList-puzzleName" },
+                            puzzle.name
+                        ),
+                        r.div({ className: "PuzzleList-puzzleMetadata" },
+                            numActiveViewers === 0 ? null : r.div({
+                                        className: "PuzzleList-puzzleViewerCount"
+                                    },
+                                    React.createElement(PersonIcon),
+                                    numActiveViewers
+                                ),
+                            puzzle.status !== "solved" ? null : r.span({
+                                    className: "PuzzleList-puzzleSolution"
+                                }, puzzle.solution)
+                        )
+                    )
+                );
+            })
+        );
+    },
+    handleHeaderClick: function() {
+        this.setState({ isCollapsed: !this.state.isCollapsed });
+    }
+});
+function PuzzleList(props) {
 }
 
 function PersonIcon() {
