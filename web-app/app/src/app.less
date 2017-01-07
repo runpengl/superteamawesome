@@ -15,3 +15,116 @@ html {
 #app > div {
   height: 100%;
 }
+
+.dashboard {
+  font-family: Helvetica, Arial, sans-serif;
+  padding: 20px;
+
+  .header {
+    display: flex;
+    margin-bottom: 20px;
+
+    .header-container {
+      flex: 1;
+    }
+
+    h1 {
+      margin: 0;
+      margin-bottom: 10px;
+    }
+
+    .sub-header {
+      color: #999;
+      font-weight: 600;
+    }
+
+    .logout-button {
+      margin-left: auto;
+      height: 30px;
+    }
+  }
+}
+
+.hunt-edit-container {
+  display: flex;
+
+  .edit-info-line {
+    margin-bottom: 10px;
+
+    label {
+      color: #333;
+      display: inline-block;
+      min-width: 180px;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    input[type="text"] {
+      min-width: 300px;
+    }
+  }
+
+  .hunt-save-button {
+    height: 30px;
+    margin-left: 10px;
+  }
+}
+
+.discovered-puzzles-container {
+
+  .table-container {
+    display: flex;
+
+    .discovered-puzzles-save-button {
+      height: 30px;
+      margin-left: 10px;
+    }
+
+    > table {
+      td {
+        padding: 5px 10px 5px 0;
+
+        input[type="text"] {
+          min-width: 200px;
+        }
+
+        &:last-child input {
+          min-width: 400px;
+        }
+      }
+
+      tr:first-child {
+        td {
+          padding-top: 0;
+        }
+      }
+    }
+  }
+
+  h3 {
+    text-transform: uppercase;
+    font-weight: 500;
+
+    > em {
+      font-style: normal;
+      font-weight: 900;
+    }
+  }
+}
+
+.puzzles-wrapper {
+  display: flex;
+
+  .puzzles-save-button {
+    height: 30px;
+    margin-left: 10px;
+  }
+
+  .hierarchy-text-container {
+    display: flex;
+    flex-direction: column;
+    textarea {
+      min-height: 300px;
+    }
+  }
+}

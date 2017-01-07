@@ -63,7 +63,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, {}> 
                 <tbody>
                     {puzzleRows}
                     <tr>
-                        <td>{meta.index} {meta.name} Meta</td>
+                        <td>{meta.index} {meta.name}</td>
                         <td>{meta.status.toUpperCase()}</td>
                         <td><a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                         <td><a href={this.getGoogleSheetUrl(meta.spreadsheetId)} target="_blank">DOC</a></td>

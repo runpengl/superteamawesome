@@ -80,19 +80,23 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         const { hasChanges, hierarchy, isHierarchyLoaded, parseError } = this.state;
         const textareaText = this.state.textHierarchy.join("\n");
         return (
-            <div className="puzzles-container">
-                <h3>Puzzles</h3>
-                <button disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
-                <h5>Unsorted Puzzles</h5>
-                {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
-                { isHierarchyLoaded ? <textarea defaultValue={textareaText} onChange={this.handleTextHierarchyChange} /> : undefined}
-                <button disabled={!isAsyncLoaded(puzzles)} onClick={this.parseHierarchy}>Preview Hierarchy</button>
-                { parseError !== undefined ? <div className="error">Error parsing: {parseError}</div> : undefined }
-                <PuzzleHierarchy
-                    hierarchy={hierarchy}
-                    huntDomain={huntDomain}
-                    slackTeamId={slackTeamId}
-                />
+            <div className="puzzles-wrapper">
+                <div className="puzzles-container">
+                    <h3>Puzzles</h3>
+                    <h5>Unsorted Puzzles</h5>
+                    {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
+                    <PuzzleHierarchy
+                        hierarchy={hierarchy}
+                        huntDomain={huntDomain}
+                        slackTeamId={slackTeamId}
+                    />
+                </div>
+                <div className="hierarchy-text-container">
+                    { isHierarchyLoaded ? <textarea defaultValue={textareaText} onChange={this.handleTextHierarchyChange} /> : undefined}
+                    { parseError !== undefined ? <div className="error">Error parsing: {parseError}</div> : undefined }
+                    <button disabled={!isAsyncLoaded(puzzles)} onClick={this.parseHierarchy}>Preview Hierarchy</button>
+                </div>
+                <button className="puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
             </div>
         )
     }
