@@ -18,3 +18,5 @@ web-app/server/**/*.js
 .idea/
 *config.ts
 *config.js
+*.swp
+*slackbot_auth.json

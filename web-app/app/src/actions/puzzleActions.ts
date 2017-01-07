@@ -4,7 +4,7 @@ import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
 import { createSheet, slack } from "../services";
-import { IAppState, IDiscoveredPage, IPuzzle, PuzzleStatus } from "../state";
+import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,
@@ -26,7 +26,7 @@ export function loadPuzzlesAction(huntKey: string) {
                     return false;
                 });
 
-                puzzles = puzzles.sort((a: IPuzzle, b: IPuzzle) => {
+                puzzles.sort((a: IPuzzle, b: IPuzzle) => {
                     const aDate = new Date(a.createdAt);
                     const bDate = new Date(b.createdAt);
                     return aDate.valueOf() - bDate.valueOf();
@@ -157,17 +157,6 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         const slackChannelName = "x-" + lowerCasePuzzleName.substring(0, 19);
 
         dispatch(asyncActionInProgressPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION));
-        // remove from db first
-        const removeFirebasePromise = new Promise((resolve) => {
-            firebaseDatabase
-                .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}`)
-                .set(null)
-                .then(() => {
-                    resolve();
-                }, (error: Error) => {
-                    throw error;
-                });
-        });
 
         const checkPuzzleExists = new Promise((resolve, reject) => {
             firebaseDatabase
@@ -200,6 +189,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
                     hunt: hunt.year,
+                    key: puzzleKey,
                     name: puzzleName,
                     path: discoveredPage.path,
                     slackChannel: channel.name,
@@ -211,6 +201,16 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                     .ref(`puzzles/${puzzleKey}`)
                     .set(newPuzzle)
                     .then(() => {
+                        const removeFirebasePromise = new Promise((resolve) => {
+                            firebaseDatabase
+                                .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}`)
+                                .set(null)
+                                .then(() => {
+                                    resolve();
+                                }, (error: Error) => {
+                                    throw error;
+                                });
+                        });
                         removeFirebasePromise.then(() => {
                             dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
                                 changedPages: [discoveredPage],
@@ -225,4 +225,34 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
             })
     }
+}
+
+export const SAVE_HIERARCHY_ACTION = "SAVE_HIERARCHY";
+export function saveHierarchyAction(hierarchy: IPuzzleHierarchy) {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        let promises: Promise<void>[] = [];
+        dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
+        Object.keys(hierarchy).forEach((groupKey) => {
+            let childPromises = hierarchy[groupKey].children.map((puzzle) => {
+                const updates = {
+                    [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
+                    [`/puzzles/${puzzle.key}/parentIndex`]: hierarchy[groupKey].index,
+                };
+                return new Promise<void>((resolve) => {
+                    firebaseDatabase.ref().update(updates).then(() => {
+                        resolve();
+                    }, (error) => {
+                        throw error;
+                    });
+                });
+            });
+            promises = promises.concat(childPromises);
+        });
+        Promise.all(promises).then(() => {
+            dispatch(asyncActionSucceededPayload<void>(SAVE_HIERARCHY_ACTION));
+            loadPuzzlesAction(getState().hunt.value.year)(dispatch);
+        }).catch((error) => {
+            dispatch(asyncActionFailedPayload<void>(SAVE_HIERARCHY_ACTION, error));
+        });
+    };
 }
