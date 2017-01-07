@@ -60,7 +60,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     hierarchy[parentKey] = {
                         parent: puzzles.value.find((puzzle) => puzzle.key === parentKey),
                         children: [],
-                        index: puzzle.parentIndex,
                     };
                 }
 
@@ -114,7 +113,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         let hierarchy: IPuzzleHierarchy = {};
         let error: string;
         let currentParent: string;
-        let currentParentIndex = -1;
         let sortedPuzzleKeys: string[] = [];
         for (let i = 0; i < textHierarchy.length && error === undefined; i++) {
             const text = textHierarchy[i];
@@ -133,7 +131,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         break;
                     } else {
                         currentParent = puzzles[parentIndex].key;
-                        currentParentIndex += 1;
                         if (hierarchy[currentParent] !== undefined) {
                             error = `${hierarchy[currentParent].parent.name} is already defined as a puzzle group`;
                             break;
@@ -141,7 +138,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                             hierarchy[currentParent] = {
                                 parent: puzzles[parentIndex],
                                 children: [],
-                                index: currentParentIndex,
                             };
                         }
                     }

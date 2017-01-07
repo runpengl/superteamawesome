@@ -189,7 +189,6 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
                     hunt: hunt.year,
-                    key: puzzleKey,
                     name: puzzleName,
                     path: discoveredPage.path,
                     slackChannel: channel.name,
@@ -211,6 +210,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                                     throw error;
                                 });
                         });
+                        newPuzzle.key = puzzleKey;
                         removeFirebasePromise.then(() => {
                             dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
                                 changedPages: [discoveredPage],
@@ -236,7 +236,6 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy) {
             let childPromises = hierarchy[groupKey].children.map((puzzle) => {
                 const updates = {
                     [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
-                    [`/puzzles/${puzzle.key}/parentIndex`]: hierarchy[groupKey].index,
                 };
                 return new Promise<void>((resolve) => {
                     firebaseDatabase.ref().update(updates).then(() => {

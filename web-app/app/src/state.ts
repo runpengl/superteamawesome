@@ -37,7 +37,6 @@ export const PuzzleStatus = {
 
 export interface IPuzzleGroup {
     parent: IPuzzle;
-    index: number;
     children: IPuzzle[];
 }
 
@@ -49,10 +48,9 @@ export interface IPuzzle {
     createdAt: string;
     hunt: string;
     index?: number;
-    key: string;
+    key?: string;
     name: string;
     parent?: string;
-    parentIndex?: number;
     path: string;
     slackChannel: string;
     slackChannelId: string;
