@@ -177,17 +177,15 @@ var Popup = React.createClass({
                         )
                     )
                     : r.img({ className: "Popup-loading", src: "../ripple.svg" }),
-                r.div({ className: "Popup-allPuzzles" },
-                    props.currentHunt && props.puzzles
-                        ? React.createElement(AllPuzzles, {
-                            huntDomain: props.currentHunt.domain,
-                            puzzles: props.puzzles,
-                            sortBy: this.state.sortBy,
-                            puzzlesByStatus: props.puzzlesByStatus,
-                            puzzleViewersSnapshot: props.puzzleViewersSnapshot
-                        })
-                        : null
-                )
+                props.currentHunt && props.puzzles
+                    ? React.createElement(AllPuzzles, {
+                        huntDomain: props.currentHunt.domain,
+                        puzzles: props.puzzles,
+                        sortBy: this.state.sortBy,
+                        puzzlesByStatus: props.puzzlesByStatus,
+                        puzzleViewersSnapshot: props.puzzleViewersSnapshot
+                    })
+                    : null
             )
         );
     },

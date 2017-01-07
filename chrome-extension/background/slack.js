@@ -52,8 +52,8 @@ function connect() {
 function disconnect() {
     if (webSocket && webSocket.readyState !== WebSocket.CLOSED) {
         webSocket.close();
-        webSocket = null;
     }
+    webSocket = null;
     slackChannelById = {};
     slackChannelIdByName = {};
 }
