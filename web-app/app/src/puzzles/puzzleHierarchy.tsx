@@ -89,7 +89,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                 <tbody>
                     {puzzleRows}
                     <tr>
-                        <td>{meta.index} <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /></td>
+                        <td><span className="puzzle-index">{meta.index}</span> <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /></td>
                         <td>{meta.status.toUpperCase()}</td>
                         <td><a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                         <td><a href={this.getGoogleSheetUrl(meta.spreadsheetId)} target="_blank">DOC</a></td>
