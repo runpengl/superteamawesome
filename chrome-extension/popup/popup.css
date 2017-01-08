@@ -205,14 +205,27 @@ a:hover {
   opacity: 0;
 }
 
-.PuzzleList-puzzleName {
+.PuzzleList-puzzleLabel {
   min-width: 1px;
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
 .PuzzleList-puzzle.solved .PuzzleList-puzzleName {
   color: #ccc;
   text-decoration: line-through;
+}
+
+.PuzzleList-metaBadge {
+  color: #333;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.PuzzleList-puzzleMetadata {
+  margin-left: 5px;
 }
 
 .PuzzleList-puzzleSolution {

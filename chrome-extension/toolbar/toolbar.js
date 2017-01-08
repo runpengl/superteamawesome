@@ -62,9 +62,7 @@ function renderToolbar() {
             break;
         case "puzzle":
             ReactDOM.render(
-                React.createElement(PuzzleToolbar, Object.assign({}, toolbarData, {
-                    onPuzzleStatusChange: handlePuzzleStatusChange
-                })),
+                React.createElement(PuzzleToolbar, toolbarData),
                 document.getElementById("toolbar")
             );
             break;
@@ -105,20 +103,11 @@ function HuntToolbar(props) {
     );
 }
 
-function handlePuzzleStatusChange(newStatus) {
-    chrome.runtime.sendMessage({
-        msg: "puzzleStatusChange",
-        status: newStatus
-    });
-}
-
 var r = React.DOM;
 function PuzzleToolbar(props) {
     return r.div({ className: "Toolbar" },
         React.createElement(PuzzleStatusPicker, {
-            puzzleStatus: props.puzzle.status,
-            puzzleSolution: props.puzzle.solution,
-            onChange: props.onPuzzleStatusChange
+            puzzle: props.puzzle
         }),
         r.div({ className: "Toolbar-puzzleName" }, props.puzzle.name),
         props.location === "puzzle" ? null : r.a({
@@ -191,9 +180,10 @@ var PuzzleStatusPicker = React.createClass({
             optimisticSolution: null,
             optimisticStatusUpdate: null
         });
-        if (this.props.puzzleStatus !== "solved" &&
-            nextProps.puzzleStatus === "solved") {
-            this.setState({ solutionText: nextProps.puzzleSolution || "" });
+        if (this.props.puzzle.key === nextProps.puzzle.key &&
+            this.props.puzzle.status !== "solved" &&
+            nextProps.puzzle.status === "solved") {
+            this.setState({ solutionText: nextProps.puzzle.solution || "" });
         }
     },
     componentDidUpdate: function(prevProps, prevState) {
@@ -204,14 +194,15 @@ var PuzzleStatusPicker = React.createClass({
     },
     render: function() {
         var displaySolution = this.state.optimisticSolution
-            || this.props.puzzleSolution
+            || this.props.puzzle.solution
             || "(no solution)";
         return r.div({
             className: "PuzzleStatusPicker" +
                 (this.state.isCollapsed ? " isCollapsed" : "")
         },
             PUZZLE_STATUSES.map(function(status) {
-                var currentStatus = this.state.optimisticStatusUpdate || this.props.puzzleStatus;
+                var currentStatus = this.state.optimisticStatusUpdate ||
+                    this.props.puzzle.status;
                 return r.div({
                     key: status,
                     className: "PuzzleStatusPicker-statusButton " + status +
@@ -220,7 +211,7 @@ var PuzzleStatusPicker = React.createClass({
                     onClick: this.handleStatusClick.bind(this, status)
                 }, this.toHumanReadable(status))
             }, this),
-            this.props.puzzleStatus === "solved"
+            this.props.puzzle.status === "solved"
                 ? r.div({ className: "PuzzleStatusPicker-solution" },
                     this.state.solutionText === null
                         ? r.div({
@@ -248,15 +239,18 @@ var PuzzleStatusPicker = React.createClass({
             this.setState({ isCollapsed: false });
             return;
         }
-        if (status !== this.props.puzzleStatus) {
+        if (status !== this.props.puzzle.status) {
             this.setState({ optimisticStatusUpdate: status });
-            this.props.onChange(status);
+            chrome.runtime.sendMessage({
+                msg: "puzzleStatusChange",
+                status: status
+            });
         }
         this.setState({ isCollapsed: true });
         event.preventDefault();
     },
     handleSolutionClick: function() {
-        this.setState({ solutionText: this.props.puzzleSolution });
+        this.setState({ solutionText: this.props.puzzle.solution });
     },
     handleSolutionChange: function(event) {
         this.setState({ solutionText: event.target.value });

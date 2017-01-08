@@ -242,6 +242,7 @@ var AllPuzzles = React.createClass({
                     return React.createElement(PuzzleList, {
                         key: pg[0].isMeta ? pg[0].key : "other",
                         groupName: pg[0].isMeta ? pg[0].name : "Other Puzzles",
+                        groupType: "round",
                         huntDomain: this.props.huntDomain,
                         puzzles: pg,
                         puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
@@ -253,9 +254,11 @@ var AllPuzzles = React.createClass({
                     if (puzzles.length === 0) {
                         return;
                     }
+                    var readableStatus = status.replace(/([A-Z])/g, " $1");
                     return React.createElement(PuzzleList, {
                         key: status,
-                        groupName: status.replace(/([A-Z])/g, " $1").toLowerCase(),
+                        groupName: readableStatus.charAt(0).toUpperCase() + readableStatus.slice(1),
+                        groupType: "status",
                         huntDomain: this.props.huntDomain,
                         puzzles: puzzles,
                         puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
@@ -280,11 +283,15 @@ var PuzzleList = React.createClass({
                 onClick: this.handleHeaderClick
             },
                 props.groupName,
-                r.span({ className: "PuzzleList-numSolved" },
-                    props.puzzles.filter(function(p) { return p.status === "solved" }).length,
-                    "/",
-                    props.puzzles.length
-                )
+                this.props.groupType === "round"
+                    ? r.span({ className: "PuzzleList-numSolved" },
+                        props.puzzles.filter(function(p) {
+                            return p.status === "solved"
+                        }).length,
+                        "/",
+                        props.puzzles.length
+                    )
+                    : null
             ),
             this.renderPuzzles()
         );
@@ -292,7 +299,7 @@ var PuzzleList = React.createClass({
     renderPuzzles: function() {
         var props = this.props;
         return r.ul({ className: "PuzzleList-list" },
-            props.puzzles.map(function(puzzle) {
+            props.puzzles.map(function(puzzle, i) {
                 var numActiveViewers = 0;
                 props.puzzleViewersSnapshot
                     .child(puzzle.key).forEach(function(viewer) {
@@ -305,30 +312,35 @@ var PuzzleList = React.createClass({
                 });
                 return r.li({ key: puzzle.key },
                     r.a({
-                            className: "PuzzleList-puzzle " + puzzle.status,
-                            href: "http://" + props.huntDomain + puzzle.path,
-                            onClick: function(event) {
-                                if (event.shiftKey || event.metaKey) {
-                                    return;
-                                }
-                                chrome.tabs.update({
-                                    url: "http://" + props.huntDomain + puzzle.path
-                                });
+                        className: "PuzzleList-puzzle " + puzzle.status,
+                        href: "http://" + props.huntDomain + puzzle.path,
+                        onClick: function(event) {
+                            if (event.shiftKey || event.metaKey) {
+                                return;
                             }
-                        },
-                        r.span({ className: "PuzzleList-puzzleName" },
-                            puzzle.name
+                            chrome.tabs.update({
+                                url: "http://" + props.huntDomain + puzzle.path
+                            });
+                        }
+                    },
+                        r.div({ className: "PuzzleList-puzzleLabel" },
+                            r.span({ className: "PuzzleList-puzzleName" },
+                                puzzle.name),
+                            (props.groupType === "round" && i === 0 && puzzle.isMeta) ||
+                            (props.groupType === "status" && puzzle.isMeta)
+                                ? r.span({ className: "PuzzleList-metaBadge" }, "Meta")
+                                : null
                         ),
                         r.div({ className: "PuzzleList-puzzleMetadata" },
                             numActiveViewers === 0 ? null : r.div({
-                                        className: "PuzzleList-puzzleViewerCount"
-                                    },
-                                    React.createElement(PersonIcon),
-                                    numActiveViewers
-                                ),
+                                className: "PuzzleList-puzzleViewerCount"
+                            },
+                                React.createElement(PersonIcon),
+                                numActiveViewers
+                            ),
                             puzzle.status !== "solved" ? null : r.span({
-                                    className: "PuzzleList-puzzleSolution"
-                                }, puzzle.solution)
+                                className: "PuzzleList-puzzleSolution"
+                            }, puzzle.solution)
                         )
                     )
                 );
