@@ -5,7 +5,6 @@ import { IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state"
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
-    huntDomain: string;
     onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
     slackTeamId: string;
 }
@@ -69,7 +68,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     }
 
     private renderPuzzles(puzzles: IPuzzle[], meta: IPuzzle) {
-        const { huntDomain, slackTeamId } = this.props;
+        const { slackTeamId } = this.props;
         const { puzzleChanges } = this.state;
         const puzzleRows = puzzles.map((puzzle) => {
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
@@ -79,7 +78,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                     <td>{puzzle.status.toUpperCase()}</td>
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
-                    <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(huntDomain, puzzle.path)} /></td>
+                    <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
                 </tr>
             );
         });
@@ -94,7 +93,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         <td>{meta.status.toUpperCase()}</td>
                         <td><a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                         <td><a href={this.getGoogleSheetUrl(meta.spreadsheetId)} target="_blank">DOC</a></td>
-                        <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(huntDomain, meta.path)} /></td>
+                        <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(meta.host, meta.path)} /></td>
                     </tr>
                 </tbody>
             </table>

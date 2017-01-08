@@ -246,7 +246,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             return (
                 <div className="tables-container">
                     <DiscoveredPages hunt={hunt.value} discoveredPages={discoveredPages} title="discovered"/>
-                    <Puzzles huntKey={hunt.value.year} huntDomain={hunt.value.domain} slackTeamId={hunt.value.slackTeamId} />
+                    <Puzzles huntKey={hunt.value.year} slackTeamId={hunt.value.slackTeamId} />
                     <DiscoveredPages
                         hunt={hunt.value}
                         discoveredPages={ignoredPages}

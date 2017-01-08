@@ -8,7 +8,6 @@ import { PuzzleHierarchy } from "./puzzleHierarchy";
 
 interface IOwnProps {
     huntKey: string;
-    huntDomain: string;
     slackTeamId: string;
 }
 
@@ -79,7 +78,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     }
 
     public render() {
-        const { huntDomain, slackTeamId, puzzles } = this.props;
+        const { slackTeamId, puzzles } = this.props;
         const { hasChanges, hierarchy, isHierarchyLoaded, parseError } = this.state;
         const textareaText = this.state.textHierarchy.join("\n");
         return (
@@ -90,7 +89,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
                     <PuzzleHierarchy
                         hierarchy={hierarchy}
-                        huntDomain={huntDomain}
                         onPuzzleNameChange={this.onPuzzleNameChange}
                         slackTeamId={slackTeamId}
                     />
@@ -215,7 +213,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     }
 
     private renderUnsortedPuzzles() {
-        const { huntDomain, slackTeamId } = this.props;
+        const { slackTeamId } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map((puzzle) => {
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
@@ -226,7 +224,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <td>{puzzle.createdAt}</td>
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
-                    <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(huntDomain, puzzle.path)} /></td>
+                    <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
                 </tr>
             );
         });
