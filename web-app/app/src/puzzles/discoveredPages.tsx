@@ -5,7 +5,7 @@ import { bindActionCreators, Dispatch } from "redux";
 import {
     createPuzzleAction,
     IAsyncLoaded,
-    IDiscoveredPageChanges,
+    IPuzzleInfoChanges,
     ignoreDiscoveredPageAction,
     isAsyncLoaded,
     saveDiscoveredPageChangesAction,
@@ -22,7 +22,7 @@ interface IOwnProps {
 interface IDispatchProps {
     createPuzzle?: (puzzleName: string, discoveredPage: IDiscoveredPage) => void;
     ignoreDiscoveredPage?: (discoveredPage: IDiscoveredPage) => void;
-    saveDiscoveredPageChanges?: (changedPages: { [key: string]: IDiscoveredPageChanges }) => void;
+    saveDiscoveredPageChanges?: (changedPages: { [key: string]: IPuzzleInfoChanges }) => void;
 }
 
 interface IStateProps {
@@ -34,7 +34,7 @@ interface IDiscoveredPagesState {
     error?: string;
     generatingPuzzles?: string[];
     hasChanges: boolean;
-    updatedPages?: { [key: string]: IDiscoveredPageChanges };
+    updatedPages?: { [key: string]: IPuzzleInfoChanges };
 }
 
 class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, IDiscoveredPagesState> {

@@ -46,6 +46,7 @@ export interface IPuzzleHierarchy {
 
 export interface IPuzzle {
     createdAt: string;
+    host: string;
     hunt: string;
     index?: number;
     key?: string;
