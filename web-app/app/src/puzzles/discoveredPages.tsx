@@ -93,7 +93,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
             .map((discoveredPage) => {
                 const title = this.getRegexedTitle(discoveredPage.title);
                 return (
-                    <tr key={discoveredPage.title}>
+                    <tr key={discoveredPage.key}>
                         <td>
                             <input type="text" defaultValue={title} onChange={this.handlePageTitleChange(discoveredPage)} />
                         </td>
@@ -126,7 +126,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 
     private handlePageLinkChange = (discoveredPage: IDiscoveredPage) => {
-        return (event: React.FormEvent) => {
+        return (event: React.FormEvent<HTMLInputElement>) => {
             const newValue = (event.target as HTMLInputElement).value;
             const newUpdatedPages = Object.assign({}, this.state.updatedPages);
             if (newUpdatedPages[discoveredPage.key] === undefined) {
@@ -138,7 +138,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 
     private handlePageTitleChange = (discoveredPage: IDiscoveredPage) => {
-        return (event: React.FormEvent) => {
+        return (event: React.FormEvent<HTMLInputElement>) => {
             const newValue = (event.target as HTMLInputElement).value;
             const newUpdatedPages = Object.assign({}, this.state.updatedPages);
             if (newUpdatedPages[discoveredPage.key] === undefined) {
@@ -197,7 +197,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     }
 }
 
-function mapStateToProps(state: IAppState): IStateProps {
+function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
     return { lifecycle: state.lifecycle };
 }
 

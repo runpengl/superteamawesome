@@ -55,7 +55,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     }
 
     private handlePuzzleNameChange = (puzzle: IPuzzle) => {
-        return (event: React.FormEvent) => {
+        return (event: React.FormEvent<HTMLInputElement>) => {
             const newName = (event.target as HTMLInputElement).value;
             this.props.onPuzzleNameChange(puzzle, newName);
             let changes = this.state.puzzleChanges;

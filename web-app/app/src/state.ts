@@ -1,3 +1,5 @@
+/// <reference path="../typings/custom/gapi.d.ts" />
+
 import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 

@@ -1,9 +1,11 @@
+/// <reference path="../../typings/custom/gapi.d.ts" />
+
 import { Dispatch } from "redux";
 import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
-import { createSheet, slack } from "../services";
+import { createSheet, ISlackChannel, slack } from "../services";
 import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
@@ -181,13 +183,14 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                     return createSheet(hunt.templateSheetId, hunt.driveFolderId, puzzleName);
                 }
             })
-            .then((resultSpreadsheet) => {
+            .then((resultSpreadsheet: IGoogleDriveFile) => {
                 spreadsheet = resultSpreadsheet;
                 return slack.channels.create(auth.slackToken, slackChannelName);
             })
-            .then((channel) => {
+            .then((channel: ISlackChannel) => {
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
+                    host: discoveredPage.host,
                     hunt: hunt.year,
                     name: puzzleName,
                     path: discoveredPage.path,

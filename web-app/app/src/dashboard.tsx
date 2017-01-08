@@ -1,5 +1,5 @@
 import * as React from "react";
-import { IRouter } from "react-router";
+import { InjectedRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -13,7 +13,7 @@ interface IDashboardState {
 }
 
 interface IRouterContext {
-    router: IRouter;
+    router: InjectedRouter;
 }
 
 interface IOwnProps {}

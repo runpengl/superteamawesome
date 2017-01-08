@@ -1,3 +1,5 @@
+/// <reference path="../../typings/custom/gapi.d.ts" />
+
 import { IGoogleDriveFile } from "gapi";
 
 import {

@@ -1,9 +1,9 @@
 import { Dispatch } from "redux";
 
-import { firebaseAuth, firebaseDatabase } from "../auth";
-import { loadGoogleApi, slack } from "../services";
-import { IAppState, IAuthState, IHuntState } from "../state";
-import { getAccessTokens, LOGIN_ACTION, IUserPrivateData } from "./authActions";
+import { firebaseDatabase } from "../auth";
+import { slack } from "../services";
+import { IAppState, IHuntState } from "../state";
+import { loadUserInfo } from "./authActions";
 import { loadFolder } from "./googleActions";
 
 import {
@@ -21,95 +21,51 @@ export interface IHunt {
 }
 
 export interface ILoadHuntActionPayload extends IHunt {
-    year: number;
+    year: string;
 }
 
+// should only be called once
 export function loadHuntAndUserInfoAction() {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
-        let authPromise: Promise<firebase.UserInfo>;
-        
-        const { auth } = getState();
-        const isLoggedIn = auth.user !== undefined;
-
-        if (!isLoggedIn) {
-            dispatch(asyncActionInProgressPayload<IAuthState>(LOGIN_ACTION));
-            authPromise = new Promise((resolve) => {
-                firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
-            });
-        } else {
-            authPromise = new Promise((resolve) => resolve(auth.user));
-        }
-
-        let user: firebase.UserInfo;
-        let userPrivateInfo: IUserPrivateData;
-        authPromise
-            .then((firebaseUser: firebase.UserInfo) => {
-                user = firebaseUser;
-
-                if (isLoggedIn) {
-                    return new Promise((resolve) => resolve(auth.googleToken));
-                } else {
-                    return getAccessTokens(user.uid);
-                }
-            })
-            .then((userInfo: IUserPrivateData) => {
-                userPrivateInfo = userInfo;
-                if (!isLoggedIn) {
-                    return loadGoogleApi(userInfo.googleAccessToken, (user as any).refreshToken);
-                } else {
-                    return new Promise((resolve) => resolve());
-                }
-            })
-            .then(() => {
-                if (!isLoggedIn) {
-                    dispatch(asyncActionSucceededPayload<IAuthState>(
-                        LOGIN_ACTION,
-                        {
-                            googleToken: userPrivateInfo.googleAccessToken,
-                            slackToken: userPrivateInfo.slackAccessToken,
-                            user,
-                        }
-                    ));
-                }
-
-                firebaseDatabase
-                    .ref("hunts")
-                    .orderByChild("isCurrent")
-                    .equalTo(true)
-                    .limitToFirst(1)
-                    .on("value", (huntSnapshots) => {
-                        huntSnapshots.forEach((huntSnapshot) => {
-                            const hunt = huntSnapshot.val() as IHunt;
-                            if (userPrivateInfo.slackAccessToken !== undefined) {
-                                slack.team.info(userPrivateInfo.slackAccessToken).then((teamInfo) => {
-                                    dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                        LOAD_HUNT_ACTION,
-                                        Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
-                                    ));
-                                });
-                            } else {
+        loadUserInfo(dispatch, getState().auth).then((slackAccessToken: string) => {
+            firebaseDatabase
+                .ref("hunts")
+                .orderByChild("isCurrent")
+                .equalTo(true)
+                .limitToFirst(1)
+                .on("value", (huntSnapshots) => {
+                    huntSnapshots.forEach((huntSnapshot) => {
+                        const hunt = huntSnapshot.val() as IHunt;
+                        if (slackAccessToken !== undefined) {
+                            slack.team.info(slackAccessToken).then((teamInfo) => {
                                 dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
                                     LOAD_HUNT_ACTION,
-                                    Object.assign({}, hunt, { year: huntSnapshot.key }),
+                                    Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
                                 ));
-                            }
-                            return true;
-                        });
-                    }, (error: Error) => {
-                        dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+                            });
+                        } else {
+                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                                LOAD_HUNT_ACTION,
+                                Object.assign({}, hunt, { year: huntSnapshot.key }),
+                            ));
+                        }
+                        return true;
                     });
-            });
+                }, (error: Error) => {
+                    dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+                });
+        });
     }
 }
 
 export const SAVE_HUNT_ACTION = "SAVE_HUNT_INFO";
-export interface ISaveHuntActionPayload extends IHunt { }
+export interface ISaveHuntActionPayload extends IHuntState { }
 
 export function saveHuntInfoAction(hunt: IHuntState) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION));
-        let huntInfo = Object.assign({}, hunt);
+        let huntInfo = Object.assign({}, hunt) as ISaveHuntActionPayload;
         delete huntInfo["year"];
         firebaseDatabase
             .ref(`hunts/${hunt.year}`)

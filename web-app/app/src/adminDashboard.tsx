@@ -1,5 +1,7 @@
+/// <reference path="../typings/custom/gapi.d.ts" />
+
 import * as React from "react";
-import { IRouter } from "react-router";
+import { InjectedRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
@@ -29,7 +31,7 @@ interface IAdminDashboardState {
 }
 
 interface IRouterContext {
-    router: IRouter;
+    router: InjectedRouter;
 }
 
 interface IOwnProps {}
@@ -111,7 +113,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
-    private handleHuntDomainChange = (event: React.FormEvent) => {
+    private handleHuntDomainChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.domain) {
             this.setState({
@@ -121,7 +123,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
-    private handleHuntNameChange = (event: React.FormEvent) => {
+    private handleHuntNameChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.name) {
             this.setState({
@@ -131,7 +133,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
-    private handleHuntTitleRegexChange = (event: React.FormEvent) => {
+    private handleHuntTitleRegexChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.titleRegex) {
             this.setState({
@@ -141,7 +143,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         }
     }
 
-    private handleHuntDriveFolderChange = (event: React.FormEvent) => {
+    private handleHuntDriveFolderChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         const folderIdRegex = new RegExp(/https:\/\/drive.google.com\/drive\/u\/0\/folders\/(.+)$/g);
         const matches = folderIdRegex.exec(newValue);
@@ -153,7 +155,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         } 
     }
 
-    private handleTemplateSheetChange = (event: React.FormEvent) => {
+    private handleTemplateSheetChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         const sheetIdRegex = new RegExp(/https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g);
         const matches = sheetIdRegex.exec(newValue);

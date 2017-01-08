@@ -1,41 +1,72 @@
 import { Dispatch } from "redux";
 import * as firebase from "firebase";
 
-import { firebaseAuth, firebaseDatabase, provider } from "../auth";
+import { firebaseAuth, firebaseDatabase } from "../auth";
 import { IAppState, IAuthState } from "../state";
-import { loadGoogleApi } from "../services";
+import { loadGoogleApi, reloadGoogleAuth } from "../services";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload, 
     asyncActionSucceededPayload,
 } from "./loading";
 
-export const LOGIN_ACTION = "LOGIN";
+export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthState) {
+    let authPromise = new Promise((resolve) => {
+        firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
+    });
 
-export function loginAction() {
+    let googleToken: string;
+    let user: firebase.UserInfo;
+    let userPrivateInfo: IUserPrivateData;
+    if (authState.user === undefined) {
+        return authPromise
+            .then((firebaseUser: firebase.UserInfo) => {
+                user = firebaseUser;
+                return reloadGoogleAuth();
+            })
+            .then((googleAccessToken: string) => {
+                googleToken = googleAccessToken;
+                return getAccessTokens(user.uid);
+            })
+            .then((userInfo: IUserPrivateData) => {
+                userPrivateInfo = userInfo;
+                return loadGoogleApi(googleToken);
+            })
+            .then(() => {
+                dispatch(asyncActionSucceededPayload<IAuthState>(
+                    LOGIN_ACTION,
+                    {
+                        googleToken,
+                        slackToken: userPrivateInfo.slackAccessToken,
+                        user,
+                    }
+                ));
+                return new Promise((resolve) => resolve(userPrivateInfo.slackAccessToken));
+            });
+    } else {
+        return getAccessTokens(authState.user.uid).then((privateInfo) => privateInfo.slackAccessToken);
+    }
+}
+
+export const LOGIN_ACTION = "LOGIN";
+export function loginAction(accessToken: string) {
     return (dispatch: Dispatch<IAppState>, _getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<IAuthState>(LOGIN_ACTION));
 
-        let token: string;
         let user: firebase.UserInfo;
-        firebaseAuth().signInWithPopup(provider)
+        const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+        firebaseAuth().signInWithCredential(credential)
             .then((result) => {
-                // This gives you a Google Access Token. You can use it to access the Google API.
-                token = result.credential.accessToken;
-
                 // The signed-in user info.
-                user = result.user;
+                user = result;
                 
-                return loadGoogleApi(token, (user as any).refreshToken);
+                return loadGoogleApi(accessToken);
             })
             .then(() => {
                 return getAccessTokens(user.uid);
             })
             .then((userPrivateInfo: IUserPrivateData) => {
-                firebaseDatabase.ref(`userPrivateData/${user.uid}`).set({
-                    googleAccessToken: token,
-                });
-
+                firebaseDatabase.ref(`userPrivateData/${user.uid}/googleAccessToken`).set(accessToken);
                 firebaseDatabase.ref(`users/${user.uid}`).set({
                     displayName: user.displayName,
                     photoUrl: user.photoURL,
@@ -44,7 +75,7 @@ export function loginAction() {
                 dispatch(asyncActionSucceededPayload<IAuthState>(
                     LOGIN_ACTION,
                     {
-                        googleToken: token,
+                        googleToken: accessToken,
                         slackToken: userPrivateInfo.slackAccessToken,
                         user,
                     }
@@ -77,7 +108,7 @@ export interface IUserPrivateData {
     slackAccessToken: string;
 }
 
-export function getAccessTokens(userUid: string) {
+export function getAccessTokens(userUid: string): Promise<IUserPrivateData> {
     return new Promise((resolve) => {
         firebaseDatabase
             .ref(`userPrivateData/${userUid}`)

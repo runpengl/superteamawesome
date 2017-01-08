@@ -108,7 +108,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         this.setState({ hasChanges: false, puzzleChanges: {} });
     }
 
-    private handleTextHierarchyChange = (event: React.FormEvent) => {
+    private handleTextHierarchyChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
         const value = (event.target as HTMLTextAreaElement).value.trim();
         this.setState({ textHierarchy: value.split("\n") });
     }
@@ -194,7 +194,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     }
 
     private handlePuzzleNameChange = (puzzle: IPuzzle) => {
-        return (event: React.FormEvent) => {
+        return (event: React.FormEvent<HTMLInputElement>) => {
             const value = (event.target as HTMLInputElement).value;
             this.onPuzzleNameChange(puzzle, value);
         };

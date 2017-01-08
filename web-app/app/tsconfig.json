@@ -15,12 +15,11 @@
     "rootDir": ".",
     "sourceMap": true,
     "stripInternal": true,
-    "target": "es5"
+    "target": "es6"
   },
   "exclude": [
     "build",
     "dist",
-    "node_modules",
     "test"
   ]
 }

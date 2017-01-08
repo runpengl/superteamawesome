@@ -1,8 +1,11 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { IRouter } from "react-router";
+import { InjectedRouter } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
+import * as ReactGoogleLogin from "react-google-login";
+import GoogleLogin from "react-google-login";
 
+import { config } from "./config";
 import { loginAction } from "./actions";
 import { IAppState } from "./state";
 
@@ -16,16 +19,24 @@ interface IOwnProps {}
 
 // dispatch functions
 interface IDispatchProps {
-    login: () => void;
+    login: (accessToken: string) => void;
 }
 
 interface IRouterContext {
-    router: IRouter;
+    router: InjectedRouter;
 }
 
 export interface ILoginProps extends IStateProps, IOwnProps, IDispatchProps {}
 
-class UnconnectedLogin extends React.Component<ILoginProps, {}> {
+interface ILoginState {
+    loginErrors?: string;
+}
+
+class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
+    public state: ILoginState = {
+        loginErrors: undefined,
+    };
+
     public context: IRouterContext;
     static contextTypes = {
         router: React.PropTypes.object.isRequired,
@@ -116,19 +127,24 @@ class UnconnectedLogin extends React.Component<ILoginProps, {}> {
                     <div className="login-subtitle">
                         let"s have some mystery hunt fun
                     </div>
-                    <a className="login-button" onClick={this.handleLogin}>
-                        <span className="flaticon-google" />
-                        <span className="text">Sign in with Google</span>
-                    </a>
+                    <GoogleLogin
+                        clientId={config.google.clientId}
+                        onSuccess={this.handleLogin}
+                        onFailure={this.handleLoginFailure}
+                    />
                 </div>
                 <canvas id="poofytoo"></canvas>
             </div>
         )
     }
 
-    private handleLogin = () => {
+    private handleLogin = (response: ReactGoogleLogin.GoogleLoginResponse) => {
         const { login } = this.props;
-        login();
+        login(response.getAuthResponse().access_token);
+    }
+
+    private handleLoginFailure = (error: Error) => {
+        this.setState({ loginErrors: error.message });
     }
 }
 
