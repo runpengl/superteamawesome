@@ -210,9 +210,6 @@ a:hover {
   text-overflow: ellipsis;
   overflow: hidden;
 }
-.PuzzleList-puzzle:hover .PuzzleList-puzzleName {
-  text-decoration: underline;
-}
 .PuzzleList-puzzle.solved .PuzzleList-puzzleName {
   color: #ccc;
   text-decoration: line-through;
@@ -220,8 +217,8 @@ a:hover {
 
 .PuzzleList-puzzleSolution {
   color: #07b05a;
-  font-family: "Courier", monospace;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 500;
   margin-right: 5px;
 }
 

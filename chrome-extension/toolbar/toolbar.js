@@ -116,7 +116,8 @@ var r = React.DOM;
 function PuzzleToolbar(props) {
     return r.div({ className: "Toolbar" },
         React.createElement(PuzzleStatusPicker, {
-            currentStatus: props.puzzle.status,
+            puzzleStatus: props.puzzle.status,
+            puzzleSolution: props.puzzle.solution,
             onChange: props.onPuzzleStatusChange
         }),
         r.div({ className: "Toolbar-puzzleName" }, props.puzzle.name),
@@ -179,18 +180,38 @@ var PUZZLE_STATUSES = ["new", "inProgress", "stuck", "solved"];
 var PuzzleStatusPicker = React.createClass({
     displayName: "PuzzleStatusPicker",
     getInitialState: function() {
-        return { isCollapsed: true, overrideStatusUpdate: null };
+        return {
+            isCollapsed: true,
+            optimisticStatusUpdate: null,
+            solutionText: null
+        };
     },
-    componentWillReceiveProps: function() {
-        this.setState({ optimisticStatusUpdate: null });
+    componentWillReceiveProps: function(nextProps) {
+        this.setState({
+            optimisticSolution: null,
+            optimisticStatusUpdate: null
+        });
+        if (this.props.puzzleStatus !== "solved" &&
+            nextProps.puzzleStatus === "solved") {
+            this.setState({ solutionText: nextProps.puzzleSolution || "" });
+        }
+    },
+    componentDidUpdate: function(prevProps, prevState) {
+        if (prevState.solutionText === null &&
+            this.state.solutionText !== null) {
+            this.refs.solutionInput.focus();
+        }
     },
     render: function() {
+        var displaySolution = this.state.optimisticSolution
+            || this.props.puzzleSolution
+            || "(no solution)";
         return r.div({
             className: "PuzzleStatusPicker" +
                 (this.state.isCollapsed ? " isCollapsed" : "")
         },
             PUZZLE_STATUSES.map(function(status) {
-                var currentStatus = this.state.optimisticStatusUpdate || this.props.currentStatus;
+                var currentStatus = this.state.optimisticStatusUpdate || this.props.puzzleStatus;
                 return r.div({
                     key: status,
                     className: "PuzzleStatusPicker-statusButton " + status +
@@ -198,7 +219,25 @@ var PuzzleStatusPicker = React.createClass({
                         (this.state.optimisticStatusUpdate ? " isPending" : ""),
                     onClick: this.handleStatusClick.bind(this, status)
                 }, this.toHumanReadable(status))
-            }, this)
+            }, this),
+            this.props.puzzleStatus === "solved"
+                ? r.div({ className: "PuzzleStatusPicker-solution" },
+                    this.state.solutionText === null
+                        ? r.div({
+                            className: "PuzzleStatusPicker-solutionButton",
+                            onClick: this.handleSolutionClick
+                        }, displaySolution)
+                        : r.input({
+                            ref: "solutionInput",
+                            className: "PuzzleStatusPicker-solutionInput",
+                            value: this.state.solutionText,
+                            placeholder: "SOLUTION",
+                            onBlur: this.submitSolution,
+                            onChange: this.handleSolutionChange,
+                            onKeyDown: this.handleSolutionInputKeyDown
+                        })
+                )
+                : null
         );
     },
     toHumanReadable: function(statusStr) {
@@ -209,12 +248,33 @@ var PuzzleStatusPicker = React.createClass({
             this.setState({ isCollapsed: false });
             return;
         }
-        if (status !== this.props.currentStatus) {
+        if (status !== this.props.puzzleStatus) {
             this.setState({ optimisticStatusUpdate: status });
             this.props.onChange(status);
         }
         this.setState({ isCollapsed: true });
         event.preventDefault();
+    },
+    handleSolutionClick: function() {
+        this.setState({ solutionText: this.props.puzzleSolution });
+    },
+    handleSolutionChange: function(event) {
+        this.setState({ solutionText: event.target.value });
+    },
+    submitSolution: function() {
+        chrome.runtime.sendMessage({
+            msg: "puzzleSolutionChange",
+            solution: this.state.solutionText
+        });
+        this.setState({
+            optimisticSolution: this.state.solutionText,
+            solutionText: null
+        });
+    },
+    handleSolutionInputKeyDown: function(event) {
+        if (event.key === "Enter") {
+            this.submitSolution();
+        }
     }
 });
 

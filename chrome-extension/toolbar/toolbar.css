@@ -110,6 +110,7 @@ body {
  */
 .PuzzleStatusPicker {
   display: flex;
+  margin-left: -1px;
   margin-right: 10px;
 }
 
@@ -121,11 +122,12 @@ body {
   display: inline-block;
   height: 100vh;
   line-height: 100vh;
-  margin-right: 1px;
+  margin-left: 1px;
   overflow: hidden;
   text-align: center;
   text-transform: uppercase;
   transition: .3s max-width;
+  user-select: none;
 }
 .PuzzleStatusPicker-statusButton:not(.isCurrent):hover,
 .PuzzleStatusPicker-statusButton.isPending {
@@ -166,6 +168,47 @@ body {
 .PuzzleStatusPicker.isCollapsed .PuzzleStatusPicker-statusButton:not(.isCurrent) {
   max-width: 0;
   margin: 0;
+}
+
+.PuzzleStatusPicker-solution {
+  background: #fff;
+  border: 2px solid #07b05a;
+  border-width: 0 2px;
+  box-shadow: inset 0 -1px #d9d9d9;
+  color: #07b05a;
+  font-weight: 500;
+  line-height: 100vh;
+  position: relative;
+}
+.PuzzleStatusPicker-solution::before {
+  border: 5px solid;
+  border-color: transparent #fff;
+  border-left: none;
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.PuzzleStatusPicker-solutionButton {
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.PuzzleStatusPicker-solutionInput {
+  background: #fff;
+  border: none;
+  color: #6d6d6d;
+  font-family: "Helvetica Neue", "Lucida Grande", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 100vh;
+  min-width: 100px;
+  padding: 0 10px;
+}
+.PuzzleStatusPicker-solutionInput:focus {
+  outline: none;
 }
 
 /**

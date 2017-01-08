@@ -211,6 +211,11 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
         case "joinChannel":
             Slack.joinChannel(request.name);
             break;
+        case "puzzleSolutionChange":
+            firebase.database()
+                .ref("puzzles/" + toolbarInfoByTabId[sender.tab.id].puzzleKey + "/solution")
+                .set(request.solution);
+            break;
         case "puzzleStatusChange":
             firebase.database()
                 .ref("puzzles/" + toolbarInfoByTabId[sender.tab.id].puzzleKey + "/status")
