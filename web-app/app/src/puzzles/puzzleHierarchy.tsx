@@ -1,3 +1,4 @@
+import * as classnames from "classnames";
 import * as React from "react";
 
 import { IPuzzleInfoChanges } from "../actions";
@@ -11,11 +12,13 @@ export interface IPuzzleHierarchyProps {
 
 interface IPuzzleHierarchyState {
     puzzleChanges?: { [key: string]: IPuzzleInfoChanges };
+    groupUncollapsed?: { [key: string]: boolean };
 }
 
 export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuzzleHierarchyState> {
     public state: IPuzzleHierarchyState = {
         puzzleChanges: {},
+        groupUncollapsed: {},
     };
 
     public render() {
@@ -34,16 +37,28 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     }
 
     private renderPuzzleGroup(group: IPuzzleGroup) {
+        const { groupUncollapsed } = this.state;
         const numSolvedPuzzles = group.children.filter((puzzle) => puzzle.status === PuzzleStatus.SOLVED).length;
         return (
             <div className="puzzle-group" key={`parent-${group.parent.key}`}>
-                <div className="puzzle-group-header">
-                    <h3>{group.parent.name} puzzles</h3>
+                <div className="puzzle-group-header" onClick={this.toggleCollapsed(group)}>
+                    <span className={classnames({"collapsed": !groupUncollapsed[group.parent.key], "uncollapsed": groupUncollapsed[group.parent.key]})} />
+                    <h3>{group.parent.name} Puzzles</h3>
                     <div className="group-stats">{numSolvedPuzzles}/{group.children.length + 1}</div>
                 </div>
-                {this.renderPuzzles(group.children, group.parent)}
+                {groupUncollapsed[group.parent.key] ? this.renderPuzzles(group.children, group.parent) : undefined}
             </div>
         )
+    }
+
+    private toggleCollapsed = (group: IPuzzleGroup) => {
+        return () => {
+            const { groupUncollapsed } = this.state;
+            const isCollapsed = groupUncollapsed[group.parent.key] ? false : true;
+            this.setState({
+                groupUncollapsed: Object.assign({}, groupUncollapsed, { [group.parent.key]: isCollapsed }),
+            });
+        };
     }
 
     private getGoogleSheetUrl(sheetId: string) {
@@ -89,7 +104,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                 <tbody>
                     {puzzleRows}
                     <tr>
-                        <td><span className="puzzle-index">{meta.index}</span> <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /></td>
+                        <td><span className="puzzle-index">{meta.index}</span> <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /> Meta</td>
                         <td>{meta.status.toUpperCase()}</td>
                         <td><a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                         <td><a href={this.getGoogleSheetUrl(meta.spreadsheetId)} target="_blank">DOC</a></td>

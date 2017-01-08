@@ -1,3 +1,4 @@
+import * as classnames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -14,6 +15,7 @@ import { IAppState, IAppLifecycle, IHuntState, IDiscoveredPage } from "../state"
 
 interface IOwnProps {
     hunt: IHuntState;
+    isInitallyCollapsed?: boolean;
     discoveredPages: IAsyncLoaded<IDiscoveredPage[]>;
     hideIgnoreButton?: boolean;
     title: string;
@@ -34,6 +36,7 @@ interface IDiscoveredPagesState {
     error?: string;
     generatingPuzzles?: string[];
     hasChanges: boolean;
+    isCollapsed?: boolean;
     updatedPages?: { [key: string]: IPuzzleInfoChanges };
 }
 
@@ -41,8 +44,13 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     public state: IDiscoveredPagesState = {
         generatingPuzzles: [],
         hasChanges: false,
+        isCollapsed: false,
         updatedPages: {},
     };
+
+    public componentWillReceiveProps(props: IDiscoveredPagesProps) {
+        this.setState({ hasChanges: false, isCollapsed: props.isInitallyCollapsed });
+    }
     
     public componentDidUpdate(oldProps: IDiscoveredPagesProps) {
         const { lifecycle, discoveredPages } = this.props;
@@ -72,17 +80,32 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
 
     public render() {
         const { discoveredPages, title } = this.props;
-        const { error, hasChanges } = this.state;
-        return (
-            <div className="discovered-puzzles-container">
-                <h3><em>{title}</em> puzzle pages</h3>
-                { error !== undefined ? `There was an error creating the puzzle: ${error}` : undefined }
+        const { error, hasChanges, isCollapsed } = this.state;
+        let pages: JSX.Element;
+        if (!isCollapsed) {
+            pages = (
                 <div className="table-container">
                     { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
                     <button className="discovered-puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveChanges}>{ hasChanges ? "Save" : "Saved" }</button>
                 </div>
+            );
+        }
+        return (
+            <div className="discovered-puzzles-container">
+                <div className="discovered-puzzles-header" onClick={this.toggleCollapsed}>
+                    <span
+                        className={classnames({"collapsed": isCollapsed, "uncollapsed": !isCollapsed})}
+                    />
+                    <h3><em>{title}</em> puzzle pages</h3>
+                </div>
+                { error !== undefined ? `There was an error creating the puzzle: ${error}` : undefined }
+                {pages}
             </div>
         );
+    }
+
+    private toggleCollapsed = () => {
+        this.setState({ hasChanges: this.state.hasChanges, isCollapsed: !this.state.isCollapsed });
     }
 
     private renderDiscoveredPages() {
@@ -99,6 +122,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
                         </td>
                         <td>
                             <button
+                                className="generate-slack-doc-button"
                                 disabled={hunt.driveFolderId === undefined || hunt.templateSheetId === undefined}
                                 onClick={this.handleCreatePuzzle(title, discoveredPage)}
                             >
@@ -152,7 +176,7 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
     private maybeRenderIgnoreButton(discoveredPage: IDiscoveredPage) {
         const { hideIgnoreButton } = this.props;
         if (!hideIgnoreButton) {
-            return <td><button onClick={this.handleIgnorePage(discoveredPage)}>ignore</button></td>;
+            return <td><button className="ignore-button" onClick={this.handleIgnorePage(discoveredPage)}>ignore</button></td>;
         }
         return undefined;
     }

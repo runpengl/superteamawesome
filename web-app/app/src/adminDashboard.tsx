@@ -254,6 +254,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                         discoveredPages={ignoredPages}
                         title="ignored"
                         hideIgnoreButton={true}
+                        isInitallyCollapsed={true}
                     />
                 </div>
             );
