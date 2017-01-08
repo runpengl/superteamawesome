@@ -83,11 +83,11 @@ export function loadIgnoredPagesAction(huntKey: string) {
 }
 
 export const SAVE_DISCOVERED_PAGE_CHANGES_ACTION = "SAVE_DISCOVERED_PAGE_CHANGES";
-export interface IDiscoveredPageChanges {
+export interface IPuzzleInfoChanges {
     title?: string;
     link?: string;
 }
-export function saveDiscoveredPageChangesAction(changes: { [key: string]: IDiscoveredPageChanges }) {
+export function saveDiscoveredPageChangesAction(changes: { [key: string]: IPuzzleInfoChanges }) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(SAVE_DISCOVERED_PAGE_CHANGES_ACTION));
         const huntKey = getState().hunt.value.year;
@@ -228,7 +228,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
 }
 
 export const SAVE_HIERARCHY_ACTION = "SAVE_HIERARCHY";
-export function saveHierarchyAction(hierarchy: IPuzzleHierarchy) {
+export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: {[key: string]: IPuzzleInfoChanges}) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         let promises: Promise<void>[] = [];
         dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
@@ -256,6 +256,16 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy) {
                     throw error;
                 });
             }));
+        });
+        Object.keys(puzzleChanges).forEach((puzzleKey) => {
+            const updates = {
+                [`/puzzles/${puzzleKey}/name`]: puzzleChanges[puzzleKey].title,
+            };
+            promises.push(new Promise<void>((resolve) => {
+                firebaseDatabase.ref().update(updates).then(() => { resolve() }
+            , (error) => {
+                throw error;
+            })}));
         });
         Promise.all(promises).then(() => {
             dispatch(asyncActionSucceededPayload<void>(SAVE_HIERARCHY_ACTION));

@@ -100,7 +100,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, {}> {
 
     public componentDidUpdate(oldProps: ILoginProps) {
         if (oldProps.googleToken === undefined && this.props.googleToken !== undefined) {
-            this.context.router.push("/");
+            this.context.router.push("/admin");
         }
     }
 

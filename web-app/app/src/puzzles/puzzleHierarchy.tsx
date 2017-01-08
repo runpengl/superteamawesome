@@ -1,14 +1,24 @@
 import * as React from "react";
 
+import { IPuzzleInfoChanges } from "../actions";
 import { IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state";
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
     huntDomain: string;
+    onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
     slackTeamId: string;
 }
 
-export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, {}> {
+interface IPuzzleHierarchyState {
+    puzzleChanges?: { [key: string]: IPuzzleInfoChanges };
+}
+
+export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuzzleHierarchyState> {
+    public state: IPuzzleHierarchyState = {
+        puzzleChanges: {},
+    };
+
     public render() {
         const { hierarchy } = this.props;
         const hierarchyKeys = Object.keys(hierarchy);
@@ -45,12 +55,27 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, {}> 
         return `http://${host}${path}`;
     }
 
+    private handlePuzzleNameChange = (puzzle: IPuzzle) => {
+        return (event: React.FormEvent) => {
+            const newName = (event.target as HTMLInputElement).value;
+            this.props.onPuzzleNameChange(puzzle, newName);
+            let changes = this.state.puzzleChanges;
+            if (changes[puzzle.key] === undefined) {
+                changes[puzzle.key] = {};
+            }
+            changes[puzzle.key].title = newName;
+            this.setState({ puzzleChanges: changes });
+        }
+    }
+
     private renderPuzzles(puzzles: IPuzzle[], meta: IPuzzle) {
         const { huntDomain, slackTeamId } = this.props;
+        const { puzzleChanges } = this.state;
         const puzzleRows = puzzles.map((puzzle) => {
+            const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
             return (
                 <tr key={puzzle.key}>
-                    <td>{puzzle.index} {puzzle.name}</td>
+                    <td><span className="puzzle-index">{puzzle.index}</span> <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} /></td>
                     <td>{puzzle.status.toUpperCase()}</td>
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
@@ -58,12 +83,14 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, {}> 
                 </tr>
             );
         });
+
+        const metaName = puzzleChanges[meta.key] !== undefined && puzzleChanges[meta.key].title !== undefined ? puzzleChanges[meta.key].title : meta.name;
         return (
             <table cellPadding="0" cellSpacing="0">
                 <tbody>
                     {puzzleRows}
                     <tr>
-                        <td>{meta.index} {meta.name}</td>
+                        <td>{meta.index} <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /></td>
                         <td>{meta.status.toUpperCase()}</td>
                         <td><a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                         <td><a href={this.getGoogleSheetUrl(meta.spreadsheetId)} target="_blank">DOC</a></td>

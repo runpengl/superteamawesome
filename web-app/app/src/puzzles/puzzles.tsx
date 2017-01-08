@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { isAsyncLoaded, IAsyncLoaded, loadPuzzlesAction, saveHierarchyAction } from "../actions";
+import { isAsyncLoaded, IAsyncLoaded, IPuzzleInfoChanges, loadPuzzlesAction, saveHierarchyAction } from "../actions";
 import { IAppState, IPuzzle, IPuzzleHierarchy } from "../state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
 
@@ -14,7 +14,7 @@ interface IOwnProps {
 
 interface IDispatchProps {
     loadPuzzles?: (huntKey: string) => void;
-    saveHierarchy?: (hierarchy: IPuzzleHierarchy) => void;
+    saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges}) => void;
 }
 
 interface IStateProps {
@@ -28,6 +28,7 @@ export interface IPuzzlesState {
     hierarchy?: IPuzzleHierarchy;
     isHierarchyLoaded?: boolean;
     parseError?: string;
+    puzzleChanges?: { [key: string]: IPuzzleInfoChanges };
     textHierarchy?: string[];
     unsortedPuzzles?: IPuzzle[];
 }
@@ -36,6 +37,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     public state: IPuzzlesState = {
         hasChanges: false,
         hierarchy: {},
+        puzzleChanges: {},
         textHierarchy: [],
         unsortedPuzzles: [],
     };
@@ -47,6 +49,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     public componentDidUpdate(oldProps: IPuzzlesProps) {
         const { puzzles } = this.props;
+        console.log(!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles), puzzles);
         if (!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles)
             || (isAsyncLoaded(oldProps.puzzles)
                 && isAsyncLoaded(puzzles)
@@ -88,6 +91,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <PuzzleHierarchy
                         hierarchy={hierarchy}
                         huntDomain={huntDomain}
+                        onPuzzleNameChange={this.onPuzzleNameChange}
                         slackTeamId={slackTeamId}
                     />
                 </div>
@@ -102,8 +106,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     }
 
     private handleSaveHierarchy = () => {
-        this.props.saveHierarchy(this.state.hierarchy);
-        this.setState({ hasChanges: false });
+        this.props.saveHierarchy(this.state.hierarchy, this.state.puzzleChanges);
+        this.setState({ hasChanges: false, puzzleChanges: {} });
     }
 
     private handleTextHierarchyChange = (event: React.FormEvent) => {
@@ -191,13 +195,33 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         return `http://${host}${path}`;
     }
 
+    private handlePuzzleNameChange = (puzzle: IPuzzle) => {
+        return (event: React.FormEvent) => {
+            const value = (event.target as HTMLInputElement).value;
+            this.onPuzzleNameChange(puzzle, value);
+        };
+    }
+
+    private onPuzzleNameChange = (puzzle: IPuzzle, newName: string) => {
+        const changes = Object.assign({}, this.state.puzzleChanges);
+        if (changes[puzzle.key] === undefined) {
+            changes[puzzle.key] = {};
+        }
+        changes[puzzle.key].title = newName;
+        this.setState({
+            hasChanges: true,
+            puzzleChanges: changes,
+        });
+    }
+
     private renderUnsortedPuzzles() {
         const { huntDomain, slackTeamId } = this.props;
-        const { unsortedPuzzles } = this.state;
+        const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map((puzzle) => {
+            const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
             return (
                 <tr key={puzzle.key}>
-                    <td>{puzzle.index} {puzzle.name}</td>
+                    <td>{puzzle.index} <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} /></td>
                     <td>{puzzle.status.toUpperCase()}</td>
                     <td>{puzzle.createdAt}</td>
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
