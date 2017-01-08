@@ -43,33 +43,6 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
     switch (action.type) {
         case LOAD_DISCOVERED_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
-        case CREATE_PUZZLE_ACTION:
-            if (isAsyncSucceeded(action)) {
-                let discoveredPages = state.value;
-                // for now only create one puzzle at a time
-                let payload = action.value as ICreatePuzzleActionPayload;
-                const createdPuzzlePage = payload.changedPages[0];
-                discoveredPages = discoveredPages.filter((page) => page.key !== createdPuzzlePage.key);
-                return Object.assign({}, state, { value: discoveredPages });
-            }
-        case IGNORE_DISCOVERED_PAGE_ACTION:
-            if (isAsyncSucceeded(action)) {
-                let discoveredPages = state.value;
-                const ignoredPuzzlePage = action.value[0];
-                discoveredPages = discoveredPages.filter((page) => page.key !== ignoredPuzzlePage.key);
-                return Object.assign({}, state, { value: discoveredPages });
-            }
-        case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:
-            if (isAsyncSucceeded(action)) {
-                const changedPagesValue = action.value as IDiscoveredPage[];
-                let changedPages = changedPagesValue.filter((page) => !page.ignored);
-                let discoveredPages = state.value.slice();
-                changedPages.forEach((changedPage) => {
-                    const changedIndex = discoveredPages.findIndex((page) => page.key === changedPage.key);
-                    discoveredPages[changedIndex] = changedPage;
-                });
-                return Object.assign({}, state, { value: discoveredPages });
-            }
         default:
             return state;
     }

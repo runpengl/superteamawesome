@@ -48,7 +48,7 @@ export function loadDiscoveredPagesAction(huntKey: string) {
         dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(LOAD_DISCOVERED_PUZZLES_ACTION));
         firebaseDatabase
             .ref(`discoveredPages/${huntKey}`)
-            .once("value", (snapshot: firebase.database.DataSnapshot) => {
+            .on("value", (snapshot: firebase.database.DataSnapshot) => {
                 let discoveredPages: IDiscoveredPage[] = [];
                 snapshot.forEach((discoveredPuzzleSnapshot: firebase.database.DataSnapshot) => {
                     if (!discoveredPuzzleSnapshot.val().ignored) {
