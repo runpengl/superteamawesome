@@ -59,8 +59,9 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
                     chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
                 }
                 if (info.toolbarType === "hunt" &&
-                    info.locationType === "huntDomain") {
-                    maybeAddDiscoveredPage(info.huntKey, a.pathname, tab.title);
+                    info.locationType === "huntSite") {
+                    maybeAddDiscoveredPage(
+                        info.huntKey, a.hostname, a.pathname, tab.title);
                 }
                 if (info.toolbarType !== "none") {
                     // Try and inject a toolbar onto the page. If we have previously
@@ -288,19 +289,18 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                 });
         }
     } else {
-        var domain = hostname.split(".").slice(-2).join(".");
-
-        // Find hunt that matches current domain
-        selectOnlyWhereChildEquals("hunts",
-            "domain", domain, function(huntSnapshot) {
-                if (!huntSnapshot) {
+        // Find hunt that matches current location's hostname
+        selectOnlyWhereChildEquals("huntHostNames",
+            "hostName", hostname, function(huntHostName) {
+                if (!huntHostName) {
                     callback({ toolbarType: "none" });
                     return;
                 }
+                var huntKey = huntHostName.val().hunt;
 
                 // See if any puzzles in this hunt match the current path
                 selectAllWhereChildEquals("puzzles",
-                    "hunt", huntSnapshot.key, function(puzzlesSnapshot) {
+                    "hunt", huntKey, function(puzzlesSnapshot) {
                         var didFindPuzzle = puzzlesSnapshot.forEach(function(p) {
                             var puzzlePath = p.val().path;
                             if (puzzlePath && pathname.startsWith(puzzlePath)) {
@@ -311,8 +311,8 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                         if (!didFindPuzzle) {
                             callback({
                                 toolbarType: "hunt",
-                                locationType: "huntDomain",
-                                huntKey: huntSnapshot.key
+                                locationType: "huntSite",
+                                huntKey: huntKey
                             });
                         }
                     });
@@ -324,7 +324,7 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
  * This function should be called when a page is identified as belonging to a hunt
  * domain but a corresponding puzzle was not found.
  */
-function maybeAddDiscoveredPage(huntKey, path, title) {
+function maybeAddDiscoveredPage(huntKey, host, path, title) {
     var db = firebase.database();
     db.ref("hunts/" + huntKey).once("value", function(hunt) {
         if (!hunt.val().isCurrent) {
@@ -336,7 +336,7 @@ function maybeAddDiscoveredPage(huntKey, path, title) {
                 if (!snap) {
                     // Page not found; add one
                     db.ref("discoveredPages/" + hunt.key).push({
-                        host: hunt.val().domain,
+                        host: host,
                         path: path,
                         title: title
                     });
