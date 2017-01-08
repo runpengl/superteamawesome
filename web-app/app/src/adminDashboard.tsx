@@ -180,10 +180,12 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         return (
             <div className="dashboard">
                 <div className="header">
-                    <h1>STAPH [ADMIN]</h1>
-                    <div className="sub-header">Super Team Awesome Puzzle Helper</div>
+                    <div className="header-container">
+                        <h1>STAPH [ADMIN]</h1>
+                        <div className="sub-header">Super Team Awesome Puzzle Helper</div>
+                    </div>
+                    <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
-                <button onClick={this.handleLogout}>Logout</button>
                 <div className="hunt-edit-container">
                     <div className="hunt-information">
                         <div className="edit-info-line">
@@ -207,7 +209,13 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <input type="text" defaultValue={this.getTemplateSheetLink()} onChange={this.handleTemplateSheetChange} />
                         </div>
                     </div>
-                    <button disabled={!this.state.hasChanges} onClick={this.handleSave}>{ this.state.hasChanges ? "Save" : "Saved" }</button>
+                    <button
+                        className="hunt-save-button"
+                        disabled={!this.state.hasChanges}
+                        onClick={this.handleSave}
+                    >
+                        { this.state.hasChanges ? "Save" : "Saved" }
+                    </button>
                 </div>
                 {this.maybeRenderPuzzles()}
             </div>
