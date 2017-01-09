@@ -1,27 +1,49 @@
 // Initialization
 firebase.initializeApp(config.firebase);
-firebase.auth().onAuthStateChanged(handleFirebaseAuthStateChange);
 chrome.runtime.onMessage.addListener(handleChromeRuntimeMessage);
 chrome.runtime.onConnect.addListener(handleChromeRuntimeConnect);
 chrome.tabs.onUpdated.addListener(handleChromeTabsUpdated);
 chrome.tabs.onRemoved.addListener(handleChromeTabsRemoved);
 
 // Keep this data synced for faster toolbar initialization
-firebase.database().ref("hunts").on("value", function() {});
+firebase.database().ref("currentHunt").on("value", function() {});
 
-function handleFirebaseAuthStateChange(user) {
-    if (!user) {
-        return;
-    }
+function startAuth() {
+    var interactive = true;
+    chrome.identity.getAuthToken({ interactive: interactive }, function(token) {
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+            // inform popup somehow
+        } else if (token) {
+            // Sign in to Firebase with the Google Access Token.
+            var credential = firebase.auth.GoogleAuthProvider.credential(null, token);
+            firebase.auth().signInWithCredential(credential).then(function(userOrNull) {
+                if (!userOrNull) {
+                    return;
+                }
+                var user = userOrNull;
 
-    // Save info so other clients can display a list of users viewing a puzzle
-    firebase.database().ref("users/" + user.uid).set({
-        displayName: user.displayName,
-        email: user.email,
-        photoUrl: user.photoURL
+                // Save info so other clients can display a list of users viewing a puzzle
+                firebase.database().ref("users/" + user.uid).set({
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoUrl: user.photoURL
+                });
+
+                Slack.connect(interactive);
+
+            }).catch(function(error) {
+                console.error("[firebase/auth] Retrying Google auth due to error:", error);
+                // The OAuth token might have been invalidated. Let's remove it from cache.
+                chrome.identity.removeCachedAuthToken({token: token}, function() {
+                    // Try logging into Google from scratch.
+                    startAuth();
+                });
+            });
+        } else {
+            console.error("The OAuth Token was unexpectedly null.");
+        }
     });
-
-    Slack.connect();
 }
 
 /**
@@ -51,7 +73,7 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
                 if (!toolbarInfoByTabId[tabId] ||
                     !isToolbarInfoEqual(toolbarInfoByTabId[tabId], info)) {
 
-                    console.log(tabId, info);
+                    console.log("[tabs.onUpdate]", tabId, info);
                     toolbarInfoByTabId[tabId] = info;
                     // On single-page apps like slack, the toolbar persists while
                     // switching channels, so we need to trigger a reconnection so
@@ -81,7 +103,12 @@ function handleChromeTabsRemoved(tabId, removeInfo) {
  * will open a connection to request data from the background script.
  */
 function handleChromeRuntimeConnect(port) {
+    if (port.name === "popupLoad") {
+        handlePopupConnect(port);
+        return;
+    }
     var tabId = port.sender.tab.id;
+    console.log("[runtime.onConnect]", "toolbarLoad", tabId);
 
     var db = firebase.database();
     var currentUser = firebase.auth().currentUser;
@@ -202,11 +229,92 @@ function handleChromeRuntimeConnect(port) {
     }
 }
 
+function handlePopupConnect(port) {
+    console.log("[chrome.runtime.onConnect]", "popupLoad");
+    var db = firebase.database();
+    var currentHuntRef = db.ref("currentHunt");
+    var viewersRef = db.ref("puzzleViewers");
+    var huntRef;
+    var puzzlesRef;
+
+    var unsubscribeAuth = firebase.auth().onAuthStateChanged(function(userOrNull) {
+        port.postMessage({
+            msg: "auth",
+            user: userOrNull
+        });
+
+        currentHuntRef.on("value", handleCurrentHuntValue);
+        viewersRef.on("value", handleViewersValue);
+    });
+
+    port.onDisconnect.addListener(function() {
+        unsubscribeAuth();
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        if (viewersRef) viewersRef.off("value", handleViewersValue);
+    });
+
+    function handleCurrentHuntValue(currentHuntSnap) {
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        var currentHuntKey = currentHuntSnap.val();
+
+        huntRef = db.ref("hunts/" + currentHuntKey);
+        huntRef.on("value", handleHuntValue);
+        puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(currentHuntKey);
+        puzzlesRef.on("value", handlePuzzlesValue);
+    }
+    function handleHuntValue(huntSnap) {
+        port.postMessage({
+            msg: "hunt",
+            hunt: huntSnap.val()
+        });
+    }
+    function handlePuzzlesValue(puzzlesSnap) {
+        var puzzles = [];
+        puzzlesSnap.forEach(function(puzzle) {
+            puzzles.push(Object.assign({}, puzzle.val(), {
+                key: puzzle.key
+            }))
+        });
+        puzzles.sort(function(p1, p2) {
+            // sort by createdAt descending
+            return new Date(p2.createdAt).getTime() -
+                new Date(p1.createdAt).getTime();
+        });
+        port.postMessage({
+            msg: "puzzles",
+            puzzles: puzzles
+        });
+    }
+    function handleViewersValue(viewersSnap) {
+        var puzzleViewers = {};
+        viewersSnap.forEach(function(viewersForPuzzle) {
+            var numActiveViewers = 0;
+            viewersForPuzzle.forEach(function(viewerTabs) {
+                viewerTabs.forEach(function(tab) {
+                    if (!tab.val().idle) {
+                        numActiveViewers++;
+                        return true; // stop iterating
+                    }
+                });
+            });
+            puzzleViewers[viewersForPuzzle.key] = numActiveViewers;
+        });
+        port.postMessage({
+            msg: "puzzleViewers",
+            puzzleViewers: puzzleViewers
+        });
+    }
+}
+
 /**
  * Handles chrome.runtime onMessage events. These messages are sent from either
  * the content script or the toolbar to read (once) or write firebase data.
  */
 function handleChromeRuntimeMessage(request, sender, sendResponse) {
+    console.log("[runtime.onMessage]", request);
+
     switch (request.msg) {
         case "joinChannel":
             Slack.joinChannel(request.name);
@@ -242,6 +350,9 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
                 .ref("puzzleViewers").child(data.puzzleKey)
                 .child(currentUserId).child(sender.tab.id)
                 .child("idle").set(request.isIdle);
+            break;
+        case "signIn":
+            startAuth();
             break;
         case "signOut":
             firebase.auth().signOut();
@@ -339,6 +450,7 @@ function maybeAddDiscoveredPage(huntKey, host, path, title) {
         selectOnlyWhereChildEquals("discoveredPages/" + hunt.key,
             "path", path, function(snap) {
                 if (!snap) {
+                    console.log("[firebase/discoveredPages]", host, path, title);
                     // Page not found; add one
                     db.ref("discoveredPages/" + hunt.key).push({
                         host: host,

@@ -1,142 +1,88 @@
-var isLoggingIn = false;
-var currentHunt = null;
-var currentHuntPuzzles = [];
-var puzzleViewersSnapshot = null;
-window.onload = function() {
-    initApp();
-};
+initApp();
+
+var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
 
 /**
  * initApp handles setting up the Firebase context and registering
  * callbacks for the auth status.
  */
 function initApp() {
-    firebase.initializeApp(config.firebase);
-    firebase.auth().onAuthStateChanged(function(userOrNull) {
-        if (!userOrNull) {
-            renderPopup();
-            return;
-        }
-
-        var db = firebase.database();
-        db.ref("currentHunt").once("value", function(snap) {
-            var huntKey = snap.val();
-            db.ref("hunts/" + huntKey).on("value", function(hunt) {
-                currentHunt = hunt.val();
-                renderPopup();
-            });
-            db.ref("puzzles")
-                .orderByChild("hunt")
-                .equalTo(huntKey)
-                .on("value", function(snapshot) {
-                    var puzzles = [];
-                    snapshot.forEach(function(puzzle) {
-                        puzzles.push(Object.assign({}, puzzle.val(), {
-                            key: puzzle.key
-                        }))
-                    });
-                    currentHuntPuzzles = puzzles.sort(function(p1, p2) {
-                        // sort by createdAt descending
-                        return new Date(p2.createdAt).getTime() -
-                            new Date(p1.createdAt).getTime();
-                    });
-                    renderPopup();
+    var port = chrome.runtime.connect({ name: "popupLoad" });
+    port.onMessage.addListener(function(event) {
+        switch (event.msg) {
+            case "auth":
+                popupData = Object.assign({}, popupData, {
+                    currentUser: event.user
                 });
-        });
+                return renderPopup();
 
-        db.ref("puzzleViewers").on("value", function(snap) {
-            puzzleViewersSnapshot = snap;
-            renderPopup();
-        });
-    });
-
-    startAuth(/*interactive=*/false);
-}
-
-/**
- * Start the auth flow (Google & Firebase).
- * @param{boolean} interactive True if the OAuth flow should request with an interactive mode.
- */
-function startAuth(interactive) {
-    isLoggingIn = true;
-    renderPopup();
-
-    // Request an OAuth token from the Chrome Identity API.
-    chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
-        isLoggingIn = false;
-        if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError);
-            renderPopup();
-        } else if (token) {
-            // Sign in to Firebase with the Google Access Token.
-            var credential = firebase.auth.GoogleAuthProvider.credential(null, token);
-            firebase.auth().signInWithCredential(credential).catch(function(error) {
-                // The OAuth token might have been invalidated. Let's remove it from cache.
-                chrome.identity.removeCachedAuthToken({token: token}, function() {
-                    // Try logging into Google from scratch.
-                    startAuth(interactive);
+            case "hunt":
+                popupData = Object.assign({}, popupData, {
+                    currentHunt: event.hunt
                 });
-            });
-        } else {
-            console.error("The OAuth Token was unexpectedly null.");
+                return renderPopup();
+
+            case "puzzles":
+                var puzzlesByStatus = {
+                    "new": [],
+                    inProgress: [],
+                    stuck: [],
+                    solved: []
+                };
+                event.puzzles.forEach(function(puzzle) {
+                    puzzlesByStatus[puzzle.status].push(puzzle);
+                });
+
+                // Group by meta puzzles; ungrouped puzzles at the end
+                var puzzleGroups = event.puzzles
+                    .filter(function(p) { return p.isMeta; })
+                    .map(function(mp) { return [mp]; });
+                var otherPuzzles = [];
+                var metaIndexByKey = {};
+                puzzleGroups.forEach(function(pg, i) {
+                    metaIndexByKey[pg[0].key] = i;
+                });
+                event.puzzles.forEach(function(p) {
+                    if (p.parent) {
+                        if (metaIndexByKey.hasOwnProperty(p.parent)) {
+                            puzzleGroups[metaIndexByKey[p.parent]].push(p);
+                            return;
+                        }
+                    }
+                    if (!p.isMeta) {
+                        otherPuzzles.push(p);
+                    }
+                });
+                if (otherPuzzles.length) {
+                    puzzleGroups.push(otherPuzzles);
+                }
+
+                popupData = Object.assign({}, popupData, {
+                    puzzles: event.puzzles,
+                    puzzlesByStatus: puzzlesByStatus,
+                    puzzleGroups: puzzleGroups
+                });
+                return renderPopup();
+
+            case "puzzleViewers":
+                popupData = Object.assign({}, popupData, {
+                    puzzleViewers: event.puzzleViewers
+                });
+                return renderPopup();
         }
     });
+
+    // startAuth(/*interactive=*/false);
 }
 
 //
 // Rendering
 // ----------------------------------------------------------------------------
 
-var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
-
+var popupData = null;
 function renderPopup() {
-    var puzzlesByStatus = {
-        "new": [],
-        inProgress: [],
-        stuck: [],
-        solved: []
-    };
-    var puzzleGroups = [];
-    if (currentHuntPuzzles) {
-        currentHuntPuzzles.forEach(function(puzzle) {
-            puzzlesByStatus[puzzle.status].push(puzzle);
-        });
-
-        // Group by meta puzzles; ungrouped puzzles at the end
-        puzzleGroups = currentHuntPuzzles
-            .filter(function(p) { return p.isMeta; })
-            .map(function(mp) { return [mp]; });
-        var otherPuzzles = [];
-        var metaIndexByKey = {};
-        puzzleGroups.forEach(function(pg, i) {
-            metaIndexByKey[pg[0].key] = i;
-        });
-        currentHuntPuzzles.forEach(function(p) {
-            if (p.parent) {
-                if (metaIndexByKey.hasOwnProperty(p.parent)) {
-                    puzzleGroups[metaIndexByKey[p.parent]].push(p);
-                    return;
-                }
-            }
-            if (!p.isMeta) {
-                otherPuzzles.push(p);
-            }
-        });
-        if (otherPuzzles.length) {
-            puzzleGroups.push(otherPuzzles);
-        }
-    }
     ReactDOM.render(
-        React.createElement(Popup, {
-            isLoggingIn: isLoggingIn,
-            currentUser: firebase.auth().currentUser,
-            currentHunt: currentHunt,
-            numPuzzles: currentHuntPuzzles ? currentHuntPuzzles.length : 0,
-            puzzles: currentHuntPuzzles,
-            puzzleViewersSnapshot: puzzleViewersSnapshot,
-            puzzlesByStatus: puzzlesByStatus,
-            puzzleGroups: puzzleGroups
-        }),
+        React.createElement(Popup, popupData),
         document.getElementById("popup")
     );
 }
@@ -145,16 +91,23 @@ var r = React.DOM;
 var Popup = React.createClass({
     displayName: "Popup",
     getInitialState: function() {
-        return { sortBy: "rounds" };
+        return { isSigningIn: false, sortBy: "rounds" };
+    },
+    componentWillReceiveProps: function() {
+        this.setState({ isSigningIn: false });
     },
     render: function() {
+        var me = this;
         var props = this.props;
         if (!props.currentUser) {
-            return props.isLoggingIn
+            return this.state.isSigningIn
                 ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
                 : r.div({
                     className: "Popup-signInButton",
-                    onClick: function() { startAuth(true); }
+                    onClick: function() {
+                        chrome.runtime.sendMessage({ msg: "signIn" });
+                        me.setState({ isSigningIn: true });
+                    }
                 }, "Sign in with Google");
         }
         return r.div({ className: "Popup" },
@@ -183,15 +136,22 @@ var Popup = React.createClass({
                                 chrome.tabs.update({ url: "http://" + props.currentHunt.domain });
                             }
                         }, r.strong(null, props.currentHunt.name)),
-                        props.numPuzzles
+                        props.puzzles
                             ? r.div(null,
                                 "Puzzles Solved: ",
                                 r.strong(null,
                                     props.puzzlesByStatus.solved.length,
-                                    "/", props.numPuzzles
+                                    "/", props.puzzles.length
                                 )
                             )
                             : null,
+                        // r.a({
+                        //     onClick: function() {
+                        //         // chrome.runtime.sendMessage({
+                        //         //     msg: "authenticateSlack"
+                        //         // });
+                        //     }
+                        // }, "Sign in to Slack"),
                         r.div({
                             className: "Popup-sortToggle",
                             onClick: this.handleSortToggleClick
@@ -210,9 +170,9 @@ var Popup = React.createClass({
                         sortBy: this.state.sortBy,
                         puzzleGroups: props.puzzleGroups,
                         puzzlesByStatus: props.puzzlesByStatus,
-                        puzzleViewersSnapshot: props.puzzleViewersSnapshot
+                        puzzleViewers: props.puzzleViewers
                     })
-                    : null
+                    : r.img({ className: "Popup-loading", src: "../ripple.svg" })
             )
         );
     },
@@ -245,7 +205,7 @@ var AllPuzzles = React.createClass({
                         groupType: "round",
                         huntDomain: this.props.huntDomain,
                         puzzles: pg,
-                        puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
+                        puzzleViewers: this.props.puzzleViewers
                     });
                 }, this);
             case "status":
@@ -261,7 +221,7 @@ var AllPuzzles = React.createClass({
                         groupType: "status",
                         huntDomain: this.props.huntDomain,
                         puzzles: puzzles,
-                        puzzleViewersSnapshot: this.props.puzzleViewersSnapshot
+                        puzzleViewers: this.props.puzzleViewers
                     });
                 }, this);
         }
@@ -300,16 +260,9 @@ var PuzzleList = React.createClass({
         var props = this.props;
         return r.ul({ className: "PuzzleList-list" },
             props.puzzles.map(function(puzzle, i) {
-                var numActiveViewers = 0;
-                props.puzzleViewersSnapshot
-                    .child(puzzle.key).forEach(function(viewer) {
-                    viewer.forEach(function(tab) {
-                        if (!tab.val().idle) {
-                            numActiveViewers++;
-                            return true; // stop iterating
-                        }
-                    });
-                });
+                var numActiveViewers = props.puzzleViewers &&
+                    props.puzzleViewers[puzzle.key];
+
                 return r.li({ key: puzzle.key },
                     r.a({
                         className: "PuzzleList-puzzle " + puzzle.status,
@@ -332,15 +285,19 @@ var PuzzleList = React.createClass({
                                 : null
                         ),
                         r.div({ className: "PuzzleList-puzzleMetadata" },
-                            numActiveViewers === 0 ? null : r.div({
-                                className: "PuzzleList-puzzleViewerCount"
-                            },
-                                React.createElement(PersonIcon),
-                                numActiveViewers
-                            ),
-                            puzzle.status !== "solved" ? null : r.span({
-                                className: "PuzzleList-puzzleSolution"
-                            }, puzzle.solution)
+                            numActiveViewers
+                                ? r.div({
+                                    className: "PuzzleList-puzzleViewerCount"
+                                },
+                                    React.createElement(PersonIcon),
+                                    numActiveViewers
+                                )
+                                : null,
+                            puzzle.status === "solved"
+                                ? r.span({
+                                    className: "PuzzleList-puzzleSolution"
+                                }, puzzle.solution)
+                                : null
                         )
                     )
                 );
@@ -351,8 +308,6 @@ var PuzzleList = React.createClass({
         this.setState({ isCollapsed: !this.state.isCollapsed });
     }
 });
-function PuzzleList(props) {
-}
 
 function PersonIcon() {
     return r.svg({ className: "PersonIcon", viewBox: "0 0 24 24" },

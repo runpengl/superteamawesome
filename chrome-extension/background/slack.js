@@ -10,9 +10,8 @@ var webSocket = null;
 /**
  * Retrieves a slack access token for the given user and initializes a
  * slack RTM session. New tokens are saved to `userPrivateData/$userId`.
- * @param userId
  */
-function connect() {
+function connect(interactive) {
     if (accessToken) {
         initSlackRtm();
     }
@@ -24,26 +23,32 @@ function connect() {
             initSlackRtm();
             return;
         }
+
         // Authorize Slack via chrome.identity API
         chrome.identity.launchWebAuthFlow({
             url: "https://slack.com/oauth/authorize" +
                 "?client_id=" + config.slack.clientId +
                 "&scope=client" +
-                "&redirect_uri=" + chrome.identity.getRedirectURL("/slack_oauth"),
-            interactive: true
+                "&redirect_uri=" + chrome.identity.getRedirectURL("/slack_oauth") +
+                "&team=T03A0NUTH",
+            interactive: interactive
         }, function(redirectUrl) {
-            var queryString = redirectUrl.split("?")[1];
-            var matchCode = queryString.match(/code=([^&]+)/);
-            if (matchCode) {
-                xhrGet("https://slack.com/api/oauth.access", {
-                    client_id: config.slack.clientId,
-                    client_secret: config.slack.clientSecret,
-                    code: matchCode[1]
-                }, function(response) {
-                    slackTokenRef.set(response.access_token);
-                    accessToken = response.access_token;
-                    initSlackRtm();
-                });
+            if (chrome.runtime.lastError) {
+                console.error(chrome.runtime.lastError);
+            } else {
+                var queryString = redirectUrl.split("?")[1];
+                var matchCode = queryString.match(/code=([^&]+)/);
+                if (matchCode) {
+                    xhrGet("https://slack.com/api/oauth.access", {
+                        client_id: config.slack.clientId,
+                        client_secret: config.slack.clientSecret,
+                        code: matchCode[1]
+                    }, function(response) {
+                        slackTokenRef.set(response.access_token);
+                        accessToken = response.access_token;
+                        initSlackRtm();
+                    });
+                }
             }
         });
     });
@@ -58,15 +63,20 @@ function disconnect() {
     slackChannelIdByName = {};
 }
 
+var isStartingRtm = false;
 function initSlackRtm() {
-    if (webSocket) {
+    if (webSocket || isStartingRtm) {
         return;
     }
+    isStartingRtm = true; // Set a flag to prevent opening duplicate web sockets.
+
     xhrGet("https://slack.com/api/rtm.start", {
         token: accessToken,
         simple_latest: true
     }, function(response) {
+        isStartingRtm = false;
         console.log("[slack/rtm.start]", response);
+
         webSocket = new WebSocket(response.url);
         webSocket.onmessage = handleSlackWsMessage;
         webSocket.onclose = function() {
