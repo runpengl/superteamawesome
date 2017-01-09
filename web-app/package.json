@@ -45,6 +45,7 @@
     "@types/redux-thunk": "^2.1.32",
     "@types/whatwg-fetch": "0.0.33",
     "body-parser": "~1.15.2",
+    "classnames": "2.2.5",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
     "es6-shim": "^0.35.2",
