@@ -1,5 +1,5 @@
 import * as React from "react";
-import { IRouter } from "react-router";
+import { InjectedRouter } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -21,7 +21,7 @@ interface IDispatchProps {
 export interface ISlackAuthProps extends IDispatchProps, IOwnProps, IStateProps {}
 
 interface IRouterContext {
-    router: IRouter;
+    router: InjectedRouter;
 }
 
 class UnconnectedSlackAuth extends React.Component<ISlackAuthProps, {}> {

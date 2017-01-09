@@ -5,9 +5,9 @@ export function makeRequest<T>(url: string, method: string, body?: any) {
             hasError = !response.ok;
             return response.json();
         })
-        .then((response) => {
+        .then((response: any) => {
             if (hasError) {
-                throw new Error(response.message);
+                throw response as Error;
             } else {
                 return response as T;
             }

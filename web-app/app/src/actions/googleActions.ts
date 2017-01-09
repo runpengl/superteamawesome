@@ -1,3 +1,5 @@
+/// <reference path="../../typings/custom/gapi.d.ts" />
+
 import { Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
 

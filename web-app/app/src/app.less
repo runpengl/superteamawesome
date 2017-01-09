@@ -91,6 +91,23 @@ html {
         &:last-child input {
           min-width: 400px;
         }
+
+        .generate-slack-doc-button,
+        .ignore-button {
+          background: none;
+          font-size: 12px;
+          line-height: 22px;
+          padding: 0 4px;
+          text-transform: uppercase;
+        }
+
+        .generate-slack-doc-button {
+          border: 1px solid green;
+        }
+
+        .ignore-button {
+          border: 1px solid red;
+        }
       }
 
       tr:first-child {
@@ -101,7 +118,12 @@ html {
     }
   }
 
+  .discovered-puzzles-header {
+    cursor: pointer;
+  }
+
   h3 {
+    display: inline-block;
     text-transform: uppercase;
     font-weight: 500;
 
@@ -114,6 +136,15 @@ html {
 
 .puzzles-wrapper {
   display: flex;
+
+  .puzzles-container > table {
+    text-align: left;
+
+    td,
+    th {
+      padding: 0 10px 10px 0;
+    }
+  }
 
   .puzzles-save-button {
     height: 30px;
@@ -129,9 +160,31 @@ html {
   }
 }
 
+@triangle-size: 6px;
+.collapsed,
+.uncollapsed {
+  display: inline-block;
+  width: 0; 
+  height: 0;
+  margin-right: 10px; 
+}
+
+.collapsed { 
+  border-top: @triangle-size solid transparent;
+  border-bottom: @triangle-size solid transparent;
+  border-left: @triangle-size solid black;
+}
+
+.uncollapsed {
+  border-left: @triangle-size solid transparent;
+  border-right: @triangle-size solid transparent;
+  border-top: @triangle-size solid black;
+}
+
 .hierarchy {
   .puzzle-group-header {
     align-items: center;
+    cursor: pointer;
     display: flex;
     margin: 20px 0 15px;
 

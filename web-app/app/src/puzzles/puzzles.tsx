@@ -1,3 +1,4 @@
+import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -48,7 +49,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     public componentDidUpdate(oldProps: IPuzzlesProps) {
         const { puzzles } = this.props;
-        console.log(!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles), puzzles);
         if (!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles)
             || (isAsyncLoaded(oldProps.puzzles)
                 && isAsyncLoaded(puzzles)
@@ -108,7 +108,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         this.setState({ hasChanges: false, puzzleChanges: {} });
     }
 
-    private handleTextHierarchyChange = (event: React.FormEvent) => {
+    private handleTextHierarchyChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
         const value = (event.target as HTMLTextAreaElement).value.trim();
         this.setState({ textHierarchy: value.split("\n") });
     }
@@ -194,7 +194,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     }
 
     private handlePuzzleNameChange = (puzzle: IPuzzle) => {
-        return (event: React.FormEvent) => {
+        return (event: React.FormEvent<HTMLInputElement>) => {
             const value = (event.target as HTMLInputElement).value;
             this.onPuzzleNameChange(puzzle, value);
         };
@@ -217,11 +217,12 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map((puzzle) => {
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
+            const date = moment(puzzle.createdAt).format("MMM DD, YYYY hh:mm A");
             return (
                 <tr key={puzzle.key}>
                     <td>{puzzle.index} <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} /></td>
                     <td>{puzzle.status.toUpperCase()}</td>
-                    <td>{puzzle.createdAt}</td>
+                    <td>{date}</td>
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
                     <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
