@@ -71,8 +71,6 @@ function initApp() {
                 return renderPopup();
         }
     });
-
-    // startAuth(/*interactive=*/false);
 }
 
 //
@@ -82,7 +80,8 @@ function initApp() {
 var popupData = null;
 function renderPopup() {
     ReactDOM.render(
-        React.createElement(Popup, popupData),
+        React.createElement(
+            popupData.currentUser ? Popup : PopupLogin, popupData),
         document.getElementById("popup")
     );
 }
@@ -91,25 +90,10 @@ var r = React.DOM;
 var Popup = React.createClass({
     displayName: "Popup",
     getInitialState: function() {
-        return { isSigningIn: false, sortBy: "rounds" };
-    },
-    componentWillReceiveProps: function() {
-        this.setState({ isSigningIn: false });
+        return { sortBy: "rounds" };
     },
     render: function() {
-        var me = this;
         var props = this.props;
-        if (!props.currentUser) {
-            return this.state.isSigningIn
-                ? r.img({ className: "Popup-loading", src: "../ripple.svg" })
-                : r.div({
-                    className: "Popup-signInButton",
-                    onClick: function() {
-                        chrome.runtime.sendMessage({ msg: "signIn" });
-                        me.setState({ isSigningIn: true });
-                    }
-                }, "Sign in with Google");
-        }
         return r.div({ className: "Popup" },
             r.div({ className: "Popup-toolbar" },
                 r.img({
@@ -145,13 +129,6 @@ var Popup = React.createClass({
                                 )
                             )
                             : null,
-                        // r.a({
-                        //     onClick: function() {
-                        //         // chrome.runtime.sendMessage({
-                        //         //     msg: "authenticateSlack"
-                        //         // });
-                        //     }
-                        // }, "Sign in to Slack"),
                         r.div({
                             className: "Popup-sortToggle",
                             onClick: this.handleSortToggleClick
@@ -162,7 +139,7 @@ var Popup = React.createClass({
                             })
                         )
                     )
-                    : r.img({ className: "Popup-loading", src: "../ripple.svg" }),
+                    : null,
                 props.currentHunt && props.puzzles
                     ? React.createElement(AllPuzzles, {
                         huntDomain: props.currentHunt.domain,
@@ -172,7 +149,7 @@ var Popup = React.createClass({
                         puzzlesByStatus: props.puzzlesByStatus,
                         puzzleViewers: props.puzzleViewers
                     })
-                    : r.img({ className: "Popup-loading", src: "../ripple.svg" })
+                    : null
             )
         );
     },
@@ -188,11 +165,102 @@ var Popup = React.createClass({
     }
 });
 
+var PopupLogin = React.createClass({
+    displayName: "PopupLogin",
+    getInitialState: function() {
+        return { isSigningIn: false };
+    },
+    componentDidMount: function() {
+        var me = this;
+        var context = me.refs.canvas.getContext("2d");
+        var w = 0, h = 0, cx = 0, cy = 0;
+        var d = Date.now();
+        window.addEventListener("resize", resizeCanvas, false);
+        function resizeCanvas() {
+            me.refs.canvas.width = window.innerWidth;
+            me.refs.canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        function drawDiamond(ox, oy, w, h, c) {
+            w = w || 100;
+            h = h || 200;
+            context.beginPath();
+            context.moveTo(ox, oy);
+            context.lineTo(ox + w / 2, oy + h / 2);
+            context.lineTo(ox, oy + h);
+            context.lineTo(ox - w / 2, oy + h / 2);
+            context.closePath();
+            context.lineWidth = 0;
+            context.fillStyle = c;
+            context.fill();
+        }
+        function drawBackground(elapsedTime) {
+            if (!me.refs.canvas) {
+                return;
+            }
+            var DIA_WIDTH = 100;
+            var DIA_HEIGHT = 190;
+            var rA = 254, rB = 210;
+            var gA = 255, gB = 220;
+            var bA = 255, bB = 205;
+            w = me.refs.canvas.width;
+            h = me.refs.canvas.height;
+            cx = Math.ceil(w / DIA_WIDTH) + 1;
+            cy = Math.ceil(h / (DIA_HEIGHT / 2)) + 1;
+            var rOffset = 0, gOffset = 0, bOffset = 0;
+            for (var j = 0; j < cy; ++j) {
+                for (var i = 0; i < cx; ++i) {
+                    rOffset = Math.round(((rB - rA) / cx) * i) + Math.floor(Math.sin(elapsedTime/1000 - i * 0.8) * 20);
+                    gOffset = Math.round(((gB - gA) / cy) * j);
+                    bOffset = Math.round(((bB - bA) / cx) * j);
+                    drawDiamond(i * DIA_WIDTH + (j % 2) * (DIA_WIDTH / 2), j * (DIA_HEIGHT / 2) - DIA_HEIGHT / 2, DIA_WIDTH + 1, DIA_HEIGHT + 1, "rgb(" + (rA + rOffset) + ", " + (gA + gOffset) + ", " + (bA + bOffset) + ")");
+                }
+            }
+            window.requestAnimationFrame(drawBackground);
+        }
+        drawBackground(0);
+    },
+    componentWillReceiveProps: function() {
+        this.setState({ isSigningIn: false });
+    },
+    render: function() {
+        var me = this;
+        return r.div({ className: "PopupLogin" },
+            r.canvas({ ref: "canvas", className: "PopupLogin-background" }),
+            r.div({
+                className: "PopupLogin-image",
+                style: {
+                    backgroundPosition: -(Math.floor(Math.random() * 8) * 200) + "px"
+                }
+            }),
+            r.div({ className: "PopupLogin-title" },
+                "super team awesome toolbar"),
+            this.state.isSigningIn
+                ? r.img({ className: "PopupLogin-loading", src: "../ripple.svg" })
+                : r.div({
+                    className: "PopupLogin-button",
+                    onClick: function() {
+                        chrome.runtime.sendMessage({ msg: "signIn" });
+                        me.setState({ isSigningIn: true });
+                    }
+                }, "Sign in with Google")
+        );
+    }
+});
+
 var AllPuzzles = React.createClass({
     displayName: "AllPuzzles",
     render: function() {
         return r.div({ className: "AllPuzzles" },
-            this.renderPuzzles()
+            this.props.puzzles.length === 0
+                ? [
+                    r.div({ className: "AllPuzzles-emptyImage" }),
+                    r.div({
+                        key: "emptyMsg",
+                        className: "AllPuzzles-empty"
+                    }, "No puzzles yet. Check back later!")
+                ]
+                : this.renderPuzzles()
         );
     },
     renderPuzzles: function() {

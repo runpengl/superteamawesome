@@ -14,38 +14,76 @@ a:hover {
 }
 
 #popup {
+  height: 367px;
   width: 300px;
 }
 
 /**
- * Popup
+ * PopupLogin
  */
+.PopupLogin {
+  padding: 45px 0;
+}
 
-.Popup-signInButton {
+.PopupLogin-background {
+  position: absolute;
+  top: 0;
+  z-index: -100;
+}
+
+.PopupLogin-image {
+  background: url("characters.svg") no-repeat;
+  background-size: 800%;
+  height: 200px;
+  margin: -15px auto;
+  width: 200px;
+}
+
+.PopupLogin-title {
+  color: #6d6d6d;
+  font-size: 20px;
+  font-weight: 200;
+  margin-bottom: -15px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.PopupLogin-button {
   background: #d6d6d6;
   border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .14), 0 1px 1px 0 rgba(0, 0, 0, .14);
   color: white;
   cursor: pointer;
   display: block;
   font-size: 14px;
   height: 30px;
   line-height: 30px;
-  margin: 60px auto;
+  margin: 30px auto;
   text-align: center;
   width: 150px;
 }
-.Popup-signInButton:hover {
+.PopupLogin-button:hover {
   background: #fbb03b;
   outline: none;
 }
 
-.Popup-loading {
+.PopupLogin-loading {
   display: block;
-  margin: 60px auto;
+  margin: 30px auto;
   width: 30px;
 }
-.Popup-loading + .Popup-loading {
-  display: none;
+
+/**
+ * Popup
+ */
+.Popup {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
 }
 
 .Popup-toolbar {
@@ -55,6 +93,7 @@ a:hover {
   border-bottom: 1px solid #d9d9d9;
   color: #6d6d6d;
   display: flex;
+  flex-shrink: 0;
   font-size: 12px;
   height: 24px;
 }
@@ -77,19 +116,29 @@ a:hover {
   background: #e12548;
 }
 
+.Popup-contents {
+  background: #eceff1;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 1px;
+}
+
 .Popup-currentHuntInfo {
-  margin: 10px 15px;
+  background: #fff;
+  border-bottom: 1px solid #ccc;
+  padding: 10px 15px;
   position: relative;
 }
 
 .Popup-sortToggle {
-  bottom: -5px;
+  bottom: 5px;
   color: #6d6d6d;
   fill: #6d6d6d;
   cursor: pointer;
   font-size: 10px;
   position: absolute;
-  right: -5px;
+  right: 10px;
 }
 
 .Popup-sortToggle:hover {
@@ -108,11 +157,25 @@ a:hover {
  */
 .AllPuzzles {
   background: #eceff1;
-  border-top: 1px solid #ccc;
-  max-height: 283px;
+  flex: 1 1 auto;
+  min-height: 1px;
   overflow-y: auto;
   padding: 0 5px 5px;
   position: relative;
+}
+
+.AllPuzzles-emptyImage {
+  background: url("characters.svg") no-repeat;
+  background-size: 800%;
+  height: 200px;
+  margin: 10px auto -5px;
+  width: 200px;
+}
+
+.AllPuzzles-empty {
+  font-size: 16px;
+  font-weight: 200;
+  text-align: center;
 }
 
 /**
