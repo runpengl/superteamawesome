@@ -6,7 +6,10 @@ chrome.tabs.onUpdated.addListener(handleChromeTabsUpdated);
 chrome.tabs.onRemoved.addListener(handleChromeTabsRemoved);
 
 // Keep this data synced for faster toolbar initialization
-firebase.database().ref("currentHunt").on("value", function() {});
+var currentHuntKey = null;
+firebase.database().ref("currentHunt").on("value", function(snap) {
+    currentHuntKey = snap.val();
+});
 
 function startAuth() {
     var interactive = true;
@@ -123,7 +126,16 @@ function handleChromeRuntimeConnect(port) {
 
         case "hunt":
             var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
-            huntRef.on("value", function(hunt) {
+            var puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(toolbarInfo.huntKey);
+            huntRef.on("value", handleHuntValue);
+            puzzlesRef.on("value", handlePuzzlesValue);
+
+            port.onDisconnect.addListener(function() {
+                huntRef.off("value", handleHuntValue);
+                puzzlesRef.off("value", handlePuzzlesValue);
+            });
+
+            function handleHuntValue(hunt) {
                 port.postMessage({
                     msg: "hunt",
                     data: {
@@ -132,7 +144,20 @@ function handleChromeRuntimeConnect(port) {
                         location: toolbarInfo.locationType
                     }
                 });
-            });
+            }
+
+            function handlePuzzlesValue(puzzlesSnapshot) {
+                findPuzzleStartingWithPath(puzzlesSnapshot, toolbarInfo.path, function(p) {
+                    toolbarInfoByTabId[tabId] = {
+                        toolbarType: "puzzle",
+                        locationType: "puzzle",
+                        huntKey: toolbarInfo.huntKey,
+                        puzzleKey: p.key,
+                        slackChannel: p.val().slackChannel
+                    };
+                    chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
+                });
+            }
             break;
 
         case "puzzle":
@@ -417,17 +442,15 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                 // See if any puzzles in this hunt match the current path
                 selectAllWhereChildEquals("puzzles",
                     "hunt", huntKey, function(puzzlesSnapshot) {
-                        var didFindPuzzle = puzzlesSnapshot.forEach(function(p) {
-                            var puzzlePath = p.val().path;
-                            if (puzzlePath && pathname.startsWith(puzzlePath)) {
+                        var didFindPuzzle = findPuzzleStartingWithPath(
+                            puzzlesSnapshot, pathname, function(p) {
                                 foundPuzzle(p, "puzzle");
-                                return true; // stop forEach iteration
-                            }
-                        });
+                            });
                         if (!didFindPuzzle) {
                             callback({
                                 toolbarType: "hunt",
                                 locationType: "huntSite",
+                                path: pathname,
                                 huntKey: huntKey
                             });
                         }
@@ -436,30 +459,38 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
     }
 }
 
+function findPuzzleStartingWithPath(puzzlesSnapshot, path, callback) {
+    return puzzlesSnapshot.forEach(function(p) {
+        var puzzlePath = p.val().path;
+        if (puzzlePath && path.startsWith(puzzlePath)) {
+            callback(p);
+            return true; // stop forEach iteration
+        }
+    });
+}
+
 /**
  * This function should be called when a page is identified as belonging to a hunt
  * domain but a corresponding puzzle was not found.
  */
 function maybeAddDiscoveredPage(huntKey, host, path, title) {
     var db = firebase.database();
-    db.ref("hunts/" + huntKey).once("value", function(hunt) {
-        if (!hunt.val().isCurrent) {
-            return;
-        }
-        // If hunt is current, try and add a discoveredPage for it
-        selectOnlyWhereChildEquals("discoveredPages/" + hunt.key,
-            "path", path, function(snap) {
-                if (!snap) {
-                    console.log("[firebase/discoveredPages]", host, path, title);
-                    // Page not found; add one
-                    db.ref("discoveredPages/" + hunt.key).push({
-                        host: host,
-                        path: path,
-                        title: title
-                    });
-                }
-            });
-    });
+    if (currentHuntKey !== huntKey) {
+        return;
+    }
+    // If hunt is current, try and add a discoveredPage for it
+    selectOnlyWhereChildEquals("discoveredPages/" + huntKey,
+        "path", path, function(snap) {
+            if (!snap) {
+                console.log("[firebase/discoveredPages]", host, path, title);
+                // Page not found; add one
+                db.ref("discoveredPages/" + huntKey).push({
+                    host: host,
+                    path: path,
+                    title: title
+                });
+            }
+        });
 }
 
 //

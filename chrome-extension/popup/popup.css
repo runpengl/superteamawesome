@@ -7,7 +7,9 @@ a {
   cursor: pointer;
   text-decoration: none;
 }
+a:focus,
 a:hover {
+  outline: none;
   text-decoration: underline;
 }
 
