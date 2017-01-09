@@ -33,6 +33,11 @@ function refreshConnection() {
                     renderToolbar();
                 }
                 break;
+            case "discoveredPage":
+                toolbarData = Object.assign({}, toolbarData, {
+                    discoveredPage: event.data
+                });
+                return renderToolbar();
             default:
                 toolbarType = null;
                 toolbarData = null;
@@ -84,13 +89,12 @@ function BasicToolbar(props) {
 function HuntToolbar(props) {
     return r.div({ className: "Toolbar" },
         r.img({ className: "Toolbar-loadingIndicator", src: "../ripple.svg" }),
-        "Current Hunt: ",
+        props.hunt.isCurrent ? "Current " : null,
+        "Hunt: ",
         r.div({ className: "Toolbar-huntName" }, props.hunt.name),
-        r.a({
-            className: "Toolbar-link",
-            target: "_blank",
-            href: "https://superteamawesome.slack.com/"
-        }, "slack"),
+        props.discoveredPage && !props.discoveredPage.ignored
+            ? r.div({ className: "Toolbar-linkTooltip" }, "Waiting for an admin to create puzzles…")
+            : null,
         r.div({ className: "Toolbar-right" },
             r.span({ className: "Toolbar-currentUserName" },
                 props.currentUser.displayName),

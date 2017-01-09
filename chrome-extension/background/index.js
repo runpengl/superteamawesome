@@ -59,13 +59,6 @@ function startAuth() {
  */
 var toolbarInfoByTabId = {};
 
-function isToolbarInfoEqual(info1, info2) {
-    return info1.toolbarType === info2.toolbarType &&
-        info1.locationType === info2.locationType &&
-        info1.puzzleKey === info2.puzzleKey &&
-        info1.huntKey === info2.huntKey;
-}
-
 function handleChromeTabsUpdated(tabId, changeInfo, tab) {
     if (changeInfo.status === "complete") {
         var a = document.createElement("a");
@@ -73,21 +66,17 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
 
         fetchTabInfoForLocation(a.hostname, a.pathname,
             function(info) {
-                if (!toolbarInfoByTabId[tabId] ||
-                    !isToolbarInfoEqual(toolbarInfoByTabId[tabId], info)) {
+                console.log("[tabs.onUpdate]", tabId, info);
+                toolbarInfoByTabId[tabId] = Object.assign(info, {
+                    host: a.hostname,
+                    path: a.pathname,
+                    title: tab.title
+                });
+                // On single-page apps like slack, the toolbar persists while
+                // switching channels, so we need to trigger a reconnection so
+                // that the toolbar can subscribe to a different set of data.
+                chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
 
-                    console.log("[tabs.onUpdate]", tabId, info);
-                    toolbarInfoByTabId[tabId] = info;
-                    // On single-page apps like slack, the toolbar persists while
-                    // switching channels, so we need to trigger a reconnection so
-                    // that the toolbar can subscribe to a different set of data.
-                    chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
-                }
-                if (info.toolbarType === "hunt" &&
-                    info.locationType === "huntSite") {
-                    maybeAddDiscoveredPage(
-                        info.huntKey, a.hostname, a.pathname, tab.title);
-                }
                 if (info.toolbarType !== "none") {
                     // Try and inject a toolbar onto the page. If we have previously
                     // injected a toolbar this is a noop.
@@ -127,12 +116,17 @@ function handleChromeRuntimeConnect(port) {
         case "hunt":
             var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
             var puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(toolbarInfo.huntKey);
+            var discoveredPageRef = db.ref("discoveredPages/" + toolbarInfo.huntKey)
+                .orderByChild("path").equalTo(toolbarInfo.path).limitToFirst(1);
+
             huntRef.on("value", handleHuntValue);
-            puzzlesRef.on("value", handlePuzzlesValue);
+            puzzlesRef.on("child_added", handlePuzzleAddedValue);
+            discoveredPageRef.on("value", handleDiscoveredPageValue);
 
             port.onDisconnect.addListener(function() {
                 huntRef.off("value", handleHuntValue);
-                puzzlesRef.off("value", handlePuzzlesValue);
+                puzzlesRef.off("value", handlePuzzleAddedValue);
+                discoveredPageRef.off("value", handleDiscoveredPageValue);
             });
 
             function handleHuntValue(hunt) {
@@ -146,8 +140,9 @@ function handleChromeRuntimeConnect(port) {
                 });
             }
 
-            function handlePuzzlesValue(puzzlesSnapshot) {
-                findPuzzleStartingWithPath(puzzlesSnapshot, toolbarInfo.path, function(p) {
+            function handlePuzzleAddedValue(p) {
+                var puzzlePath = p.val().path;
+                if (puzzlePath && toolbarInfo.path.startsWith(puzzlePath)) {
                     toolbarInfoByTabId[tabId] = {
                         toolbarType: "puzzle",
                         locationType: "puzzle",
@@ -156,7 +151,31 @@ function handleChromeRuntimeConnect(port) {
                         slackChannel: p.val().slackChannel
                     };
                     chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
-                });
+                }
+            }
+
+            function handleDiscoveredPageValue(snap) {
+                if (currentHuntKey !== toolbarInfo.huntKey) {
+                    return;
+                }
+                // If hunt is current, try and add a discoveredPage for it
+                if (snap.numChildren() === 0) {
+                    console.log("[firebase/discoveredPages2]",
+                        toolbarInfo.host, toolbarInfo.path, toolbarInfo.title);
+                    db.ref("discoveredPages/" + toolbarInfo.huntKey).push({
+                        host: toolbarInfo.host,
+                        path: toolbarInfo.path,
+                        title: toolbarInfo.title
+                    });
+                } else {
+                    snap.forEach(function(dp) {
+                        // Monitor and send updates to toolbar
+                        port.postMessage({
+                            msg: "discoveredPage",
+                            data: dp.val()
+                        });
+                    });
+                }
             }
             break;
 
@@ -277,6 +296,7 @@ function handlePopupConnect(port) {
         if (huntRef) huntRef.off("value", handleHuntValue);
         if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
         if (viewersRef) viewersRef.off("value", handleViewersValue);
+        if (currentHuntRef) currentHuntRef.off("value", handleCurrentHuntValue);
     });
 
     function handleCurrentHuntValue(currentHuntSnap) {
@@ -442,55 +462,23 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                 // See if any puzzles in this hunt match the current path
                 selectAllWhereChildEquals("puzzles",
                     "hunt", huntKey, function(puzzlesSnapshot) {
-                        var didFindPuzzle = findPuzzleStartingWithPath(
-                            puzzlesSnapshot, pathname, function(p) {
+                        var didFindPuzzle = puzzlesSnapshot.forEach(function(p) {
+                            var puzzlePath = p.val().path;
+                            if (puzzlePath && pathname.startsWith(puzzlePath)) {
                                 foundPuzzle(p, "puzzle");
-                            });
+                                return true; // stop forEach iteration
+                            }
+                        });
                         if (!didFindPuzzle) {
                             callback({
                                 toolbarType: "hunt",
                                 locationType: "huntSite",
-                                path: pathname,
                                 huntKey: huntKey
                             });
                         }
                     });
             });
     }
-}
-
-function findPuzzleStartingWithPath(puzzlesSnapshot, path, callback) {
-    return puzzlesSnapshot.forEach(function(p) {
-        var puzzlePath = p.val().path;
-        if (puzzlePath && path.startsWith(puzzlePath)) {
-            callback(p);
-            return true; // stop forEach iteration
-        }
-    });
-}
-
-/**
- * This function should be called when a page is identified as belonging to a hunt
- * domain but a corresponding puzzle was not found.
- */
-function maybeAddDiscoveredPage(huntKey, host, path, title) {
-    var db = firebase.database();
-    if (currentHuntKey !== huntKey) {
-        return;
-    }
-    // If hunt is current, try and add a discoveredPage for it
-    selectOnlyWhereChildEquals("discoveredPages/" + huntKey,
-        "path", path, function(snap) {
-            if (!snap) {
-                console.log("[firebase/discoveredPages]", host, path, title);
-                // Page not found; add one
-                db.ref("discoveredPages/" + huntKey).push({
-                    host: host,
-                    path: path,
-                    title: title
-                });
-            }
-        });
 }
 
 //
