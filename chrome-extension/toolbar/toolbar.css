@@ -57,9 +57,8 @@ body {
   text-decoration: underline;
 }
 
-.Toolbar-tooltip,
 .Toolbar-linkTooltip {
-  background: #6d6d6d;
+  background: #fbb03b;
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, .5);
   color: #fff;
@@ -71,10 +70,9 @@ body {
   position: relative;
   transition: .2s opacity;
 }
-.Toolbar-tooltip::after,
 .Toolbar-linkTooltip::after {
   border: 5px solid;
-  border-color: transparent #6d6d6d;
+  border-color: transparent #fbb03b;
   border-left: none;
   content: "";
   display: block;
@@ -82,13 +80,6 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.Toolbar-linkTooltip {
-  background: #fbb03b;
-}
-.Toolbar-linkTooltip::after {
-  border-color: transparent #fbb03b;
 }
 
 .Toolbar-slackUnreadCount {
@@ -204,7 +195,7 @@ body {
 }
 
 .PuzzleStatusPicker-solutionInput {
-  background: #fff;
+  background: transparent;
   border: none;
   color: #6d6d6d;
   font-family: "Helvetica Neue", "Lucida Grande", sans-serif;

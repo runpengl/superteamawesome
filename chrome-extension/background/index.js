@@ -55,6 +55,9 @@ function startAuth() {
  *     locationType: "puzzle" | "spreadsheet" | "slack",
  *     puzzleKey?: string,
  *     huntKey?: string;
+ *     host?: string;
+ *     path?: string;
+ *     title?: string;
  * }
  */
 var toolbarInfoByTabId = {};
@@ -66,6 +69,13 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
 
         fetchTabInfoForLocation(a.hostname, a.pathname,
             function(info) {
+                if (info.locationType === "spreadsheet" &&
+                    toolbarInfoByTabId.hasOwnProperty(tabId) &&
+                    toolbarInfoByTabId[tabId].locationType === "spreadsheet" &&
+                    info.puzzleKey === toolbarInfoByTabId[tabId].puzzleKey) {
+                    // Already displaying appropriate toolbar for puzzle
+                    return;
+                }
                 console.log("[tabs.onUpdate]", tabId, info);
                 toolbarInfoByTabId[tabId] = Object.assign(info, {
                     host: a.hostname,
@@ -100,7 +110,6 @@ function handleChromeRuntimeConnect(port) {
         return;
     }
     var tabId = port.sender.tab.id;
-    console.log("[runtime.onConnect]", "toolbarLoad", tabId);
 
     var db = firebase.database();
     var currentUser = firebase.auth().currentUser;
@@ -207,6 +216,10 @@ function handleChromeRuntimeConnect(port) {
                 }
             }
 
+            // This is a hack. When the port disconnects, we should cancel all firebase listeners,
+            // but some of the nested queries on users/ are hard to cancel. So we'll just set a flag
+            // when the port is disconnected and noop when the queries return.
+            var portDisconnected = false;
             function handlePuzzleViewersValue(snap) {
                 var changeId = ++currentViewersChangeId;
                 var viewers = [];
@@ -214,7 +227,7 @@ function handleChromeRuntimeConnect(port) {
                 var numUsersFetched = 0;
                 snap.forEach(function(viewer) {
                     db.ref("users/" + viewer.key).once("value", function(user) {
-                        if (currentViewersChangeId !== changeId) {
+                        if (currentViewersChangeId !== changeId || portDisconnected) {
                             return;
                         }
                         var allTabsHidden = true;
@@ -258,6 +271,7 @@ function handleChromeRuntimeConnect(port) {
                 });
 
             port.onDisconnect.addListener(function() {
+                portDisconnected = true;
                 detachPuzzleAndHuntRefs();
                 isConnectedRef.off("value", handleConnectedValue);
                 viewersRef.off("value", handlePuzzleViewersValue);

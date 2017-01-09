@@ -45,6 +45,7 @@ function refreshConnection() {
         }
     });
     port.onDisconnect.addListener(function() {
+        port = null;
         refreshConnection();
     });
 }
@@ -180,15 +181,19 @@ var PuzzleStatusPicker = React.createClass({
         };
     },
     componentWillReceiveProps: function(nextProps) {
+        if (// Looking at the same puzzle
+            this.props.puzzle.key === nextProps.puzzle.key &&
+            // The puzzle was changed to solved
+            this.props.puzzle.status !== "solved" &&
+            nextProps.puzzle.status === "solved" &&
+            // *This* client set the puzzle to solved
+            this.state.optimisticStatusUpdate === "solved") {
+            this.setState({ solutionText: nextProps.puzzle.solution || "" });
+        }
         this.setState({
             optimisticSolution: null,
             optimisticStatusUpdate: null
         });
-        if (this.props.puzzle.key === nextProps.puzzle.key &&
-            this.props.puzzle.status !== "solved" &&
-            nextProps.puzzle.status === "solved") {
-            this.setState({ solutionText: nextProps.puzzle.solution || "" });
-        }
     },
     componentDidUpdate: function(prevProps, prevState) {
         if (prevState.solutionText === null &&
