@@ -108,7 +108,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                             <input type="text" value={newPuzzleName} onChange={this.handleNewPuzzleNameChange} />
                         </div>
                         <div className="add-puzzle-form-line">
-                            <label>Puzzle Link</label>
+                            <label>Puzzle Link (optional)</label>
                             <input type="text" value={newPuzzleLink} onChange={this.handlenewPuzzleLinkChange} />
                         </div>
                         <button disabled={lifecycle.creatingManualPuzzle} onClick={this.handleCreateManualPuzzle}>
