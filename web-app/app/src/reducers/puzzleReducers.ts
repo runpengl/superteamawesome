@@ -62,8 +62,10 @@ export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = ini
                 let ignoredPages = state.value;
                 // for now only create one puzzle at a time
                 let changedPages = action.value as ICreatePuzzleActionPayload;
-                const createdPuzzlePage = changedPages.changedPages[0];
-                ignoredPages = ignoredPages.filter((page) => page.key !== createdPuzzlePage.key);
+                if (changedPages.changedPages.length > 0) {
+                    const createdPuzzlePage = changedPages.changedPages[0];
+                    ignoredPages = ignoredPages.filter((page) => page.key !== createdPuzzlePage.key);
+                }
                 return Object.assign({}, state, { value: ignoredPages });
             }
         case SAVE_DISCOVERED_PAGE_CHANGES_ACTION:

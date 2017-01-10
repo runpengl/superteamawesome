@@ -64,6 +64,8 @@ export interface IPuzzle {
 
 export interface IAppLifecycle {
     createPuzzleFailure?: Error;
+    creatingManualPuzzle?: boolean;
+    createManualPuzzleFailure?: Error;
 }
 
 export interface IAppState {
