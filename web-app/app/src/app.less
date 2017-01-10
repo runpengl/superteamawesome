@@ -72,7 +72,7 @@ html {
 
 .discovered-puzzles-container {
 
-  .table-container {
+  .table-wrapper {
     display: flex;
 
     .discovered-puzzles-save-button {
@@ -80,7 +80,12 @@ html {
       margin-left: 10px;
     }
 
-    > table {
+    .table-container {
+      max-height: 300px;
+      overflow-y: scroll;
+    }
+
+    .table-container > table {
       td {
         padding: 5px 10px 5px 0;
 
@@ -136,24 +141,36 @@ html {
 
 .puzzles-wrapper {
   display: flex;
+  position: relative;
 
-  .puzzles-container > table {
-    text-align: left;
+  .puzzles-container {
+    border: 1px solid #ccc;
+    padding: 0 10px;
+    margin: 20px 0;
+    max-height: 500px;
+    overflow-y: scroll;
 
-    td,
-    th {
-      padding: 0 10px 10px 0;
+    .unsorted-puzzles-container table {
+      text-align: left;
+
+      td,
+      th {
+        padding: 0 10px 10px 0;
+      }
     }
   }
 
   .puzzles-save-button {
     height: 30px;
-    margin-left: 10px;
+    margin-top: 20px;
   }
 
   .hierarchy-text-container {
     display: flex;
     flex-direction: column;
+    margin-top: 20px;
+    margin-left: 10px;
+
     textarea {
       min-height: 300px;
     }

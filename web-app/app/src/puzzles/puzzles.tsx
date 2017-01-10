@@ -86,7 +86,9 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 <div className="puzzles-container">
                     <h3>Puzzles</h3>
                     <h5>Unsorted Puzzles</h5>
-                    {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
+                    <div className="unsorted-puzzles-container">
+                        {!isAsyncLoaded(puzzles) ? "Loading..." : this.renderUnsortedPuzzles()}
+                    </div>
                     <PuzzleHierarchy
                         hierarchy={hierarchy}
                         onPuzzleNameChange={this.onPuzzleNameChange}
@@ -97,8 +99,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     { isHierarchyLoaded ? <textarea defaultValue={textareaText} onChange={this.handleTextHierarchyChange} /> : undefined}
                     { parseError !== undefined ? <div className="error">Error parsing: {parseError}</div> : undefined }
                     <button disabled={!isAsyncLoaded(puzzles)} onClick={this.parseHierarchy}>Preview Hierarchy</button>
+                    <button className="puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
                 </div>
-                <button className="puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
             </div>
         )
     }

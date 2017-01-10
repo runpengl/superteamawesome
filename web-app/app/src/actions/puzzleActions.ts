@@ -235,12 +235,14 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: 
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         let promises: Promise<void>[] = [];
         dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
+        let puzzleNamesWithUpdatedParents: string[] = [];
         Object.keys(hierarchy).forEach((groupKey) => {
             let childPromises = hierarchy[groupKey].children.map((puzzle) => {
                 const updates = {
                     [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
                     [`/puzzles/${puzzle.key}/isMeta`]: hierarchy[puzzle.key] !== undefined,
                 };
+                puzzleNamesWithUpdatedParents.push(puzzle.name);
                 return new Promise<void>((resolve) => {
                     firebaseDatabase.ref().update(updates).then(() => {
                         resolve();
@@ -257,6 +259,19 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: 
                     resolve();
                 }, (error) => {
                     throw error;
+                });
+            }));
+        });
+        let puzzlesWithNoParents = getState().puzzles.value.filter((puzzle) => {
+            return puzzleNamesWithUpdatedParents.indexOf(puzzle.name) < 0;
+        });
+        puzzlesWithNoParents.forEach((puzzle) => {
+            promises.push(new Promise<void>((resolve) => {
+                firebaseDatabase.ref().update({
+                    [`/puzzles/${puzzle.key}/parent`]: null,
+                }).then(() => resolve(),
+                (error) => {
+                    throw error
                 });
             }));
         });
