@@ -11,6 +11,15 @@ firebase.database().ref("currentHunt").on("value", function(snap) {
     currentHuntKey = snap.val();
 });
 
+function logEvent(event) {
+    firebase.database().ref("eventLogs").push(
+        Object.assign({}, event, {
+            timestampMs: Date.now(),
+            userId: firebase.auth().currentUser &&
+                firebase.auth().currentUser.uid
+        }));
+}
+
 function startAuth() {
     var interactive = true;
     chrome.identity.getAuthToken({ interactive: interactive }, function(token) {
@@ -25,6 +34,7 @@ function startAuth() {
                     return;
                 }
                 var user = userOrNull;
+                logEvent({ name: "LoggedIn" });
 
                 // Save info so other clients can display a list of users viewing a puzzle
                 firebase.database().ref("users/" + user.uid).set({
@@ -171,10 +181,14 @@ function handleChromeRuntimeConnect(port) {
                 if (snap.numChildren() === 0) {
                     console.log("[firebase/discoveredPages2]",
                         toolbarInfo.host, toolbarInfo.path, toolbarInfo.title);
-                    db.ref("discoveredPages/" + toolbarInfo.huntKey).push({
+                    var pushed = db.ref("discoveredPages/" + toolbarInfo.huntKey).push({
                         host: toolbarInfo.host,
                         path: toolbarInfo.path,
                         title: toolbarInfo.title
+                    });
+                    logEvent({
+                        name: "DiscoveredPageAdded",
+                        id: pushed.key()
                     });
                 } else {
                     snap.forEach(function(dp) {
@@ -212,6 +226,11 @@ function handleChromeRuntimeConnect(port) {
                     viewRef.set({
                         tabHidden: false,
                         idle: false
+                    });
+                    logEvent({
+                        name: "PuzzleViewerAdded",
+                        puzzleId: toolbarInfo.puzzleKey,
+                        tabId: tabId
                     });
                 }
             }
@@ -282,6 +301,12 @@ function handleChromeRuntimeConnect(port) {
                 // Otherwise, the viewersRef will be notified of changes and
                 // attempt to post a message on the disconnected port.
                 viewRef.remove();
+
+                logEvent({
+                    name: "PuzzleViewerRemoved",
+                    puzzleId: toolbarInfo.puzzleKey,
+                    tabId: tabId
+                });
             });
             break;
     }
@@ -379,14 +404,26 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
             Slack.joinChannel(request.name);
             break;
         case "puzzleSolutionChange":
+            var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
-                .ref("puzzles/" + toolbarInfoByTabId[sender.tab.id].puzzleKey + "/solution")
+                .ref("puzzles/" + puzzleKey + "/solution")
                 .set(request.solution);
+            logEvent({
+                name: "PuzzleSolutionChanged",
+                puzzleId: puzzleKey,
+                solution: request.solution
+            });
             break;
         case "puzzleStatusChange":
+            var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
-                .ref("puzzles/" + toolbarInfoByTabId[sender.tab.id].puzzleKey + "/status")
+                .ref("puzzles/" + puzzleKey + "/status")
                 .set(request.status);
+            logEvent({
+                name: "PuzzleStatusChanged",
+                puzzleId: puzzleKey,
+                status: request.status
+            });
             break;
         case "pageVisibilityChange":
             var data = toolbarInfoByTabId[sender.tab.id];
@@ -409,11 +446,19 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
                 .ref("puzzleViewers").child(data.puzzleKey)
                 .child(currentUserId).child(sender.tab.id)
                 .child("idle").set(request.isIdle);
+            logEvent({
+                name: request.isIdle
+                    ? "PuzzleViewerRemoved"
+                    : "PuzzleViewerAdded",
+                puzzleId: data.puzzleKey,
+                tabId: sender.tab.id
+            });
             break;
         case "signIn":
             startAuth();
             break;
         case "signOut":
+            logEvent({ name: "LoggedOut" });
             firebase.auth().signOut();
             Slack.disconnect();
             break;
