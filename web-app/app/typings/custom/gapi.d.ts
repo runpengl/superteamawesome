@@ -43,7 +43,49 @@ declare module "gapi" {
         export interface IGoogleClient {
             drive?: IGoogleDriveClient;
             load: (apiName: string, version: string, callback: () => void) => void;
+            sheets?: IGoogleSheetsClient;
         }
+
+        export interface IGoogleSheetsClient {
+            spreadsheets: IGoogleSpreadsheetsClient;
+        }
+
+        export interface IGoogleSpreadsheetsClient {
+            values: IGoogleSpreadhseetsValueClient;
+        }
+
+        export interface IGoogleSpreadhseetsValueClient {
+            update: (params: {
+                spreadsheetId: string,
+                range: string,
+                valueInputOption?: ValueInputOption,
+                includeValuesInResponse?: boolean,
+                responseValueRenderOption?: ValueRenderOption,
+                responseDateTimeRenderOption?: DateTimeRenderOption,
+                majorDimension?: SheetsDimension,
+                values: any[][],
+            }) => IGoogleRequest<IUpdateSheetsValuesResponse>;
+        }
+
+        export interface IUpdateSheetsValuesResponse {
+            spreadsheetId: string;
+            updatedRange: string;
+            updatedRows: number;
+            updatedColumns: number;
+            updatedCells: number;
+            updatedData?: IGoogleSheetsValueRange,
+        }
+        
+        export interface IGoogleSheetsValueRange {
+            range?: string;
+            majorDimension?: SheetsDimension;
+            values: any[][];
+        }
+
+        export type SheetsDimension = "DIMENSION_UNSPECIFIED" | "ROWS" | "COLUMNS";
+        export type DateTimeRenderOption = "SERIAL_NUMBER" | "FORMATTED_STRING";
+        export type ValueRenderOption = "FORMATTED_VALUE" | "UNFORMATTED_VALUE" | "FORMULA";
+        export type ValueInputOption = "INPUT_VALUE_OPTION_UNSPECIFIED" | "RAW" | "USER_ENTERED";
 
         export interface IGoogleDriveClient {
             files: IGoogleDriveFilesClient;

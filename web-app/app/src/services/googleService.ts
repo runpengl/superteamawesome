@@ -45,6 +45,32 @@ export function createSheet(templateFileId: string, driveFolderId: string, title
     });
 }
 
+export function setSheetLinks(spreadSheetFileId: string, puzzleLink: string, slackLink: string) {
+    return new Promise<void>((resolve) => {
+        gapiPromise.then((gapi: IGoogleClientApi) => {
+            let values: string[][] = [];
+            values.push([
+                `=HYPERLINK("${puzzleLink}","puzzle link")`,
+                `=HYPERLINK("${slackLink}", "slack link")`
+            ]);
+            const request = gapi.client.sheets.spreadsheets.values.update({
+                spreadsheetId: spreadSheetFileId,
+                range: "B$1:C$1",
+                valueInputOption: "USER_ENTERED",
+                responseValueRenderOption: "FORMATTED_VALUE",
+                values,
+            });
+            request.execute((response) => {
+                if ((response as Error).message !== undefined) {
+                    throw response;
+                } else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
 export function loadGoogleApi(accessToken: string) {
     let gapi: IGoogleClientApi;
     return gapiPromise
@@ -52,7 +78,9 @@ export function loadGoogleApi(accessToken: string) {
             gapi = gapiResponse;
             return new Promise((resolve) => {
                 gapi.client.load("drive", "v2", () => {
-                    resolve();
+                    gapi.client.load("sheets", "v4", () => {
+                        resolve();
+                    });
                 });
             });
         })

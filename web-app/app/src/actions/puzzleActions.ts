@@ -5,7 +5,7 @@ import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
-import { createSheet, ISlackChannel, slack } from "../services";
+import { createSheet, ISlackChannel, setSheetLinks, slack } from "../services";
 import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
@@ -175,6 +175,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         });
 
         let spreadsheet: IGoogleDriveFile;
+        let slackChannel: ISlackChannel;
         checkPuzzleExists
             .then((exists: boolean) => {
                 if (exists) {
@@ -188,14 +189,20 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 return slack.channels.create(auth.slackToken, slackChannelName);
             })
             .then((channel: ISlackChannel) => {
+                slackChannel = channel;
+                return setSheetLinks(spreadsheet.id,
+                    `http://${discoveredPage.host}${discoveredPage.path}`,
+                    `https://superteamawesome.slack.com/messages/${channel.name}`);
+            })
+            .then(() => {
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
                     host: discoveredPage.host,
                     hunt: hunt.year,
                     name: puzzleName,
                     path: discoveredPage.path,
-                    slackChannel: channel.name,
-                    slackChannelId: channel.id,
+                    slackChannel: slackChannel.name,
+                    slackChannelId: slackChannel.id,
                     spreadsheetId: spreadsheet.id,
                     status: PuzzleStatus.NEW,
                 };
