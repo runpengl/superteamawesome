@@ -267,7 +267,7 @@ var PuzzleStatusPicker = React.createClass({
     submitSolution: function() {
         chrome.runtime.sendMessage({
             msg: "puzzleSolutionChange",
-            solution: this.state.solutionText
+            solution: this.state.solutionText.toUpperCase()
         });
         this.setState({
             optimisticSolution: this.state.solutionText,

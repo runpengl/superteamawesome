@@ -192,6 +192,7 @@ body {
 .PuzzleStatusPicker-solutionButton {
   cursor: pointer;
   padding: 0 10px;
+  text-transform: uppercase;
 }
 
 .PuzzleStatusPicker-solutionInput {

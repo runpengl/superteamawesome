@@ -275,11 +275,15 @@ a:hover {
 }
 
 .PuzzleList-puzzleLabel {
+  display: inline-flex;
   min-width: 1px;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
+.PuzzleList-puzzleName {
+  min-width: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .PuzzleList-puzzle.solved .PuzzleList-puzzleName {
   color: #ccc;
   text-decoration: line-through;
@@ -287,6 +291,7 @@ a:hover {
 
 .PuzzleList-metaBadge {
   color: #333;
+  flex-shrink: 0;
   font-size: 10px;
   font-weight: 600;
   margin-left: 5px;
@@ -294,7 +299,7 @@ a:hover {
 }
 
 .PuzzleList-puzzleMetadata {
-  margin-left: 5px;
+  margin-left: 10px;
 }
 
 .PuzzleList-puzzleSolution {
@@ -302,6 +307,7 @@ a:hover {
   font-size: 10px;
   font-weight: 500;
   margin-right: 5px;
+  text-transform: uppercase;
 }
 
 .PuzzleList-puzzleViewerCount {
