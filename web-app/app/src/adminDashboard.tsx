@@ -73,7 +73,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     public componentDidMount() {
         const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            console.log(user);
             if (user == null) {
                 this.context.router.push("/login");
             } else if (lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
@@ -87,7 +86,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     loadHuntAndUserInfo();
                 }
             } else if (lifecycle.loginStatus === LoginStatus.NONE) {
-                console.log('here')
                 this.setState({
                     loggedIn: true,
                 });
@@ -102,12 +100,17 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         if (slackToken === undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
             (window as any).location = getSlackAuthUrl();
         } else if (slackToken !== undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN && !isAsyncLoaded(hunt) && !isAsyncInProgress(hunt)) {
-            console.log("here?!");
             this.setState({
                 loggedIn: true,
             });
             loadHuntAndUserInfo();
         }
+        
+        if (lifecycle.loginStatus === LoginStatus.LOGGED_IN && oldProps.lifecycle.loginStatus !== LoginStatus.LOGGED_IN) {
+            this.setState({
+                loggedIn: true,
+            });
+        } 
 
         if (isAsyncInProgress(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;
