@@ -6,14 +6,16 @@ import {
     CREATE_MANUAL_PUZZLE_ACTION,
     CREATE_PUZZLE_ACTION,
     DELETE_PUZZLE_ACTION,
+    LOGIN_ACTION,
 } from "../actions";
-import { IAppLifecycle } from "../state";
+import { IAppLifecycle, LoginStatus } from "../state";
 
 const initialState: IAppLifecycle = {
     createPuzzleFailure: undefined,
     creatingManualPuzzle: false,
     createManualPuzzleFailure: undefined,
     deletingPuzzleIds: [],
+    loginStatus: LoginStatus.NONE,
 };
 
 export function lifecycleReducer(state: IAppLifecycle = initialState, action: IAsyncAction<any>) {
@@ -54,6 +56,14 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
                     deletingPuzzleIds: newDeletingPuzzles,
                     deletingPuzzleError: action.error,
                 });
+            }
+        case LOGIN_ACTION:
+            if (isAsyncInProgress(action)) {
+                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGING_IN });
+            } else if (isAsyncFailed(action)) {
+                return Object.assign({}, state, { loginStatus: LoginStatus.NONE });
+            } else if (isAsyncSucceeded(action)) {
+                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGED_IN });
             }
         default: return state;
     }

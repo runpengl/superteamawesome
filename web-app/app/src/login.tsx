@@ -117,7 +117,6 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
             if (oldProps.slackToken === undefined && this.props.slackToken !== undefined) {
                 this.context.router.push("/admin");
             } else {
-                console.log("here");
                 (window as any).location = getSlackAuthUrl();
             }
         }

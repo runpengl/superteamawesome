@@ -69,6 +69,13 @@ export interface IAppLifecycle {
     createManualPuzzleFailure?: Error;
     deletingPuzzleIds?: string[];
     deletingPuzzleFailure?: Error;
+    loginStatus?: LoginStatus;
+}
+
+export enum LoginStatus {
+    NONE,
+    LOGGING_IN,
+    LOGGED_IN,
 }
 
 export interface IAppState {

@@ -19,7 +19,7 @@ import {
 } from "./actions";
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages, Puzzles } from "./puzzles";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "./state";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "./state";
 import { getSlackAuthUrl } from "./services";
 
 interface IAdminDashboardState {
@@ -53,6 +53,7 @@ interface IStateProps {
     ignoredPages: IAsyncLoaded<IDiscoveredPage[]>;
     lifecycle: IAppLifecycle;
     slackToken?: string;
+    user: firebase.UserInfo;
 }
 
 interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
@@ -69,11 +70,22 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     };
 
     public componentDidMount() {
-        const { loadHuntAndUserInfo } = this.props;
+        const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
+        console.log(lifecycle.loginStatus);
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
-            } else {
+            } else if (lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
+                // login action succeeded, proceed
+                if (slackToken === undefined) {
+                    (window as any).location = getSlackAuthUrl();
+                } else {
+                    this.setState({
+                        loggedIn: true,
+                    });
+                    loadHuntAndUserInfo();
+                }
+            } else if (lifecycle.loginStatus === LoginStatus.NONE) {
                 this.setState({
                     loggedIn: true,
                 });
@@ -83,7 +95,11 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     public componentDidUpdate(oldProps: IAdminDashboardProps) {
-        const { hunt, huntDriveFolder, loadIgnoredPages, loadDiscoveredPages } = this.props;
+        const { hunt, huntDriveFolder, lifecycle, loadIgnoredPages, loadDiscoveredPages, slackToken } = this.props;
+
+        if (slackToken === undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
+            (window as any).location = getSlackAuthUrl();
+        }
 
         if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;
@@ -298,6 +314,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
         ignoredPages,
         lifecycle,
         slackToken: auth.slackToken,
+        user: auth.user,
     };
 }
 
