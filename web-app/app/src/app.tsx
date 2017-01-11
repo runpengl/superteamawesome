@@ -9,6 +9,7 @@ import * as createLogger from "redux-logger";
 import { reducers } from "./reducers";
 import { AdminDashboard } from "./adminDashboard";
 import { Dashboard } from "./dashboard";
+import { UserDashboard } from "./userDashboard";
 import { Login } from "./login";
 import { SlackAuth } from "./slackAuth";
 
@@ -30,6 +31,7 @@ ReactDOM.render(
     <Router history={browserHistory}>
         <Route path="/" component={App}>
             <IndexRoute component={Dashboard} />
+            <Route path="admin/users" component={UserDashboard} />
             <Route path="admin" component={AdminDashboard} />
             <Route path="login" component={Login} />
             <Route path="slack/auth" component={SlackAuth} />
