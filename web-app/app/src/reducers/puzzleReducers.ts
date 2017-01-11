@@ -23,13 +23,6 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
     switch (action.type) {
         case LOAD_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
-        case CREATE_PUZZLE_ACTION:
-            if (isAsyncSucceeded(action)) {
-                let payload = action.value as ICreatePuzzleActionPayload;
-                let newPuzzles: IPuzzle[] = state.value.concat(payload.newPuzzles);
-                newPuzzles[newPuzzles.length - 1].index = newPuzzles.length - 1;
-                return Object.assign({}, state, { value: newPuzzles });
-            }
         default: return state;
     }
 }

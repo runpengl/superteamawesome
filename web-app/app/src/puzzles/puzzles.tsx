@@ -3,7 +3,15 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { createManualPuzzleAction, isAsyncLoaded, IAsyncLoaded, IPuzzleInfoChanges, loadPuzzlesAction, saveHierarchyAction } from "../actions";
+import {
+    createManualPuzzleAction,
+    deletePuzzleAction,
+    isAsyncLoaded,
+    IAsyncLoaded,
+    IPuzzleInfoChanges,
+    loadPuzzlesAction,
+    saveHierarchyAction,
+} from "../actions";
 import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
 
@@ -14,6 +22,7 @@ interface IOwnProps {
 
 interface IDispatchProps {
     createManualPuzzle?: (puzzleName: string, puzzleLink: string) => void;
+    deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
     saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges}) => void;
 }
@@ -108,10 +117,11 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                             <input type="text" value={newPuzzleName} onChange={this.handleNewPuzzleNameChange} />
                         </div>
                         <div className="add-puzzle-form-line">
-                            <label>Puzzle Link (optional)</label>
+                            <label>Puzzle Link</label>
                             <input type="text" value={newPuzzleLink} onChange={this.handlenewPuzzleLinkChange} />
+                            <div className="help-text">Links that already exist will be ignored by the extension</div>
                         </div>
-                        <button disabled={lifecycle.creatingManualPuzzle} onClick={this.handleCreateManualPuzzle}>
+                        <button disabled={lifecycle.creatingManualPuzzle || newPuzzleName.length === 0 || newPuzzleLink.length === 0} onClick={this.handleCreateManualPuzzle}>
                             {lifecycle.creatingManualPuzzle ? "Creating..." : "Create"}
                         </button>
                     </div>
@@ -121,6 +131,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     </div>
                     <PuzzleHierarchy
                         hierarchy={hierarchy}
+                        lifecycle={lifecycle}
+                        onPuzzleDelete={this.onPuzzleDelete}
                         onPuzzleNameChange={this.onPuzzleNameChange}
                         slackTeamId={slackTeamId}
                     />
@@ -264,12 +276,26 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         });
     }
 
+    private onPuzzleDelete = (puzzle: IPuzzle) => {
+        const { deletePuzzle } = this.props;
+        if (window.confirm("This will delete the associated Google Spreadsheet and archive the Slack channel, are you sure you want to proceed?")) {
+            deletePuzzle(puzzle);
+        }
+    }
+
+    private handleDeletePuzzle = (puzzle: IPuzzle) => {
+        return () => {
+            this.onPuzzleDelete(puzzle);
+        };
+    }
+
     private renderUnsortedPuzzles() {
-        const { slackTeamId } = this.props;
+        const { lifecycle, slackTeamId } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map((puzzle) => {
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
             const date = moment(puzzle.createdAt).format("MMM DD, YYYY hh:mm A");
+            const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
             return (
                 <tr key={puzzle.key}>
                     <td>{puzzle.index} <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} /></td>
@@ -278,6 +304,14 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
                     <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
+                    <td>
+                        <button
+                            disabled={isDeleting}
+                            onClick={this.handleDeletePuzzle(puzzle)}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete"}
+                        </button>
+                    </td>
                 </tr>
             );
         });
@@ -289,6 +323,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <th>Status</th>
                         <th>Created At</th>
                         <th colSpan={3}>Links</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -309,6 +344,7 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         createManualPuzzle: createManualPuzzleAction,
+        deletePuzzle: deletePuzzleAction,
         loadPuzzles: loadPuzzlesAction,
         saveHierarchy: saveHierarchyAction,
     }, dispatch);

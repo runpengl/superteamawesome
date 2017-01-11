@@ -93,6 +93,7 @@ declare module "gapi" {
 
         export interface IGoogleDriveFilesClient {
             copy: (params: { fileId: string, resource: IGoogleDriveFile }) => IGoogleRequest<IGoogleDriveFile>;
+            delete: (params: { fileId: string }) => IGoogleRequest<{}>;
             get: (params: { fileId: string }) => IGoogleRequest<IGoogleDriveFile>;
             list: (params: { q?: string }) => IGoogleRequest<IGoogleDriveFilesList>;
         }

@@ -17,7 +17,7 @@ import {
 } from "./actions";
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages, Puzzles } from "./puzzles";
-import { IAppState, IDiscoveredPage, IHuntState } from "./state";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "./state";
 import { getSlackAuthUrl } from "./services";
 
 interface IAdminDashboardState {
@@ -49,6 +49,7 @@ interface IStateProps {
     hunt: IAsyncLoaded<IHuntState>;
     huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
     ignoredPages: IAsyncLoaded<IDiscoveredPage[]>;
+    lifecycle: IAppLifecycle;
     slackToken?: string;
 }
 
@@ -97,6 +98,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             this.setState({
                 huntDriveFolder: huntDriveFolder.value,
             });
+        }
+
+        if (oldProps.lifecycle.deletingPuzzleFailure === undefined && this.props.lifecycle.deletingPuzzleFailure !== undefined) {
+            alert(this.props.lifecycle.deletingPuzzleFailure.message);
         }
     }
 
@@ -269,12 +274,13 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages } = state;
+    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages, lifecycle } = state;
     return {
         discoveredPages,
         hunt,
         huntDriveFolder,
         ignoredPages,
+        lifecycle,
         slackToken: auth.slackToken,
     };
 }

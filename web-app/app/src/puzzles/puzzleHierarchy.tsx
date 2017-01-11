@@ -2,11 +2,13 @@ import * as classnames from "classnames";
 import * as React from "react";
 
 import { IPuzzleInfoChanges } from "../actions";
-import { IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state";
+import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state";
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
+    lifecycle: IAppLifecycle;
     onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
+    onPuzzleDelete: (puzzle: IPuzzle) => void;
     slackTeamId: string;
 }
 
@@ -86,10 +88,18 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
         }
     }
 
+    private handleDelete = (puzzle: IPuzzle) => {
+        const { onPuzzleDelete } = this.props;
+        return () => {
+            onPuzzleDelete(puzzle);
+        }
+    }
+
     private renderPuzzles(puzzles: IPuzzle[], meta: IPuzzle) {
-        const { slackTeamId } = this.props;
+        const { lifecycle, slackTeamId } = this.props;
         const { puzzleChanges } = this.state;
         const puzzleRows = puzzles.map((puzzle) => {
+            const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
             return (
                 <tr key={puzzle.key}>
@@ -98,6 +108,14 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                     <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
                     <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
                     <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
+                    <td>
+                        <button
+                            disabled={isDeleting}
+                            onClick={this.handleDelete(puzzle)}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete"}
+                        </button>
+                    </td>
                 </tr>
             );
         });
