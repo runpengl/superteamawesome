@@ -17,7 +17,7 @@ import {
     loadIgnoredPagesAction,
     loadDiscoveredPagesAction,
 } from "./actions";
-import { firebaseAuth } from "./auth";
+import { firebaseAuth, firebaseDatabase } from "./auth";
 import { DiscoveredPages, Puzzles } from "./puzzles";
 import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "./state";
 import { getSlackAuthUrl } from "./services";
@@ -30,6 +30,7 @@ interface IAdminDashboardState {
     isFolderDialogShown?: boolean;
     isLoading?: boolean;
     loggedIn?: boolean;
+    loginError?: Error;
 }
 
 interface IRouterContext {
@@ -72,7 +73,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     public componentDidMount() {
         const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            console.log(lifecycle.loginStatus);
             if (user == null) {
                 this.context.router.push("/login");
             } else if (lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
@@ -131,8 +131,8 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     public render() {
-        const { hunt } = this.props;
-        if (this.state.isLoading) {
+        const { hunt, lifecycle } = this.props;
+        if (this.state.isLoading || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
             return (
                 <div className="dashboard">
                     <div className="header">
@@ -140,19 +140,15 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <h1>STAPH [ADMIN]</h1>
                             <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                         </div>
-                        <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button>
+                        {lifecycle.loginError === undefined ? <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button> : undefined}
                         <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                     </div>
-                    <span>Loading...</span>
+                    <span>{ lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..." }</span>
                 </div>
             );
         } else {
             if (isAsyncFailed(hunt)) {
-                if ((hunt.error as any).code === "PERMISSION_DENIED") {
-                    return <span>You don't have access to see this <button className="logout-button" onClick={this.handleLogout}>Logout</button></span>;
-                } else {
-                    return <span>Error: {hunt.error.message}</span>;
-                }
+                return <span>Error: {hunt.error.message}</span>;
             } else if (this.state.loggedIn) {
                 return this.renderDashboard();
             } else {

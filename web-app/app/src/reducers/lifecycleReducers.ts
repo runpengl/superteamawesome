@@ -60,11 +60,11 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
             }
         case LOGIN_ACTION:
             if (isAsyncInProgress(action)) {
-                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGING_IN });
+                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGING_IN, loginError: undefined });
             } else if (isAsyncFailed(action)) {
-                return Object.assign({}, state, { loginStatus: LoginStatus.NONE });
+                return Object.assign({}, state, { loginStatus: LoginStatus.NONE, loginError: action.error });
             } else if (isAsyncSucceeded(action)) {
-                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGED_IN });
+                return Object.assign({}, state, { loginStatus: LoginStatus.LOGGED_IN, loginError: undefined });
             }
         case LOGOUT_ACTION:
             if (isAsyncSucceeded(action)) {

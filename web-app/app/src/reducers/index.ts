@@ -5,8 +5,10 @@ import { huntReducer } from "./huntReducers";
 import { discoveredPageReducer, ignoredPagesReducer, puzzlesReducer } from "./puzzleReducers";
 import { huntDriveFolderReducer } from "./googleReducers";
 import { lifecycleReducer } from "./lifecycleReducers";
+import { adminUserReducer, userReducer } from "./userReducers";
 
 export const reducers = combineReducers({
+    adminUsers: adminUserReducer,
     auth: authReducer,
     discoveredPages: discoveredPageReducer,
     hunt: huntReducer,
@@ -14,4 +16,5 @@ export const reducers = combineReducers({
     ignoredPages: ignoredPagesReducer,
     lifecycle: lifecycleReducer,
     puzzles: puzzlesReducer,
+    users: userReducer,
 });

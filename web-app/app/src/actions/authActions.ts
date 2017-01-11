@@ -22,6 +22,20 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
         return authPromise
             .then((firebaseUser: firebase.UserInfo) => {
                 user = firebaseUser;
+
+                const escapedEmail = user.email.replace(/\./g, "%2E");
+                return new Promise<void>((resolve, reject) => {
+                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once("value", (snapshot) => {
+                        if (snapshot.val()) {
+                            resolve();
+                        } else {
+                            throw new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                        }
+                    }, (error: Error) => {
+                        reject(error);
+                    });
+                })
+            }).then(() => {
                 return reloadGoogleAuth();
             })
             .then((googleAccessToken: string) => {
@@ -59,7 +73,24 @@ export function loginAction(accessToken: string) {
             .then((result) => {
                 // The signed-in user info.
                 user = result;
-                
+
+                const escapedEmail = user.email.replace(/\./g, "%2E");
+                return new Promise<void>((resolve, reject) => {
+                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once("value", (snapshot) => {
+                        if (snapshot.val()) {
+                            resolve();
+                        } else {
+                            throw new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                        }
+                    }, (error: Error) => {
+                        if ((error as any).code === "PERMISSION_DENIED") {
+                            reject(new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access"));
+                        } else {
+                            reject(error);
+                        }
+                    });
+                });
+            }).then(() => {
                 return loadGoogleApi(accessToken);
             })
             .then(() => {

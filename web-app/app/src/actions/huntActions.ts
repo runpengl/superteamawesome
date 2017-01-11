@@ -2,8 +2,8 @@ import { Dispatch } from "redux";
 
 import { firebaseDatabase } from "../auth";
 import { slack } from "../services";
-import { IAppState, IHuntState } from "../state";
-import { loadUserInfo } from "./authActions";
+import { IAppState, IAuthState, IHuntState } from "../state";
+import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
 
 import {
@@ -55,6 +55,13 @@ export function loadHuntAndUserInfoAction() {
                 }, (error: Error) => {
                     dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
                 });
+        }).catch((error: Error) => {
+            let huntLoadError = error;
+            if ((error as any).code === "PERMISSION_DENIED") {
+                huntLoadError = new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, huntLoadError));
+            }
+            dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, huntLoadError));
         });
     }
 }
