@@ -41,6 +41,7 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
     };
 
     public componentDidMount() {
+        console.log("dashboard");
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");

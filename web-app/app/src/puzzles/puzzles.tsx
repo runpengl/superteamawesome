@@ -50,6 +50,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
     public state: IPuzzlesState = {
         hasChanges: false,
         hierarchy: {},
+        isHierarchyLoaded: false,
         newPuzzleName: "",
         newPuzzleLink: "",
         puzzleChanges: {},
@@ -67,7 +68,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         if (!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles)
             || (isAsyncLoaded(oldProps.puzzles)
                 && isAsyncLoaded(puzzles)
-                && oldProps.puzzles.value.length !== puzzles.value.length)) {
+                && oldProps.puzzles.value.length !== puzzles.value.length)
+            || isAsyncLoaded(puzzles) && !this.state.isHierarchyLoaded) {
             // puzzles have changed, reevaluate hierarchy
             let hierarchy: IPuzzleHierarchy = {};
             let sortedPuzzles = puzzles.value.filter((puzzle) => puzzle.parent !== undefined);

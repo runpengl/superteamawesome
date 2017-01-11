@@ -13,6 +13,7 @@ import { IAppState } from "./state";
 // props from redux state
 interface IStateProps {
     googleToken?: string;
+    slackToken?: string;
 }
 
 // props given to component
@@ -113,7 +114,12 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
 
     public componentDidUpdate(oldProps: ILoginProps) {
         if (oldProps.googleToken === undefined && this.props.googleToken !== undefined) {
-            (window as any).location = getSlackAuthUrl();
+            if (oldProps.slackToken === undefined && this.props.slackToken !== undefined) {
+                this.context.router.push("/admin");
+            } else {
+                console.log("here");
+                (window as any).location = getSlackAuthUrl();
+            }
         }
     }
 
@@ -154,6 +160,7 @@ function mapStateToProps(state: IAppState, _props: IOwnProps): IStateProps {
     const { auth } = state;
     return {
         googleToken: auth.googleToken,
+        slackToken: auth.slackToken,
     };
 }
 

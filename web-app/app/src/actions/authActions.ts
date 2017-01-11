@@ -76,7 +76,7 @@ export function loginAction(accessToken: string) {
                     LOGIN_ACTION,
                     {
                         googleToken: accessToken,
-                        slackToken: userPrivateInfo.slackAccessToken,
+                        slackToken: userPrivateInfo != null ? userPrivateInfo.slackAccessToken : undefined,
                         user,
                     }
                 ));
