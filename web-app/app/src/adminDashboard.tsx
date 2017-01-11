@@ -73,6 +73,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     public componentDidMount() {
         const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
+            console.log(user);
             if (user == null) {
                 this.context.router.push("/login");
             } else if (lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
@@ -86,6 +87,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     loadHuntAndUserInfo();
                 }
             } else if (lifecycle.loginStatus === LoginStatus.NONE) {
+                console.log('here')
                 this.setState({
                     loggedIn: true,
                 });
@@ -100,13 +102,14 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         if (slackToken === undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
             (window as any).location = getSlackAuthUrl();
         } else if (slackToken !== undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN && !isAsyncLoaded(hunt) && !isAsyncInProgress(hunt)) {
+            console.log("here?!");
             this.setState({
                 loggedIn: true,
             });
             loadHuntAndUserInfo();
         }
 
-        if (!isAsyncLoaded(oldProps.hunt) && isAsyncLoaded(hunt)) {
+        if (isAsyncInProgress(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;
             loadIgnoredPages(hunt.year);
             loadDiscoveredPages(hunt.year);
@@ -119,7 +122,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             this.setState({ isLoading: false });
         }
 
-        if (!isAsyncLoaded(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
+        if (isAsyncInProgress(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
             this.setState({
                 huntDriveFolder: huntDriveFolder.value,
             });
@@ -132,6 +135,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     public render() {
         const { hunt, lifecycle } = this.props;
+        console.log(this.state.isLoading, this.state.loggedIn);
         if (this.state.isLoading || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
             return (
                 <div className="dashboard">
@@ -219,6 +223,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     private handleLogout = () => {
         const { logout } = this.props;
+        this.setState({ loggedIn: false, isLoading: true });
         logout();
     }
 

@@ -6,6 +6,7 @@ import {
     IAsyncAction,
     IAsyncLoaded,
     isAsyncSucceeded,
+    LOGOUT_ACTION,
     LOAD_DISCOVERED_PUZZLES_ACTION,
     LOAD_IGNORED_PAGES_ACTION,
     LOAD_PUZZLES_ACTION,
@@ -23,6 +24,10 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
     switch (action.type) {
         case LOAD_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
+        case LOGOUT_ACTION:
+            if (isAsyncSucceeded(action)) {
+                return puzzlesInitialState;
+            }
         default: return state;
     }
 }
@@ -36,6 +41,10 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
     switch (action.type) {
         case LOAD_DISCOVERED_PUZZLES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
+        case LOGOUT_ACTION:
+            if (isAsyncSucceeded(action)) {
+                return initialState;
+            }
         default:
             return state;
     }
@@ -44,6 +53,10 @@ export function discoveredPageReducer(state: IAsyncLoaded<IDiscoveredPage[]> = i
 export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = initialState,
     action: IAsyncAction<any>) {
     switch (action.type) {
+        case LOGOUT_ACTION:
+            if (isAsyncSucceeded(action)) {
+                return initialState;
+            }
         case LOAD_IGNORED_PAGES_ACTION:
             return Object.assign({}, state, getAsyncLoadedValue(action));
         case IGNORE_DISCOVERED_PAGE_ACTION:

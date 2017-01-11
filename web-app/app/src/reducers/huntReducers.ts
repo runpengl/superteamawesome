@@ -4,6 +4,7 @@ import {
     IAsyncAction,
     IAsyncLoaded,
     isAsyncSucceeded,
+    LOGOUT_ACTION,
     LOAD_HUNT_ACTION,
     LOAD_SLACK_TEAM_ID_ACTION,
     SAVE_HUNT_ACTION,
@@ -32,6 +33,10 @@ export function huntReducer(state: IAsyncLoaded<IHuntState> = initialState, acti
             if (isAsyncSucceeded(action)) {
                 let setValue = Object.assign({}, state.value, { slackTeamId: action.value });
                 return Object.assign({}, state, { value: setValue });
+            }
+        case LOGOUT_ACTION:
+            if (isAsyncSucceeded(action)) {
+                return initialState;
             }
         default:
             return state;
