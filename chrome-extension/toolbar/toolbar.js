@@ -125,31 +125,36 @@ function PuzzleToolbar(props) {
             target: "_blank",
             href: "https://docs.google.com/spreadsheets/d/" + props.puzzle.spreadsheetId
         }, "spreadsheet"),
-        props.location === "slack" ? null : r.div({ className: "Toolbar-slackInfo" },
-            r.a({
+        props.location === "slack"
+            ? r.a({
                 className: "Toolbar-link",
-                target: "_blank",
-                href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel,
-                onClick: function() {
-                    if (props.slackChannel && !props.slackChannel.is_member) {
-                        chrome.runtime.sendMessage({
-                            msg: "joinChannel",
-                            name: props.puzzle.slackChannel
-                        });
+                href: "slack://channel?team=T03A0NUTH&id=" + props.puzzle.slackChannelId
+            }, "open in app")
+            : r.div({ className: "Toolbar-slackInfo" },
+                r.a({
+                    className: "Toolbar-link",
+                    target: "_blank",
+                    href: "https://superteamawesome.slack.com/messages/" + props.puzzle.slackChannel,
+                    onClick: function() {
+                        if (props.slackChannel && !props.slackChannel.is_member) {
+                            chrome.runtime.sendMessage({
+                                msg: "joinChannel",
+                                name: props.puzzle.slackChannel
+                            });
+                        }
                     }
-                }
-            }, "slack"),
-            props.puzzle.status === "solved" || !props.slackChannel || props.slackChannel.is_member
-                ? null
-                : r.div({ className: "Toolbar-linkTooltip" },
-                    "Working on this puzzle? Join the Slack channel."
-                ),
-            props.slackChannel && props.slackChannel.unread_count_display > 0
-                ? r.span({ className: "Toolbar-slackUnreadCount" },
-                    props.slackChannel.unread_count_display
-                )
-                : null
-        ),
+                }, "slack"),
+                props.puzzle.status === "solved" || !props.slackChannel || props.slackChannel.is_member
+                    ? null
+                    : r.div({ className: "Toolbar-linkTooltip" },
+                        "Working on this puzzle? Join the Slack channel."
+                    ),
+                props.slackChannel && props.slackChannel.unread_count_display > 0
+                    ? r.span({ className: "Toolbar-slackUnreadCount" },
+                        props.slackChannel.unread_count_display
+                    )
+                    : null
+            ),
 
         React.createElement(React.addons.CSSTransitionGroup, {
             className: "Toolbar-right",
@@ -267,7 +272,7 @@ var PuzzleStatusPicker = React.createClass({
     submitSolution: function() {
         chrome.runtime.sendMessage({
             msg: "puzzleSolutionChange",
-            solution: this.state.solutionText.toUpperCase()
+            solution: this.state.solutionText.toUppercase()
         });
         this.setState({
             optimisticSolution: this.state.solutionText,
