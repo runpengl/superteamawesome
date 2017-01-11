@@ -41,15 +41,11 @@ class UnconnectedDashboard extends React.Component<IDashboardProps, IDashboardSt
     };
 
     public componentDidMount() {
-        const { loadHuntAndUserInfo } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
             } else {
-                this.setState({
-                    loggedIn: true,
-                });
-                loadHuntAndUserInfo();
+                this.context.router.push("/admin");
             }
         });
     }
