@@ -130,6 +130,7 @@ export function loadGoogleApi(accessToken: string) {
         });
 }
 
+let hasInitialized = false;
 export function reloadGoogleAuth() {
     let googleAuth: IGoogleAuth;
     const element = document.getElementsByTagName("script")[0];
@@ -141,7 +142,12 @@ export function reloadGoogleAuth() {
         scriptElement.onload = () => {
             let gapi = (window as any).gapi as IGooglePlatformApi;
             gapi.load("auth2", () => {
-                googleAuth = gapi.auth2.init({ client_id: config.google.clientId, scope: scopes.join(" ") });
+                if (!hasInitialized) {
+                    hasInitialized = true;
+                    googleAuth = gapi.auth2.init({ client_id: config.google.clientId, scope: scopes.join(" ") });
+                } else {
+                    googleAuth = gapi.auth2.getAuthInstance();
+                }
                 googleAuth.then(() => {
                     googleAuth.currentUser.get().reloadAuthResponse().then((response) => {
                         resolve(response.access_token);

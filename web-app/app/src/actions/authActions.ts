@@ -70,6 +70,7 @@ export function loginAction(accessToken: string) {
                 firebaseDatabase.ref(`users/${user.uid}`).set({
                     displayName: user.displayName,
                     photoUrl: user.photoURL,
+                    email: user.email,
                 });
 
                 dispatch(asyncActionSucceededPayload<IAuthState>(

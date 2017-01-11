@@ -11,6 +11,7 @@ declare module "gapi" {
         }
 
         export interface IGoogleAuth2 {
+            getAuthInstance: () => IGoogleAuth;
             init: (params: {
                 client_id: string,
                 scope: string,

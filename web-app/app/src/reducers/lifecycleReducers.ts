@@ -7,6 +7,7 @@ import {
     CREATE_PUZZLE_ACTION,
     DELETE_PUZZLE_ACTION,
     LOGIN_ACTION,
+    LOGOUT_ACTION,
 } from "../actions";
 import { IAppLifecycle, LoginStatus } from "../state";
 
@@ -64,6 +65,10 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
                 return Object.assign({}, state, { loginStatus: LoginStatus.NONE });
             } else if (isAsyncSucceeded(action)) {
                 return Object.assign({}, state, { loginStatus: LoginStatus.LOGGED_IN });
+            }
+        case LOGOUT_ACTION:
+            if (isAsyncSucceeded(action)) {
+                return Object.assign({}, state, { loginStatus: LoginStatus.NONE });
             }
         default: return state;
     }
