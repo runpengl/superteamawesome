@@ -8,6 +8,8 @@ import { IGoogleDriveFile } from "gapi";
 
 import {
     IAsyncLoaded,
+    isAsyncFailed,
+    isAsyncInProgress,
     isAsyncLoaded,
     loadHuntAndUserInfoAction,
     logoutAction,
@@ -92,6 +94,8 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                 isLoading: false,
                 isCurrentDriveFolderRoot: hunt.driveFolderId === undefined,
             });
+        } else if (isAsyncFailed(hunt) && isAsyncInProgress(oldProps.hunt)) {
+            this.setState({ isLoading: false });
         }
 
         if (!isAsyncLoaded(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
@@ -106,10 +110,17 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 
     public render() {
+        const { hunt } = this.props;
         if (this.state.isLoading) {
             return <span>Loading...</span>;
         } else {
-            if (this.state.loggedIn) {
+            if (isAsyncFailed(hunt)) {
+                if ((hunt.error as any).code === "PERMISSION_DENIED") {
+                    return <span>You don't have access to see this <button className="logout-button" onClick={this.handleLogout}>Logout</button></span>;
+                } else {
+                    return <span>Error: {hunt.error.message}</span>;
+                }
+            } else if (this.state.loggedIn) {
                 return this.renderDashboard();
             } else {
                 // shouldn't get here
@@ -182,6 +193,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         logout();
     }
 
+    private routeToUsersPage = () => {
+        this.context.router.push("/admin/users");
+    }
+
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
@@ -191,6 +206,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
+                    <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button>
                     <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
                 <div className="hunt-edit-container">
