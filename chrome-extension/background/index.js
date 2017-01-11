@@ -326,7 +326,7 @@ function handlePopupConnect(port) {
             user: userOrNull
         });
 
-        currentHuntRef.on("value", handleCurrentHuntValue);
+        currentHuntRef.on("value", handleCurrentHuntValue, handleCurrentHuntFailure);
         viewersRef.on("value", handleViewersValue);
     });
 
@@ -347,6 +347,13 @@ function handlePopupConnect(port) {
         huntRef.on("value", handleHuntValue);
         puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(currentHuntKey);
         puzzlesRef.on("value", handlePuzzlesValue);
+    }
+    function handleCurrentHuntFailure(error) {
+        if (error.code === "PERMISSION_DENIED") {
+            port.postMessage({
+                msg: "permissionDenied"
+            });
+        }
     }
     function handleHuntValue(huntSnap) {
         port.postMessage({

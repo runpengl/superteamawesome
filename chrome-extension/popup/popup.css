@@ -124,6 +124,20 @@ a:hover {
   min-height: 1px;
 }
 
+.Popup-permissionDeniedIcon {
+  display: block;
+  fill: #ccc;
+  height: 150px;
+  margin: 30px auto 10px;
+}
+
+.Popup-permissionDeniedPrompt {
+  font-size: 20px;
+  font-weight: 200;
+  padding: 0 30px;
+  text-align: center;
+}
+
 .Popup-currentHuntInfo {
   background: #fff;
   border-bottom: 1px solid #ccc;
