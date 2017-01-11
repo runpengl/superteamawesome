@@ -5,7 +5,7 @@ import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
 import { firebaseDatabase } from "../auth";
-import { createSheet, ISlackChannel, slack } from "../services";
+import { createSheet, ISlackChannel, setSheetLinks, setSheetPuzzleLink, slack } from "../services";
 import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
 import {
     asyncActionFailedPayload,
@@ -146,10 +146,117 @@ export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
 }
 
 export const CREATE_PUZZLE_ACTION = "CREATE_PUZZLE";
+export const CREATE_MANUAL_PUZZLE_ACTION = "CREATE_MANUAL_PUZZLE";
 export interface ICreatePuzzleActionPayload {
     changedPages: IDiscoveredPage[];
     newPuzzles: IPuzzle[];
 }
+export function createManualPuzzleAction(puzzleName: string, puzzleLink: string) {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        dispatch(asyncActionInProgressPayload<void>(CREATE_MANUAL_PUZZLE_ACTION));
+        const { auth, hunt: asyncHunt } = getState();
+        const hunt = asyncHunt.value;
+
+        let checkHostNameExists: Promise<void>;
+        let host: string = null;
+        let path: string = null;
+        if (puzzleLink !== undefined && puzzleLink.length > 0) {
+            const tempElement = document.createElement("a") as HTMLAnchorElement;
+            tempElement.href = puzzleLink;
+            host = tempElement.hostname;
+            path = tempElement.pathname;
+
+            checkHostNameExists = new Promise<void>((resolve) => {
+                firebaseDatabase.ref("huntHostNames").orderByChild("hostName").equalTo(host).once("value", (snapshot) => {
+                    if (snapshot.val() == null) {
+                        const key = hunt.year + host.substring(0, host.indexOf("."));
+                        firebaseDatabase.ref(`huntHostNames/${key}`).set({
+                            hostName: host,
+                            hunt: hunt.year,
+                        }).then(() => {
+                            resolve();
+                        }, (error) => {
+                            throw error;
+                        });
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            checkHostNameExists = new Promise<void>((resolve) => resolve());
+        }
+
+        const lowerCasePuzzleName = puzzleName.replace(/\ /g, "").toLowerCase();
+        const puzzleKey = lowerCasePuzzleName + "-" + hunt.year;
+        const slackChannelName = "x-" + lowerCasePuzzleName.substring(0, 19);
+
+        const checkPuzzleExists = new Promise((resolve) => {
+            firebaseDatabase
+                .ref(`puzzles/${puzzleKey}`)
+                .once("value", (snapshot) => {
+                    if (snapshot.val() == null) {
+                        resolve(true);
+                    } else {
+                        throw new Error("Puzzle with that name already exists!");
+                    }
+                }, (error: Error) => {
+                    throw error;
+                });
+        });
+
+        let spreadsheet: IGoogleDriveFile;
+        let slackChannel: ISlackChannel;
+        checkPuzzleExists
+            .then(() => {
+                return checkHostNameExists;
+            })
+            .then(() => {
+                return createSheet(hunt.templateSheetId, hunt.driveFolderId, puzzleName);
+            })
+            .then((resultSpreadsheet: IGoogleDriveFile) => {
+                spreadsheet = resultSpreadsheet;
+                return slack.channels.create(auth.slackToken, slackChannelName);
+            })
+            .then((channel: ISlackChannel) => {
+                slackChannel = channel;
+                return setSheetLinks(spreadsheet.id,
+                    `http://${host}${path}`,
+                    `https://superteamawesome.slack.com/messages/${channel.name}`);
+            })
+            .then(() => {
+                const newPuzzle: IPuzzle = {
+                    createdAt: spreadsheet.createdDate,
+                    host: host,
+                    hunt: hunt.year,
+                    name: puzzleName,
+                    path: path,
+                    slackChannel: slackChannel.name,
+                    slackChannelId: slackChannel.id,
+                    spreadsheetId: spreadsheet.id,
+                    status: PuzzleStatus.NEW,
+                };
+                firebaseDatabase
+                    .ref(`puzzles/${puzzleKey}`)
+                    .set(newPuzzle)
+                    .then(() => {
+                        newPuzzle.key = puzzleKey;
+                        dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
+                            changedPages: [],
+                            newPuzzles: [newPuzzle],
+                        }));
+                        dispatch(asyncActionSucceededPayload<void>(CREATE_MANUAL_PUZZLE_ACTION));
+                    }, (error) => {
+                        dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
+                    })
+            })
+            .catch((error) => {
+                dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
+                dispatch(asyncActionFailedPayload<void>(CREATE_MANUAL_PUZZLE_ACTION, error));
+            });
+    }
+}
+
 export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         const { auth, hunt: asyncHunt } = getState();
@@ -175,6 +282,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         });
 
         let spreadsheet: IGoogleDriveFile;
+        let slackChannel: ISlackChannel;
         checkPuzzleExists
             .then((exists: boolean) => {
                 if (exists) {
@@ -188,14 +296,20 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                 return slack.channels.create(auth.slackToken, slackChannelName);
             })
             .then((channel: ISlackChannel) => {
+                slackChannel = channel;
+                return setSheetLinks(spreadsheet.id,
+                    `http://${discoveredPage.host}${discoveredPage.path}`,
+                    `https://superteamawesome.slack.com/messages/${channel.name}`);
+            })
+            .then(() => {
                 const newPuzzle: IPuzzle = {
                     createdAt: spreadsheet.createdDate,
                     host: discoveredPage.host,
                     hunt: hunt.year,
                     name: puzzleName,
                     path: discoveredPage.path,
-                    slackChannel: channel.name,
-                    slackChannelId: channel.id,
+                    slackChannel: slackChannel.name,
+                    slackChannelId: slackChannel.id,
                     spreadsheetId: spreadsheet.id,
                     status: PuzzleStatus.NEW,
                 };
@@ -235,12 +349,21 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: 
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         let promises: Promise<void>[] = [];
         dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
+        let puzzleNamesWithUpdatedParents: string[] = [];
         Object.keys(hierarchy).forEach((groupKey) => {
             let childPromises = hierarchy[groupKey].children.map((puzzle) => {
                 const updates = {
                     [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
                     [`/puzzles/${puzzle.key}/isMeta`]: hierarchy[puzzle.key] !== undefined,
                 };
+                puzzleNamesWithUpdatedParents.push(puzzle.name);
+
+                // if the puzzle was null, then we rely on the parent for the puzzle link in the spreadsheet
+                if (puzzle.host == null) {
+                    promises.push(setSheetPuzzleLink(puzzle.spreadsheetId,
+                    `http://${hierarchy[groupKey].parent.host}${hierarchy[groupKey].parent.path}`));
+                }
+
                 return new Promise<void>((resolve) => {
                     firebaseDatabase.ref().update(updates).then(() => {
                         resolve();
@@ -259,6 +382,20 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: 
                     throw error;
                 });
             }));
+        });
+        let puzzlesWithNoParents = getState().puzzles.value.filter((puzzle) => {
+            return puzzleNamesWithUpdatedParents.indexOf(puzzle.name) < 0;
+        });
+        puzzlesWithNoParents.forEach((puzzle) => {
+            promises.push(new Promise<void>((resolve) => {
+                firebaseDatabase.ref().update({
+                    [`/puzzles/${puzzle.key}/parent`]: null,
+                }).then(() => resolve(),
+                (error) => {
+                    throw error
+                });
+            }));
+            promises.push(setSheetPuzzleLink(puzzle.spreadsheetId));
         });
         Object.keys(puzzleChanges).forEach((puzzleKey) => {
             const updates = {

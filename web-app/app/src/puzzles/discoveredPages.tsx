@@ -84,8 +84,10 @@ class UnconnectedDiscoveredPages extends React.Component<IDiscoveredPagesProps, 
         let pages: JSX.Element;
         if (!isCollapsed) {
             pages = (
-                <div className="table-container">
-                    { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
+                <div className="table-wrapper">
+                    <div className="table-container">
+                        { !isAsyncLoaded(discoveredPages) ? "Loading..." : this.renderDiscoveredPages() }
+                    </div>
                     <button className="discovered-puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveChanges}>{ hasChanges ? "Save" : "Saved" }</button>
                 </div>
             );

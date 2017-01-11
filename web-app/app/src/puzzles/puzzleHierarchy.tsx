@@ -66,7 +66,11 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     }
 
     private getPuzzleUrl(host: string, path: string) {
-        return `http://${host}${path}`;
+        if (host != null) {
+            return `http://${host}${path}`;
+        } else {
+            return "";
+        }
     }
 
     private handlePuzzleNameChange = (puzzle: IPuzzle) => {

@@ -32,6 +32,9 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: "source-map-loader",
+                query: {
+                    presets: ['es2015']
+                }
             },
             {
                 test: /\.css$/,

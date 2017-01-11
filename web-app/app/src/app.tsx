@@ -16,7 +16,7 @@ interface IAppProps {
     children?: JSX.Element[];
 }
 
-class App extends React.Component<IAppProps, {}> {
+export class App extends React.Component<IAppProps, {}> {
     public render() {
         return <div>{this.props.children}</div>;
     }
