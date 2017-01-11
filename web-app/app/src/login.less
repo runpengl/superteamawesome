@@ -39,33 +39,50 @@
 
     .image-loop(0);
 
-    .login-button {
-      border: 2px solid @grey3;
-      display: inline-block;
-      text-decoration: none;
-      color: @grey3;
-      border-radius: 5px;
+    button {
+      // override google login button :(
+      background: transparent !important;
+      border: 2px solid @grey3 !important;
+      font-family: @open-sans-family !important;
+      font-weight: 400 !important;
+      font-size: 14px !important;
+      color: @grey3 !important;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0 !important;
+      height: 42px;
       white-space: nowrap;
+      padding: 0 !important;
+      position: relative;
+      margin-left: 42px;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(0, 0, 0, 0.05) !important;
+        
+        &::before {
+          background: fade(black, 5%);
+        }
       }
 
-      .flaticon-google {
-        border-right: @grey3 2px solid;
+      &:active,
+      &:focus {
+        outline: 0 !important;
+      }
+
+      &::before {
+        border: 2px solid @grey3;
+        border-right: 0;
+        border-radius: 5px 0 0 5px;
+        content: "\e004";
         display: inline-block;
-        height: 42px;
-        line-height: 42px;
+        font-family: Flaticon;
+        height: 38px;
+        line-height: 38px;
         text-align: center;
         vertical-align: middle;
         width: 42px;
-      }
-
-      .text {
-        display: inline-block;
-        vertical-align: middle;
-        padding: 0px 20px;
-        font-size: 14px;
+        position: absolute;
+        left: -44px;
+        top: -2px;
       }
     }
 

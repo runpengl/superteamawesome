@@ -63,8 +63,17 @@ function createChannel(token: string, name: string): Promise<ISlackChannel> {
     });
 }
 
+function archiveChannel(token: string, id: string): Promise<void> {
+    return makeRequest<ISlackResponse>(`${slackApi}/channels.archive?token=${token}&channel=${id}`, "GET").then((response) => {
+        if (!response.ok) {
+            throw new Error(response.error);
+        }
+    })
+}
+
 const channels = {
     create: createChannel,
+    archive: archiveChannel,
 };
 
 export interface ISlackTeamInfo {

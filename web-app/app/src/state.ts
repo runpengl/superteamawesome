@@ -50,6 +50,7 @@ export interface IPuzzle {
     createdAt: string;
     host: string;
     hunt: string;
+    ignoreLink?: boolean;
     index?: number;
     key?: string;
     name: string;
@@ -66,6 +67,8 @@ export interface IAppLifecycle {
     createPuzzleFailure?: Error;
     creatingManualPuzzle?: boolean;
     createManualPuzzleFailure?: Error;
+    deletingPuzzleIds?: string[];
+    deletingPuzzleFailure?: Error;
 }
 
 export interface IAppState {

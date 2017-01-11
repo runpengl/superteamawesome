@@ -7,6 +7,7 @@ import GoogleLogin from "react-google-login";
 
 import { config } from "./config";
 import { loginAction } from "./actions";
+import { getSlackAuthUrl } from "./services";
 import { IAppState } from "./state";
 
 // props from redux state
@@ -30,6 +31,7 @@ export interface ILoginProps extends IStateProps, IOwnProps, IDispatchProps {}
 
 interface ILoginState {
     loginErrors?: string;
+    googleLogin?: boolean;
 }
 
 class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
@@ -111,7 +113,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
 
     public componentDidUpdate(oldProps: ILoginProps) {
         if (oldProps.googleToken === undefined && this.props.googleToken !== undefined) {
-            this.context.router.push("/admin");
+            (window as any).location = getSlackAuthUrl();
         }
     }
 

@@ -8,6 +8,7 @@ export const AsyncActionStatus = {
 
 export interface IAsyncAction<T> {
     error?: Error;
+    payload?: any;
     status: AsyncActionStatus;
     type: string;
     value?: T;
@@ -43,24 +44,27 @@ export function getAsyncLoadedValue<T>(action: IAsyncAction<T>): IAsyncLoaded<T>
     }
 }
 
-export function asyncActionInProgressPayload<T>(type: string): IAsyncAction<T> {
+export function asyncActionInProgressPayload<T>(type: string, payload?: any): IAsyncAction<T> {
     return {
+        payload,
         status: AsyncActionStatus.IN_PROGRESS,
         type,
     };
 }
 
-export function asyncActionSucceededPayload<T>(type: string, value?: T): IAsyncAction<T> {
+export function asyncActionSucceededPayload<T>(type: string, value?: T, payload?: any): IAsyncAction<T> {
     return {
+        payload,
         status: AsyncActionStatus.SUCCEEDED,
         type,
         value,
     };
 }
 
-export function asyncActionFailedPayload<T>(type: string, error: Error): IAsyncAction<T> {
+export function asyncActionFailedPayload<T>(type: string, error: Error, payload?: any): IAsyncAction<T> {
     return {
         error,
+        payload,
         status: AsyncActionStatus.FAILED,
         type,
     };

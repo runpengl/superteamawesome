@@ -8,6 +8,8 @@ import { IGoogleDriveFile } from "gapi";
 
 import {
     IAsyncLoaded,
+    isAsyncFailed,
+    isAsyncInProgress,
     isAsyncLoaded,
     loadHuntAndUserInfoAction,
     logoutAction,
@@ -17,7 +19,7 @@ import {
 } from "./actions";
 import { firebaseAuth } from "./auth";
 import { DiscoveredPages, Puzzles } from "./puzzles";
-import { IAppState, IDiscoveredPage, IHuntState } from "./state";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "./state";
 import { getSlackAuthUrl } from "./services";
 
 interface IAdminDashboardState {
@@ -49,6 +51,7 @@ interface IStateProps {
     hunt: IAsyncLoaded<IHuntState>;
     huntDriveFolder: IAsyncLoaded<IGoogleDriveFile>;
     ignoredPages: IAsyncLoaded<IDiscoveredPage[]>;
+    lifecycle: IAppLifecycle;
     slackToken?: string;
 }
 
@@ -91,6 +94,8 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                 isLoading: false,
                 isCurrentDriveFolderRoot: hunt.driveFolderId === undefined,
             });
+        } else if (isAsyncFailed(hunt) && isAsyncInProgress(oldProps.hunt)) {
+            this.setState({ isLoading: false });
         }
 
         if (!isAsyncLoaded(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
@@ -98,13 +103,24 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                 huntDriveFolder: huntDriveFolder.value,
             });
         }
+
+        if (oldProps.lifecycle.deletingPuzzleFailure === undefined && this.props.lifecycle.deletingPuzzleFailure !== undefined) {
+            alert(this.props.lifecycle.deletingPuzzleFailure.message);
+        }
     }
 
     public render() {
+        const { hunt } = this.props;
         if (this.state.isLoading) {
             return <span>Loading...</span>;
         } else {
-            if (this.state.loggedIn) {
+            if (isAsyncFailed(hunt)) {
+                if ((hunt.error as any).code === "PERMISSION_DENIED") {
+                    return <span>You don't have access to see this <button className="logout-button" onClick={this.handleLogout}>Logout</button></span>;
+                } else {
+                    return <span>Error: {hunt.error.message}</span>;
+                }
+            } else if (this.state.loggedIn) {
                 return this.renderDashboard();
             } else {
                 // shouldn't get here
@@ -177,6 +193,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         logout();
     }
 
+    private routeToUsersPage = () => {
+        this.context.router.push("/admin/users");
+    }
+
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
@@ -186,6 +206,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
+                    <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button>
                     <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
                 <div className="hunt-edit-container">
@@ -269,12 +290,13 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
-    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages } = state;
+    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages, lifecycle } = state;
     return {
         discoveredPages,
         hunt,
         huntDriveFolder,
         ignoredPages,
+        lifecycle,
         slackToken: auth.slackToken,
     };
 }

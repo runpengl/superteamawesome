@@ -45,6 +45,21 @@ export function createSheet(templateFileId: string, driveFolderId: string, title
     });
 }
 
+export function deleteSheet(spreadsheetFileId: string) {
+    return new Promise<void>((resolve) => {
+        gapiPromise.then((gapi: IGoogleClientApi) => {
+            const request = gapi.client.drive.files.delete({ fileId: spreadsheetFileId });
+            request.execute((response) => {
+                if ((response as Error).message !== undefined) {
+                    throw response;
+                } else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
 export function setSheetPuzzleLink(spreadSheetFileId: string, puzzleLink?: string) {
     return new Promise<void>((resolve) => {
         gapiPromise.then((gapi: IGoogleClientApi) => {
