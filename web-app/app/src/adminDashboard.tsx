@@ -17,7 +17,7 @@ import {
     loadIgnoredPagesAction,
     loadDiscoveredPagesAction,
 } from "./actions";
-import { firebaseAuth, firebaseDatabase } from "./auth";
+import { firebaseAuth } from "./auth";
 import { DiscoveredPages, Puzzles } from "./puzzles";
 import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "./state";
 import { getSlackAuthUrl } from "./services";

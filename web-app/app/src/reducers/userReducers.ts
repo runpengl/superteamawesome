@@ -1,6 +1,5 @@
 import {
     IAsyncAction,
-    isAsyncSucceeded,
 } from "../actions";
 import { IUserGroup } from "../state";
 
