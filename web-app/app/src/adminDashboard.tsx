@@ -71,7 +71,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     public componentDidMount() {
         const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
-        console.log(lifecycle.loginStatus);
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
@@ -128,7 +127,19 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     public render() {
         const { hunt } = this.props;
         if (this.state.isLoading) {
-            return <span>Loading...</span>;
+            return (
+                <div className="dashboard">
+                    <div className="header">
+                        <div className="header-container">
+                            <h1>STAPH [ADMIN]</h1>
+                            <div className="sub-header">Super Team Awesome Puzzle Helper</div>
+                        </div>
+                        <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button>
+                        <button className="logout-button" onClick={this.handleLogout}>Logout</button>
+                    </div>
+                    <span>Loading...</span>
+                </div>
+            );
         } else {
             if (isAsyncFailed(hunt)) {
                 if ((hunt.error as any).code === "PERMISSION_DENIED") {
