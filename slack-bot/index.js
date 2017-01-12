@@ -2,7 +2,7 @@ var admin = require('firebase-admin');
 var config = require('./config').config;
 var WebClient = require('@slack/client').WebClient;
 
-const postChannel = 'lcarter-testing';
+const postChannel = 'site-dev';
 var huntAddress = '';
 
 
@@ -44,7 +44,9 @@ function handleFirebaseValueChange(snap) {
 }
 
 function handleFirebaseNewPuzzle(snap) {
-    postSlackMessage(postChannel, makeNewPuzzleMessage(snap.val()));
+    if (huntAddress) {
+        postSlackMessage(postChannel, makeNewPuzzleMessage(snap.val()));
+    }
     // update db
     db_copy[snap.key] = snap.val();
 }
@@ -71,13 +73,21 @@ function postSlackMessage(channel, message, emoji) {
 
 // Utility
 function makeSolvedMessage(puzzle) {
-    return puzzle.name + ' has been solved! :correct:';
+    return puzzle.name + ' (' + makePuzzleAddress(puzzle.path) + ') has been solved! :correct:' +
+           (puzzle.solution ? '\n Solution: `' + puzzle.solution + '`' : '');
+
 }
 
 function makeNewPuzzleMessage(puzzle) {
-    return puzzle.name + ' has been unlocked! ' + makePuzzleAddress(puzzle.path);
+    return puzzle.name + (puzzle.isMeta ? ' META' : '') + ' has been unlocked!\n' +
+           makePuzzleAddress(puzzle.path) + '\n' +
+           'Join the slack channel ' + makeSlackChannelLink(puzzle);
 }
 
 function makePuzzleAddress(puzzlePath) {
     return 'http://' + huntAddress + puzzlePath;
+}
+
+function makeSlackChannelLink(puzzle) {
+    return '<#' + puzzle.slackChannelId + '|' + puzzle.slackChannel + '>';
 }
