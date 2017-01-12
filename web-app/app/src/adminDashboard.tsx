@@ -71,25 +71,9 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     };
 
     public componentDidMount() {
-        const { loadHuntAndUserInfo, lifecycle, slackToken } = this.props;
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
-            } else if (lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
-                // login action succeeded, proceed
-                if (slackToken === undefined) {
-                    (window as any).location = getSlackAuthUrl();
-                } else {
-                    this.setState({
-                        loggedIn: true,
-                    });
-                    loadHuntAndUserInfo();
-                }
-            } else if (lifecycle.loginStatus === LoginStatus.NONE) {
-                this.setState({
-                    loggedIn: true,
-                });
-                loadHuntAndUserInfo();
             }
         });
     }
@@ -138,7 +122,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     public render() {
         const { hunt, lifecycle } = this.props;
-        console.log(this.state.isLoading, this.state.loggedIn);
         if (this.state.isLoading || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
             return (
                 <div className="dashboard">

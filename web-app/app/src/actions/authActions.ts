@@ -2,7 +2,7 @@ import { Dispatch } from "redux";
 import * as firebase from "firebase";
 
 import { firebaseAuth, firebaseDatabase } from "../auth";
-import { IAppState, IAuthState } from "../state";
+import { IAppLifecycle, IAppState, IAuthState, LoginStatus } from "../state";
 import { loadGoogleApi, reloadGoogleAuth } from "../services";
 import {
     asyncActionFailedPayload,
@@ -10,7 +10,7 @@ import {
     asyncActionSucceededPayload,
 } from "./loading";
 
-export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthState) {
+export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthState, lifecycle: IAppLifecycle) {
     let authPromise = new Promise((resolve) => {
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
     });
@@ -36,7 +36,11 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
                     });
                 })
             }).then(() => {
-                return reloadGoogleAuth();
+                if (lifecycle.loginStatus === LoginStatus.NONE) {
+                    return reloadGoogleAuth();
+                } else {
+                    return new Promise((resolve) => resolve());
+                }
             })
             .then((googleAccessToken: string) => {
                 googleToken = googleAccessToken;
@@ -44,6 +48,9 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
             })
             .then((userInfo: IUserPrivateData) => {
                 userPrivateInfo = userInfo;
+                if (googleToken === undefined) {
+                    googleToken = userPrivateInfo.googleAccessToken;
+                }
                 return loadGoogleApi(googleToken);
             })
             .then(() => {
