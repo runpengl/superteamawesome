@@ -22,8 +22,9 @@ export class App extends React.Component<IAppProps, {}> {
     }
 }
 
+let middleware = process.env.NODE_ENV !== 'production' ? applyMiddleware(thunk, createLogger()) : applyMiddleware(thunk);
 // todo: move reducers to reducers folder
-const store = compose(applyMiddleware(thunk, createLogger()))(createStore)(reducers);
+const store = compose(middleware)(createStore)(reducers);
 
 ReactDOM.render(
   <Provider store={store}>
