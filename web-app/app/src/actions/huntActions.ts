@@ -28,7 +28,7 @@ export interface ILoadHuntActionPayload extends IHunt {
 export function loadHuntAndUserInfoAction() {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
-        loadUserInfo(dispatch, getState().auth).then((slackAccessToken: string) => {
+        loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
             firebaseDatabase
                 .ref("hunts")
                 .orderByChild("isCurrent")
