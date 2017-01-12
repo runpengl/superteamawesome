@@ -1,0 +1,39 @@
+body {
+  background: #002833;
+  margin: 0;
+  padding: 15px 30px;
+}
+
+#header {
+  color: #eee8d5;
+  font-size: 36px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+#subheader {
+  color: #839496;
+  font-size: 30px;
+  font-weight: bold;
+  margin: -5px 0 30px;
+}
+
+#clock {
+  display: inline-block;
+  position: absolute;
+  margin: 15px 30px;
+  right: 0;
+  top: 0;
+}
+.Clock {
+  color: #b58901;
+  font-size: 48px;
+  font-family: "San Francisco", "Helvetica Neue", sans-serif;
+}
+
+#puzzles {
+  background: #003541;
+  display: inline-block;
+  padding: 30px;
+  width: 60%;
+}
