@@ -10,6 +10,7 @@ import {
     bootstrapUsersAction,
     loadUsersAndAuthInfoAction,
     logoutAction,
+    toggleAdminAccessAction,
     toggleUserApprovalAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
@@ -27,7 +28,8 @@ interface IDispatchProps {
     bootstrapUsers: (driveFolderId: string) => void;
     loadUsersAndAuthInfo: () => void;
     logout: () => void;
-    toggleUserApproval: (user: IUser) => void;
+    toggleAdminAccess: (user: IUser, makeAdmin: boolean) => void;
+    toggleUserApproval: (user: IUser, grantAccess: boolean) => void;
 }
 
 export interface IUserDashboardProps extends IOwnProps, IStateProps, IDispatchProps {}
@@ -203,17 +205,20 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         }
     }
 
-    private makeUserAdmin = (user) => {
+    private makeUserAdmin = (user: IUser) => {
         return () => {
-            // do something
+            const { toggleAdminAccess } = this.props;
+            toggleAdminAccess(user, true);
         }
     }
 
     private toggleUserAccess = (user: IUser, isAdmin: boolean) => {
         return () => {
-            const { toggleUserApproval } = this.props;
+            const { toggleAdminAccess, toggleUserApproval } = this.props;
             if (!isAdmin) {
-                toggleUserApproval(user);
+                toggleUserApproval(user, !user.hasAccess);
+            } else {
+                toggleAdminAccess(user, false);
             }
         }
     }
@@ -233,6 +238,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
         loadUsersAndAuthInfo: loadUsersAndAuthInfoAction,
         logout: logoutAction,
         bootstrapUsers: bootstrapUsersAction,
+        toggleAdminAccess: toggleAdminAccessAction,
         toggleUserApproval: toggleUserApprovalAction,
     }, dispatch);
 }

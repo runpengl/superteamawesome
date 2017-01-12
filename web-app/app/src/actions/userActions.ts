@@ -13,17 +13,35 @@ import {
 } from "./loading";
 
 export const TOGGLE_USER_APPROVAL_ACTION = "TOGGLE_USER_APPROVAL";
-export function toggleUserApprovalAction(user: IUser) {
+export function toggleUserApprovalAction(user: IUser, grantAccess: boolean) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION));
+        let access = grantAccess ? true : null;
         firebaseDatabase
             .ref(`/userGroups/approved/${user.escapedEmail}`)
-            .set(!user.hasAccess)
+            .set(access)
             .then(() => {
                 let toggledUser = Object.assign({}, user, { hasAccess: !user.hasAccess });
                 dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, toggledUser));
             }, (error: Error) => {
                 dispatch(asyncActionFailedPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, error));
+            });
+    }
+}
+
+export const TOGGLE_ADMIN_ACCESS_ACTION = "TOGGLE_ADMIN";
+export function toggleAdminAccessAction(user: IUser, makeAdmin: boolean) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION));
+        const access = makeAdmin ? true : null;
+        firebaseDatabase
+            .ref(`/userGroups/admin/${user.escapedEmail}`)
+            .set(access)
+            .then(() => {
+                let toggledUser = Object.assign({}, user, { hasAccess: makeAdmin });
+                dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, toggledUser));
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, error));
             });
     }
 }
