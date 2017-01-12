@@ -12,6 +12,22 @@ import {
     isAsyncLoaded,
 } from "./loading";
 
+export const TOGGLE_USER_APPROVAL_ACTION = "TOGGLE_USER_APPROVAL";
+export function toggleUserApprovalAction(user: IUser) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION));
+        firebaseDatabase
+            .ref(`/userGroups/approved/${user.escapedEmail}`)
+            .set(!user.hasAccess)
+            .then(() => {
+                let toggledUser = Object.assign({}, user, { hasAccess: !user.hasAccess });
+                dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, toggledUser));
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, error));
+            });
+    }
+}
+
 export const LOAD_USERS_ACTION = "LOAD_USERS";
 export const LOAD_ADMIN_USERS_ACTION = "LOAD_ADMIN_USERS";
 

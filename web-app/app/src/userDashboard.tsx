@@ -10,6 +10,7 @@ import {
     bootstrapUsersAction,
     loadUsersAndAuthInfoAction,
     logoutAction,
+    toggleUserApprovalAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
 import { IAppLifecycle, IAppState, IHuntState, IUser, LoginStatus } from "./state";
@@ -26,6 +27,7 @@ interface IDispatchProps {
     bootstrapUsers: (driveFolderId: string) => void;
     loadUsersAndAuthInfo: () => void;
     logout: () => void;
+    toggleUserApproval: (user: IUser) => void;
 }
 
 export interface IUserDashboardProps extends IOwnProps, IStateProps, IDispatchProps {}
@@ -158,7 +160,7 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         let revokeAction = isAdmin ? "Remove Admin" : "Revoke Access";
         let userRows = users.map((user) => {
             return (
-                <tr>
+                <tr key={user.email}>
                     <td><img src={user.photoUrl} width="30px" height="auto" /></td>
                     <td>{user.displayName !== undefined ? user.displayName : "(not available)"}</td>
                     <td><a href={`mailto:${user.email}`}>{user.email}</a></td>
@@ -175,10 +177,12 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         return (
             <table>
                 <thead>
-                    <th></th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th colSpan={isAdmin ? 1 : 2}>Actions</th>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th colSpan={isAdmin ? 1 : 2}>Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {userRows}
@@ -207,7 +211,10 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
 
     private toggleUserAccess = (user: IUser, isAdmin: boolean) => {
         return () => {
-            // do something
+            const { toggleUserApproval } = this.props;
+            if (!isAdmin) {
+                toggleUserApproval(user);
+            }
         }
     }
 }
@@ -226,6 +233,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
         loadUsersAndAuthInfo: loadUsersAndAuthInfoAction,
         logout: logoutAction,
         bootstrapUsers: bootstrapUsersAction,
+        toggleUserApproval: toggleUserApprovalAction,
     }, dispatch);
 }
 
