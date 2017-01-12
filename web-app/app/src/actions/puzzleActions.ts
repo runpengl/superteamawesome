@@ -286,6 +286,12 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
                     .set(newPuzzle)
                     .then(() => {
                         newPuzzle.key = puzzleKey;
+                        firebaseDatabase.ref("eventLogs").push({
+                            name: "PuzzleCreated",
+                            puzzleId: puzzleKey,
+                            timestampMs: Date.now(),
+                            userId: auth.user.uid,
+                        });
                         dispatch(asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
                             changedPages: [],
                             newPuzzles: [newPuzzle],
@@ -371,6 +377,12 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                                 }, (error: Error) => {
                                     throw error;
                                 });
+                        });
+                        firebaseDatabase.ref("eventLogs").push({
+                            name: "PuzzleCreated",
+                            puzzleId: puzzleKey,
+                            timestampMs: Date.now(),
+                            userId: auth.user.uid,
                         });
                         newPuzzle.key = puzzleKey;
                         removeFirebasePromise.then(() => {
