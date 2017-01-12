@@ -66,7 +66,7 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
     }
 
     public componentDidUpdate(oldProps: IUserDashboardProps) {
-        const { bootstrapUsers, hunt, loadUsersAndAuthInfo, lifecycle } = this.props;
+        const { bootstrapUsers, hunt, loadUsersAndAuthInfo, lifecycle, users } = this.props;
         if (isAsyncLoaded(hunt) && isAsyncInProgress(oldProps.hunt)) {
             bootstrapUsers(hunt.value.driveFolderId);
         }
@@ -74,7 +74,7 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
             this.setState({ loggedIn: true });
 
-            if (lifecycle.loginStatus !== LoginStatus.LOGGED_IN) {
+            if (lifecycle.loginStatus !== LoginStatus.LOGGED_IN || !isAsyncLoaded(users)) {
                 loadUsersAndAuthInfo();
             }
         }
