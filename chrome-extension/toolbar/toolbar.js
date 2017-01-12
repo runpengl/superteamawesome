@@ -33,6 +33,11 @@ function refreshConnection() {
                     renderToolbar();
                 }
                 break;
+            case "slackConnectionStatus":
+                toolbarData = Object.assign({}, toolbarData, {
+                    slackConnectionStatus: event.status
+                });
+                return renderToolbar();
             case "discoveredPage":
                 toolbarData = Object.assign({}, toolbarData, {
                     discoveredPage: event.data
@@ -153,6 +158,14 @@ function PuzzleToolbar(props) {
                     ? r.span({ className: "Toolbar-slackUnreadCount" },
                         props.slackChannel.unread_count_display
                     )
+                    : null,
+                props.slackConnectionStatus === "error"
+                    ? r.div({
+                        className: "Toolbar-linkTooltip Toolbar-clickableTooltip",
+                        onClick: function() {
+                            chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+                        }
+                    }, "Couldn't connect to Slack. Try again?")
                     : null
             ),
 
@@ -186,19 +199,12 @@ var PuzzleStatusPicker = React.createClass({
         };
     },
     componentWillReceiveProps: function(nextProps) {
-        if (// Looking at the same puzzle
-            this.props.puzzle.key === nextProps.puzzle.key &&
-            // The puzzle was changed to solved
-            this.props.puzzle.status !== "solved" &&
-            nextProps.puzzle.status === "solved" &&
-            // *This* client set the puzzle to solved
-            this.state.optimisticStatusUpdate === "solved") {
-            this.setState({ solutionText: nextProps.puzzle.solution || "" });
+        if (nextProps.puzzle.status === this.state.optimisticStatusUpdate) {
+            this.setState({ optimisticStatusUpdate: null });
         }
-        this.setState({
-            optimisticSolution: null,
-            optimisticStatusUpdate: null
-        });
+        if (nextProps.puzzle.solution === this.state.optimisticSolution) {
+            this.setState({ optimisticSolution: null });
+        }
     },
     componentDidUpdate: function(prevProps, prevState) {
         if (prevState.solutionText === null &&
@@ -225,7 +231,7 @@ var PuzzleStatusPicker = React.createClass({
                     onClick: this.handleStatusClick.bind(this, status)
                 }, this.toHumanReadable(status))
             }, this),
-            this.props.puzzle.status === "solved"
+            this.state.optimisticStatusUpdate === "solved" || this.props.puzzle.status === "solved"
                 ? r.div({ className: "PuzzleStatusPicker-solution" },
                     this.state.solutionText === null
                         ? r.div({
@@ -255,10 +261,15 @@ var PuzzleStatusPicker = React.createClass({
         }
         if (status !== this.props.puzzle.status) {
             this.setState({ optimisticStatusUpdate: status });
-            chrome.runtime.sendMessage({
-                msg: "puzzleStatusChange",
-                status: status
-            });
+            if (status === "solved") {
+                // If solved, wait for solution input before sending status change
+                this.setState({ solutionText: "" });
+            } else {
+                chrome.runtime.sendMessage({
+                    msg: "puzzleStatusChange",
+                    status: status
+                });
+            }
         }
         this.setState({ isCollapsed: true });
         event.preventDefault();
@@ -270,10 +281,30 @@ var PuzzleStatusPicker = React.createClass({
         this.setState({ solutionText: event.target.value });
     },
     submitSolution: function() {
-        chrome.runtime.sendMessage({
-            msg: "puzzleSolutionChange",
-            solution: this.state.solutionText.toUpperCase()
-        });
+        var solution = this.state.solutionText.trim().toUpperCase();
+        if (solution) {
+            chrome.runtime.sendMessage({
+                msg: "puzzleSolutionChange",
+                solution: this.state.solutionText.toUpperCase()
+            });
+            if (this.state.optimisticStatusUpdate === "solved") {
+                // Commit status change
+                chrome.runtime.sendMessage({
+                    msg: "puzzleStatusChange",
+                    status: "solved"
+                });
+            }
+        } else {
+            if (this.props.puzzle.status === "solved") {
+                // If puzzle was already marked as solved, leave it (set solution to empty string)
+                chrome.runtime.sendMessage({
+                    msg: "puzzleSolutionChange",
+                    solution: ""
+                });
+            }
+            // If the puzzle was optimistically set as solved, revert to previous status
+            this.setState({ optimisticStatusUpdate: null });
+        }
         this.setState({
             optimisticSolution: this.state.solutionText,
             solutionText: null

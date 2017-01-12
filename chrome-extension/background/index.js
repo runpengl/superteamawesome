@@ -281,7 +281,14 @@ function handleChromeRuntimeConnect(port) {
             var viewersRef = db.ref("puzzleViewers/" + toolbarInfo.puzzleKey);
             viewersRef.on("value", handlePuzzleViewersValue);
 
-            var unsubscribeFromSlack = Slack.subscribeToChannel(
+            var unsubscribeSlackState = Slack.onConnectStateChanged(
+                function(state) {
+                    port.postMessage({
+                        msg: "slackConnectionStatus",
+                        status: state
+                    });
+                });
+            var unsubscribeChannel = Slack.subscribeToChannel(
                 tabId, toolbarInfo.slackChannel, function(channel) {
                     port.postMessage({
                         msg: "slackChannel",
@@ -295,7 +302,8 @@ function handleChromeRuntimeConnect(port) {
                 isConnectedRef.off("value", handleConnectedValue);
                 viewersRef.off("value", handlePuzzleViewersValue);
 
-                unsubscribeFromSlack();
+                unsubscribeSlackState();
+                unsubscribeChannel();
 
                 // Remove self as viewer. Note that this must happen last;
                 // Otherwise, the viewersRef will be notified of changes and
@@ -330,8 +338,16 @@ function handlePopupConnect(port) {
         viewersRef.on("value", handleViewersValue);
     });
 
+    var unsubscribeSlackState = Slack.onConnectStateChanged(function(state) {
+        port.postMessage({
+            msg: "slackConnectionStatus",
+            status: state
+        });
+    });
+
     port.onDisconnect.addListener(function() {
         unsubscribeAuth();
+        unsubscribeSlackState();
         if (huntRef) huntRef.off("value", handleHuntValue);
         if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
         if (viewersRef) viewersRef.off("value", handleViewersValue);
@@ -407,6 +423,9 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
     console.log("[runtime.onMessage]", request);
 
     switch (request.msg) {
+        case "authorizeSlack":
+            Slack.connect(/*interactive*/true);
+            break;
         case "joinChannel":
             Slack.joinChannel(request.name);
             break;

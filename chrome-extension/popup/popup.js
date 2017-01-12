@@ -17,6 +17,12 @@ function initApp() {
                 });
                 return renderPopup();
 
+            case "slackConnectionStatus":
+                popupData = Object.assign({}, popupData, {
+                    slackConnectionStatus: event.status
+                });
+                return renderPopup();
+
             case "permissionDenied":
                 popupData = {
                     currentUser: popupData.currentUser,
@@ -116,6 +122,14 @@ var Popup = React.createClass({
                     }
                 }, "Sign out")
             ),
+            props.slackConnectionStatus === "error"
+                ? r.div({
+                    className: "Popup-slackConnectionErrorBanner",
+                    onClick: function() {
+                        chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+                    }
+                }, "Couldn't connect to Slack. Try again?")
+                : null,
             r.div({ className: "Popup-contents" },
                 props.currentHunt
                     ? r.div({ className: "Popup-currentHuntInfo" },
@@ -192,10 +206,14 @@ var PopupLogin = React.createClass({
         var context = me.refs.canvas.getContext("2d");
         var w = 0, h = 0, cx = 0, cy = 0;
         var d = Date.now();
-        window.addEventListener("resize", resizeCanvas, false);
+        window.addEventListener("resize", resizeCanvas);
         function resizeCanvas() {
-            me.refs.canvas.width = window.innerWidth;
-            me.refs.canvas.height = window.innerHeight;
+            if (me.refs.canvas) {
+                me.refs.canvas.width = window.innerWidth;
+                me.refs.canvas.height = window.innerHeight;
+            } else {
+                window.removeEventListener("resize", resizeCanvas);
+            }
         }
         resizeCanvas();
         function drawDiamond(ox, oy, w, h, c) {

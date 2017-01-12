@@ -82,6 +82,14 @@ body {
   transform: translateY(-50%);
 }
 
+.Toolbar-clickableTooltip {
+  cursor: pointer;
+  pointer-events: auto;
+}
+.Toolbar-clickableTooltip:hover {
+  opacity: .8;
+}
+
 .Toolbar-slackUnreadCount {
   background: #e12548;
   border-radius: 2px;
