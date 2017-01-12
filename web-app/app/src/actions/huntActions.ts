@@ -24,11 +24,10 @@ export interface ILoadHuntActionPayload extends IHunt {
     year: string;
 }
 
-// should only be called once
-export function loadHuntAndUserInfoAction() {
-    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
-        dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
-        loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
+export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () => IAppState) {
+    dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
+    return loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
+        return new Promise((resolve, reject) => {
             firebaseDatabase
                 .ref("hunts")
                 .orderByChild("isCurrent")
@@ -52,10 +51,19 @@ export function loadHuntAndUserInfoAction() {
                         }
                         return true;
                     });
+                    resolve();
                 }, (error: Error) => {
                     dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+                    reject(error);
                 });
-        }).catch((error: Error) => {
+        })
+    });
+}
+
+// should only be called once
+export function loadHuntAndUserInfoAction() {
+    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        loadHuntAndUserInfo(dispatch, getState).catch((error: Error) => {
             let huntLoadError = error;
             if ((error as any).code === "PERMISSION_DENIED") {
                 huntLoadError = new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");

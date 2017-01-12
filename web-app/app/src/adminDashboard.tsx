@@ -27,6 +27,7 @@ interface IAdminDashboardState {
     hunt?: IHuntState;
     huntDriveFolder?: IGoogleDriveFile;
     isCurrentDriveFolderRoot?: boolean;
+    isFirebaseLoggedIn?: boolean;
     isFolderDialogShown?: boolean;
     isLoading?: boolean;
     loggedIn?: boolean;
@@ -61,6 +62,7 @@ interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
 
 class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IAdminDashboardState> {
     public state: IAdminDashboardState = {
+        isFirebaseLoggedIn: false,
         isLoading: true,
         loggedIn: false,
     };
@@ -74,6 +76,8 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
             if (user == null) {
                 this.context.router.push("/login");
+            } else {
+                this.setState({ isFirebaseLoggedIn: true });
             }
         });
     }
@@ -89,12 +93,19 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             });
             loadHuntAndUserInfo();
         }
+
+        if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
+            this.setState({
+                loggedIn: true,
+            });
+            loadHuntAndUserInfo();
+        }
         
         if (lifecycle.loginStatus === LoginStatus.LOGGED_IN && oldProps.lifecycle.loginStatus !== LoginStatus.LOGGED_IN) {
             this.setState({
                 loggedIn: true,
             });
-        } 
+        }
 
         if (isAsyncInProgress(oldProps.hunt) && isAsyncLoaded(hunt)) {
             const hunt = this.props.hunt.value;

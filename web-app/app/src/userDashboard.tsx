@@ -3,13 +3,26 @@ import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
 import { InjectedRouter } from "react-router";
 
-import { logoutAction } from "./actions";
+import {
+    IAsyncLoaded,
+    isAsyncLoaded,
+    isAsyncInProgress,
+    bootstrapUsersAction,
+    loadUsersAndAuthInfoAction,
+    logoutAction,
+} from "./actions";
 import { firebaseAuth } from "./auth";
-import { IAppState } from "./state";
+import { IAppLifecycle, IAppState, IHuntState, LoginStatus } from "./state";
 
 interface IOwnProps {}
-interface IStateProps {}
+interface IStateProps {
+    hunt: IAsyncLoaded<IHuntState>;
+    lifecycle: IAppLifecycle;
+}
+
 interface IDispatchProps {
+    bootstrapUsers: (driveFolderId: string) => void;
+    loadUsersAndAuthInfo: () => void;
     logout: () => void;
 }
 
@@ -20,11 +33,13 @@ interface IRouterContext {
 }
 
 interface IUserDashboardState {
+    isFirebaseLoggedIn?: boolean;
     loggedIn?: boolean;
 }
 
 class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUserDashboardState> {
     public state: IUserDashboardState = {
+        isFirebaseLoggedIn: false,
         loggedIn: false,
     };
 
@@ -38,11 +53,24 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
             if (user == null) {
                 this.context.router.push("/login");
             } else {
-                this.setState({
-                    loggedIn: true,
-                });
+                this.setState({ isFirebaseLoggedIn: true });
             }
         });
+    }
+
+    public componentDidUpdate(oldProps: IUserDashboardProps) {
+        const { bootstrapUsers, hunt, loadUsersAndAuthInfo, lifecycle } = this.props;
+        if (isAsyncLoaded(hunt) && isAsyncInProgress(oldProps.hunt)) {
+            bootstrapUsers(hunt.value.driveFolderId);
+        }
+
+        if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
+            this.setState({ loggedIn: true });
+
+            if (lifecycle.loginStatus !== LoginStatus.LOGGED_IN) {
+                loadUsersAndAuthInfo();
+            }
+        }
     }
 
     public render() {
@@ -74,18 +102,33 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
                     <button className="user-button" onClick={this.routeToAdminDashboard}>Manage Puzzles</button>
                     <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
+                {this.maybeRenderUserInfo()}
             </div>
         );
     }
+
+    private maybeRenderUserInfo() {
+        const { hunt } = this.props;
+        if (isAsyncLoaded(hunt)) {
+            return <span>users</span>;
+        } else {
+            return <span>Loading...</span>;
+        }
+    }
 }
 
-function mapStateToProps(_state: IAppState, _ownProps: IOwnProps): IStateProps {
-    return {};
+function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
+    return {
+        hunt: state.hunt,
+        lifecycle: state.lifecycle,
+    };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
+        loadUsersAndAuthInfo: loadUsersAndAuthInfoAction,
         logout: logoutAction,
+        bootstrapUsers: bootstrapUsersAction,
     }, dispatch);
 }
 

@@ -90,6 +90,7 @@ declare module "gapi" {
 
         export interface IGoogleDriveClient {
             files: IGoogleDriveFilesClient;
+            permissions: IGoogleDrivePermissionsClient;
         }
 
         export interface IGoogleDriveFilesClient {
@@ -98,6 +99,33 @@ declare module "gapi" {
             get: (params: { fileId: string }) => IGoogleRequest<IGoogleDriveFile>;
             list: (params: { q?: string }) => IGoogleRequest<IGoogleDriveFilesList>;
         }
+
+        export interface IGoogleDrivePermissionsClient {
+            list: (params: { fileId: string }) => IGoogleRequest<IGoogleDrivePermissionsList>;
+            getIdForEmail: (params: { email: string }) => IGoogleRequest<{ id: string }>;
+            get: (params: { fileId: string, permissionId: string }) => IGoogleRequest<IGoogleDrivePermission>;
+        }
+
+        export interface IGoogleDrivePermissionsList {
+            etag: string;
+            selfLink: string;
+            items: IGoogleDrivePermission[];
+        }
+
+        export interface IGoogleDrivePermission {
+            id: string;
+            selfLink: string;
+            name: string;
+            emailAddress?: string;
+            domain?: string;
+            role: GoogleDrivePermissionRole;
+            additionalRoles: string[];
+            type: GoogleDriveAccountType;
+            value: string;
+        }
+
+        export type GoogleDrivePermissionRole = "owner" | "reader" | "writer" | "commenter";
+        export type GoogleDriveAccountType = "user" | "group" | "admin" | "anyone";
 
         export interface IGoogleDriveFilesList {
             etag: string,

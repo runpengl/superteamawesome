@@ -1,11 +1,18 @@
 /// <reference path="../../typings/custom/gapi.d.ts" />
 
-import { IGoogleClientApi, IGooglePlatformApi, IGoogleAuth, IGoogleDriveFile } from "gapi";
+import {
+    IGoogleClientApi,
+    IGooglePlatformApi,
+    IGoogleAuth,
+    IGoogleDriveFile,
+    IGoogleDrivePermission,
+    IGoogleDrivePermissionsList,
+} from "gapi";
 
 import { scopes } from "../auth";
 import { config } from "../config";
 
-const gapiPromise = (require("google-client-api") as any)();
+const gapiPromise: Promise<IGoogleClientApi> = (require("google-client-api") as any)();
 
 export function getFolder(fileId: string): Promise<IGoogleDriveFile> {
     return new Promise<IGoogleDriveFile>((resolve) => {
@@ -105,6 +112,21 @@ export function setSheetLinks(spreadSheetFileId: string, puzzleLink: string, sla
                     throw response;
                 } else {
                     resolve();
+                }
+            });
+        });
+    });
+}
+
+export function getDrivePermissions(driveFileId: string): Promise<IGoogleDrivePermission[]> {
+    return new Promise<IGoogleDrivePermission[]>((resolve) => {
+        gapiPromise.then((gapi: IGoogleClientApi) => {
+            const request = gapi.client.drive.permissions.list({ fileId: driveFileId });
+            request.execute((response) => {
+                if ((response as Error).message !== undefined) {
+                    throw response;
+                } else {
+                    resolve((response as IGoogleDrivePermissionsList).items);
                 }
             });
         });
