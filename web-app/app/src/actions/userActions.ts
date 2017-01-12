@@ -27,7 +27,8 @@ export function loadUsers() {
                 users.push(Object.assign({}, user, { escapedEmail }));
                 return false;
             });
-            let adminUsers = users.slice();
+            let allUsers = users.slice();
+            let adminUsers: IUser[] = [];
             firebaseDatabase.ref("/userGroups/approved").once("value")
                 .then((approvedUsersSnapshot: firebase.database.DataSnapshot) => {
                     approvedUsersSnapshot.forEach((approvedUser) => {
@@ -50,17 +51,19 @@ export function loadUsers() {
             
             firebaseDatabase.ref("/userGroups/admin").once("value")
                 .then((adminUsersSnapshot: firebase.database.DataSnapshot) => {
-                    adminUsersSnapshot.forEach((adminUser) => {
-                        let adminIndex = adminUsers.findIndex((admin) => admin.escapedEmail === adminUser.key);
+                    adminUsersSnapshot.forEach((adminUserSnapshot) => {
+                        let adminIndex = allUsers.findIndex((admin) => admin.escapedEmail === adminUserSnapshot.key);
+                        let adminUser: IUser;
                         if (adminIndex < 0) {
-                            adminUsers.push({
-                                hasAccess: adminUser.val(),
-                                email: adminUser.key.replace(/\%2E/g, "."),
-                                escapedEmail: adminUser.key,
-                            });
+                            adminUser = {
+                                email: adminUserSnapshot.key.replace(/\%2E/g, "."),
+                                escapedEmail: adminUserSnapshot.key,
+                            };
                         } else {
-                            adminUsers[adminIndex].hasAccess = adminUser.val();
+                            adminUser = allUsers[adminIndex];
                         }
+                        adminUser.hasAccess = adminUserSnapshot.val();
+                        adminUsers.push(adminUser);
                         return false;
                     });
                     dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, adminUsers));
