@@ -14,10 +14,11 @@ import {
     toggleUserApprovalAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
-import { IAppLifecycle, IAppState, IHuntState, IUser, LoginStatus } from "./state";
+import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "./state";
 
 interface IOwnProps {}
 interface IStateProps {
+    auth: IAuthState;
     adminUsers: IAsyncLoaded<IUser[]>;
     hunt: IAsyncLoaded<IHuntState>;
     lifecycle: IAppLifecycle;
@@ -159,18 +160,13 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
     }
 
     private renderUsersTable(users: IUser[], isAdmin: boolean) {
-        let revokeAction = isAdmin ? "Remove Admin" : "Revoke Access";
         let userRows = users.map((user) => {
             return (
                 <tr key={user.email}>
                     <td><img src={user.photoUrl} width="30px" height="auto" /></td>
                     <td>{user.displayName !== undefined ? user.displayName : "(not available)"}</td>
                     <td><a href={`mailto:${user.email}`}>{user.email}</a></td>
-                    <td>
-                        <button onClick={this.toggleUserAccess(user, isAdmin)}>
-                            {user.hasAccess ? revokeAction : "Grant Access"}
-                        </button>
-                    </td>
+                    {this.maybeRenderAccessButton(user, isAdmin)}
                     {this.maybeRenderAdminButton(user, isAdmin)}
                 </tr>
             );
@@ -191,6 +187,21 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
                 </tbody>
             </table>
         )
+    }
+
+    private maybeRenderAccessButton(user: IUser, isAdmin: boolean) {
+        let revokeAction = isAdmin ? "Remove Admin" : "Revoke Access";
+        const { auth } = this.props;
+        if (user.email !== auth.user.email) {
+            return (
+                <td>
+                    <button onClick={this.toggleUserAccess(user, isAdmin)}>
+                        {user.hasAccess ? revokeAction : "Grant Access"}
+                    </button>
+                </td>
+            )
+        }
+        return undefined;
     }
 
     private maybeRenderAdminButton(user: IUser, isAdmin: boolean) {
@@ -227,6 +238,7 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
     return {
         adminUsers: state.adminUsers,
+        auth: state.auth,
         hunt: state.hunt,
         lifecycle: state.lifecycle,
         users: state.users,

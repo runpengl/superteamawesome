@@ -54,34 +54,15 @@ export function loadUsers() {
         dispatch(asyncActionInProgressPayload<IUser[]>(LOAD_USERS_ACTION));
         dispatch(asyncActionInProgressPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION));
         firebaseDatabase.ref("/users").on("value", (usersSnapshot) => {
-            let users: IUser[] = [];
+            let allUsers: IUser[] = [];
             usersSnapshot.forEach((userSnapshot) => {
                 let user = userSnapshot.val() as IUser;
                 let escapedEmail = user.email.toLowerCase().replace(/\./g, "%2E");
-                users.push(Object.assign({}, user, { escapedEmail }));
+                allUsers.push(Object.assign({}, user, { escapedEmail }));
                 return false;
             });
-            let allUsers = users.slice();
+            let users: IUser[] = [];
             let adminUsers: IUser[] = [];
-            firebaseDatabase.ref("/userGroups/approved").once("value")
-                .then((approvedUsersSnapshot: firebase.database.DataSnapshot) => {
-                    approvedUsersSnapshot.forEach((approvedUser) => {
-                        let userIndex = users.findIndex((user) => user.escapedEmail === approvedUser.key);
-                        if (userIndex < 0) {
-                            users.push({
-                                hasAccess: approvedUser.val(),
-                                email: approvedUser.key.replace(/\%2E/g, "."),
-                                escapedEmail: approvedUser.key,
-                            });
-                        } else {
-                            users[userIndex].hasAccess = approvedUser.val();
-                        }
-                        return false;
-                    });
-                    dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_USERS_ACTION, users));
-                }, (error: Error) => {
-                    dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, error));
-                });
             
             firebaseDatabase.ref("/userGroups/admin").once("value")
                 .then((adminUsersSnapshot: firebase.database.DataSnapshot) => {
@@ -101,6 +82,31 @@ export function loadUsers() {
                         return false;
                     });
                     dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, adminUsers));
+
+                    firebaseDatabase.ref("/userGroups/approved").once("value")
+                        .then((approvedUsersSnapshot: firebase.database.DataSnapshot) => {
+                            users = allUsers.filter((firebaseUser) => {
+                                return adminUsers.findIndex((adminUser) => adminUser.email === firebaseUser.email) < 0;
+                            });
+                            approvedUsersSnapshot.forEach((approvedUser) => {
+                                let userIndex = users.findIndex((user) => user.escapedEmail === approvedUser.key);
+                                if (adminUsers.findIndex((adminUser) => adminUser.escapedEmail === approvedUser.key) < 0) {
+                                    if (userIndex < 0) {
+                                        users.push({
+                                            hasAccess: approvedUser.val(),
+                                            email: approvedUser.key.replace(/\%2E/g, "."),
+                                            escapedEmail: approvedUser.key,
+                                        });
+                                    } else {
+                                        users[userIndex].hasAccess = approvedUser.val();
+                                    }
+                                }
+                                return false;
+                            });
+                            dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_USERS_ACTION, users));
+                        }, (error: Error) => {
+                            dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, error));
+                        });
                 }, (error: Error) => {
                     dispatch(asyncActionFailedPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, error));
                 });
