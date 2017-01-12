@@ -12,12 +12,14 @@ import {
     logoutAction,
 } from "./actions";
 import { firebaseAuth } from "./auth";
-import { IAppLifecycle, IAppState, IHuntState, LoginStatus } from "./state";
+import { IAppLifecycle, IAppState, IHuntState, IUser, LoginStatus } from "./state";
 
 interface IOwnProps {}
 interface IStateProps {
+    adminUsers: IAsyncLoaded<IUser[]>;
     hunt: IAsyncLoaded<IHuntState>;
     lifecycle: IAppLifecycle;
+    users: IAsyncLoaded<IUser[]>;
 }
 
 interface IDispatchProps {
@@ -110,17 +112,112 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
     private maybeRenderUserInfo() {
         const { hunt } = this.props;
         if (isAsyncLoaded(hunt)) {
-            return <span>users</span>;
+            return (
+                <div className="user-dashboard">
+                    {this.maybeRenderAdminUsersInfo()}
+                    {this.maybeRenderUsersInfo()}
+                </div>
+            );
         } else {
             return <span>Loading...</span>;
+        }
+    }
+
+    private maybeRenderAdminUsersInfo() {
+        const { adminUsers } = this.props;
+        if (isAsyncLoaded(adminUsers)) {
+            return (
+                <div className="users-container">
+                    <h3>Admin Users</h3>
+                    {this.renderUsersTable(adminUsers.value.filter((user) => user.hasAccess), true)}
+                </div>
+            )
+        } else {
+            return <span>Loading...</span>;
+        }
+    }
+
+    private maybeRenderUsersInfo() {
+        const { users } = this.props;
+        if (isAsyncLoaded(users)) {
+            return (
+                <div className="users-container">
+                    <h3>Chrome Extension Users</h3>
+                    <b>Needs Approval</b>
+                    {this.renderUsersTable(users.value.filter((user) => !user.hasAccess), false)}
+                    <b>Approved</b>
+                    {this.renderUsersTable(users.value.filter((user) => user.hasAccess), false)}
+                </div>
+            )
+        } else {
+            return <span>Loading...</span>;
+        }
+    }
+
+    private renderUsersTable(users: IUser[], isAdmin: boolean) {
+        let revokeAction = isAdmin ? "Remove Admin" : "Revoke Access";
+        let userRows = users.map((user) => {
+            return (
+                <tr>
+                    <td><img src={user.photoUrl} width="30px" height="auto" /></td>
+                    <td>{user.displayName !== undefined ? user.displayName : "(not available)"}</td>
+                    <td><a href={`mailto:${user.email}`}>{user.email}</a></td>
+                    <td>
+                        <button onClick={this.toggleUserAccess(user, isAdmin)}>
+                            {user.hasAccess ? revokeAction : "Grant Access"}
+                        </button>
+                    </td>
+                    {this.maybeRenderAdminButton(user, isAdmin)}
+                </tr>
+            );
+        });
+
+        return (
+            <table>
+                <thead>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th colSpan={isAdmin ? 1 : 2}>Actions</th>
+                </thead>
+                <tbody>
+                    {userRows}
+                </tbody>
+            </table>
+        )
+    }
+
+    private maybeRenderAdminButton(user: IUser, isAdmin: boolean) {
+        if (!isAdmin) {
+            return (
+                <td>
+                    <button onClick={this.makeUserAdmin(user)}>Make Admin</button>
+                </td>
+            );
+        } else {
+            return undefined;
+        }
+    }
+
+    private makeUserAdmin = (user) => {
+        return () => {
+            // do something
+        }
+    }
+
+    private toggleUserAccess = (user: IUser, isAdmin: boolean) => {
+        return () => {
+            // do something
         }
     }
 }
 
 function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
     return {
+        adminUsers: state.adminUsers,
         hunt: state.hunt,
         lifecycle: state.lifecycle,
+        users: state.users,
     };
 }
 

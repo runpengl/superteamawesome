@@ -63,8 +63,12 @@ export interface IPuzzle {
     status: PuzzleStatus;
 }
 
-export interface IUserGroup {
-    [email: string]: boolean;
+export interface IUser {
+    hasAccess?: boolean;
+    displayName?: string;
+    email: string;
+    escapedEmail: string;
+    photoUrl?: string;
 }
 
 export interface IAppLifecycle {
@@ -84,7 +88,7 @@ export enum LoginStatus {
 }
 
 export interface IAppState {
-    adminUsers?: IAsyncLoaded<IUserGroup>;
+    adminUsers?: IAsyncLoaded<IUser[]>;
     auth?: IAuthState;
     discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     hunt?: IAsyncLoaded<IHuntState>;
@@ -92,5 +96,5 @@ export interface IAppState {
     ignoredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     lifecycle?: IAppLifecycle;
     puzzles?: IAsyncLoaded<IPuzzle[]>;
-    users?: IAsyncLoaded<IUserGroup>;
+    users?: IAsyncLoaded<IUser[]>;
 }
