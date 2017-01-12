@@ -116,6 +116,17 @@ a:hover {
   background: #e12548;
 }
 
+.Popup-slackConnectionErrorBanner {
+  background: #fbb03b;
+  color: #fff;
+  cursor: pointer;
+  line-height: 20px;
+  text-align: center;
+}
+.Popup-slackConnectionErrorBanner:hover {
+  opacity: .9;
+}
+
 .Popup-contents {
   background: #eceff1;
   display: flex;

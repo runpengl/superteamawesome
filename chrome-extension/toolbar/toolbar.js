@@ -33,6 +33,11 @@ function refreshConnection() {
                     renderToolbar();
                 }
                 break;
+            case "slackConnectionStatus":
+                toolbarData = Object.assign({}, toolbarData, {
+                    slackConnectionStatus: event.status
+                });
+                return renderToolbar();
             case "discoveredPage":
                 toolbarData = Object.assign({}, toolbarData, {
                     discoveredPage: event.data
@@ -153,6 +158,14 @@ function PuzzleToolbar(props) {
                     ? r.span({ className: "Toolbar-slackUnreadCount" },
                         props.slackChannel.unread_count_display
                     )
+                    : null,
+                props.slackConnectionStatus === "error"
+                    ? r.div({
+                        className: "Toolbar-linkTooltip Toolbar-clickableTooltip",
+                        onClick: function() {
+                            chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+                        }
+                    }, "Couldn't connect to Slack. Try again?")
                     : null
             ),
 

@@ -17,6 +17,12 @@ function initApp() {
                 });
                 return renderPopup();
 
+            case "slackConnectionStatus":
+                popupData = Object.assign({}, popupData, {
+                    slackConnectionStatus: event.status
+                });
+                return renderPopup();
+
             case "permissionDenied":
                 popupData = {
                     currentUser: popupData.currentUser,
@@ -116,6 +122,14 @@ var Popup = React.createClass({
                     }
                 }, "Sign out")
             ),
+            props.slackConnectionStatus === "error"
+                ? r.div({
+                    className: "Popup-slackConnectionErrorBanner",
+                    onClick: function() {
+                        chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+                    }
+                }, "Couldn't connect to Slack. Try again?")
+                : null,
             r.div({ className: "Popup-contents" },
                 props.currentHunt
                     ? r.div({ className: "Popup-currentHuntInfo" },
