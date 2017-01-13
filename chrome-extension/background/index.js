@@ -5,12 +5,6 @@ chrome.runtime.onConnect.addListener(handleChromeRuntimeConnect);
 chrome.tabs.onUpdated.addListener(handleChromeTabsUpdated);
 chrome.tabs.onRemoved.addListener(handleChromeTabsRemoved);
 
-// Keep this data synced for faster toolbar initialization
-var currentHuntKey = null;
-firebase.database().ref("currentHunt").on("value", function(snap) {
-    currentHuntKey = snap.val();
-});
-
 function logEvent(event) {
     firebase.database().ref("eventLogs").push(
         Object.assign({}, event, {
@@ -174,10 +168,7 @@ function handleChromeRuntimeConnect(port) {
             }
 
             function handleDiscoveredPageValue(snap) {
-                if (currentHuntKey !== toolbarInfo.huntKey) {
-                    return;
-                }
-                // If hunt is current, try and add a discoveredPage for it
+                // TODO only add discoveredPage if the hunt is current
                 if (snap.numChildren() === 0) {
                     console.log("[firebase/discoveredPages]",
                         toolbarInfo.host, toolbarInfo.path, toolbarInfo.title);
