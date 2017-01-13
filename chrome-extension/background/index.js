@@ -115,10 +115,109 @@ function handleChromeTabsRemoved(tabId, removeInfo) {
  * will open a connection to request data from the background script.
  */
 function handleChromeRuntimeConnect(port) {
-    if (port.name === "popupLoad") {
-        handlePopupConnect(port);
-        return;
+    switch (port.name) {
+        case "dashboardLoad":
+            handleDashboardLoad(port);
+            break;
+        case "popupLoad":
+            handlePopupConnect(port);
+            break;
+        case "toolbarLoad":
+            handleToolbarConnect(port);
+            break;
     }
+}
+
+function handleDashboardLoad(port) {
+    console.log("[chrome.runtime.onConnect]", "dashboardLoad");
+    var db = firebase.database();
+    var currentHuntRef = db.ref("currentHunt");
+    var viewersRef = db.ref("puzzleViewers");
+    var huntRef;
+    var puzzlesRef;
+
+    var unsubscribeAuth = firebase.auth().onAuthStateChanged(function(userOrNull) {
+        port.postMessage({
+            msg: "auth",
+            user: userOrNull
+        });
+        if (userOrNull) {
+            currentHuntRef.on("value", handleCurrentHuntValue, handleCurrentHuntFailure);
+            viewersRef.on("value", handleViewersValue);
+        }
+    });
+
+
+    port.onDisconnect.addListener(function() {
+        unsubscribeAuth();
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        if (viewersRef) viewersRef.off("value", handleViewersValue);
+        if (currentHuntRef) currentHuntRef.off("value", handleCurrentHuntValue);
+    });
+
+    function handleCurrentHuntValue(currentHuntSnap) {
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        var currentHuntKey = currentHuntSnap.val();
+
+        huntRef = db.ref("hunts/2016");// + currentHuntKey);
+        huntRef.on("value", handleHuntValue);
+        puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo("2016");//currentHuntKey);
+        puzzlesRef.on("value", handlePuzzlesValue);
+    }
+    function handleCurrentHuntFailure(error) {
+        if (error.code === "PERMISSION_DENIED") {
+            port.postMessage({
+                msg: "permissionDenied"
+            });
+        }
+    }
+    function handleHuntValue(huntSnap) {
+        port.postMessage({
+            msg: "hunt",
+            hunt: huntSnap.val()
+        });
+    }
+    function handlePuzzlesValue(puzzlesSnap) {
+        var puzzles = [];
+        puzzlesSnap.forEach(function(puzzle) {
+            puzzles.push(Object.assign({}, puzzle.val(), {
+                key: puzzle.key
+            }))
+        });
+        puzzles.sort(function(p1, p2) {
+            // sort by createdAt descending
+            return new Date(p2.createdAt).getTime() -
+                new Date(p1.createdAt).getTime();
+        });
+        port.postMessage({
+            msg: "puzzles",
+            puzzles: puzzles
+        });
+    }
+    function handleViewersValue(viewersSnap) {
+        var puzzleViewers = {};
+        viewersSnap.forEach(function(viewersForPuzzle) {
+            var numActiveViewers = 0;
+            viewersForPuzzle.forEach(function(viewerTabs) {
+                viewerTabs.forEach(function(tab) {
+                    if (!tab.val().idle) {
+                        numActiveViewers++;
+                        return true; // stop iterating
+                    }
+                });
+            });
+            puzzleViewers[viewersForPuzzle.key] = numActiveViewers;
+        });
+        port.postMessage({
+            msg: "puzzleViewers",
+            puzzleViewers: puzzleViewers
+        });
+    }
+}
+
+function handleToolbarConnect(port) {
     var tabId = port.sender.tab.id;
 
     var db = firebase.database();
@@ -333,9 +432,10 @@ function handlePopupConnect(port) {
             msg: "auth",
             user: userOrNull
         });
-
-        currentHuntRef.on("value", handleCurrentHuntValue, handleCurrentHuntFailure);
-        viewersRef.on("value", handleViewersValue);
+        if (userOrNull) {
+            currentHuntRef.on("value", handleCurrentHuntValue, handleCurrentHuntFailure);
+            viewersRef.on("value", handleViewersValue);
+        }
     });
 
     var unsubscribeSlackState = Slack.onConnectStateChanged(function(state) {

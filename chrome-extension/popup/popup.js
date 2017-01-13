@@ -148,7 +148,17 @@ var Popup = React.createClass({
                                 r.strong(null,
                                     props.puzzlesByStatus.solved.length,
                                     "/", props.puzzles.length
-                                )
+                                ),
+                                " (",
+                                r.a({
+                                    href: chrome.extension.getURL("dashboard/dashboard.html"),
+                                    onClick: function() {
+                                        chrome.tabs.create({
+                                            url: chrome.extension.getURL("dashboard/dashboard.html")
+                                        });
+                                    }
+                                }, "Dashboard"),
+                                ")"
                             )
                             : null,
                         r.div({
