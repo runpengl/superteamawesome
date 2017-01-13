@@ -179,7 +179,7 @@ function handleChromeRuntimeConnect(port) {
                 }
                 // If hunt is current, try and add a discoveredPage for it
                 if (snap.numChildren() === 0) {
-                    console.log("[firebase/discoveredPages2]",
+                    console.log("[firebase/discoveredPages]",
                         toolbarInfo.host, toolbarInfo.path, toolbarInfo.title);
                     var pushed = db.ref("discoveredPages/" + toolbarInfo.huntKey).push({
                         host: toolbarInfo.host,
@@ -188,7 +188,7 @@ function handleChromeRuntimeConnect(port) {
                     });
                     logEvent({
                         name: "DiscoveredPageAdded",
-                        id: pushed.key()
+                        id: pushed.key
                     });
                 } else {
                     snap.forEach(function(dp) {
