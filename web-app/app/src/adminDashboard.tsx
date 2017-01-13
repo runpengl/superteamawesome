@@ -191,9 +191,9 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     private handleHuntDriveFolderChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
-        const folderIdRegex = new RegExp(/https:\/\/drive.google.com\/drive\/u\/0\/folders\/(.+)$/g);
+        const folderIdRegex = new RegExp(/https:\/\/drive.google.com\/drive\/folders\/(.+)$/g);
         const matches = folderIdRegex.exec(newValue);
-        if (matches.length > 1 && matches[1] !== this.props.hunt.value.driveFolderId) {
+        if (matches != null && matches.length > 1 && matches[1] !== this.props.hunt.value.driveFolderId) {
             this.setState({
                 hasChanges: true,
                 hunt: Object.assign({}, this.state.hunt, { driveFolderId: matches[1] }),

@@ -111,6 +111,7 @@ declare module "gapi" {
             delete: (params: { fileId: string }) => IGoogleRequest<{}>;
             get: (params: { fileId: string }) => IGoogleRequest<IGoogleDriveFile>;
             list: (params: { q?: string }) => IGoogleRequest<IGoogleDriveFilesList>;
+            patch: (params: { fileId: string, resource: { title: string } } ) => IGoogleRequest<IGoogleDriveFile>;
         }
 
         export interface IGoogleDrivePermissionsClient {

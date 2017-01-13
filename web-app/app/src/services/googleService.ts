@@ -145,9 +145,25 @@ export function getShortUrl(url: string): Promise<IGoogleShortUrl> {
                     } else {
                         resolve(response as IGoogleShortUrl);
                     }
-                })
-            })
-        })
+                });
+            });
+        });
+}
+
+export function renameSheet(id: string, newTitle: string): Promise<IGoogleDriveFile> {
+    return gapiPromise
+        .then((gapi: IGoogleClientApi) => {
+            const request = gapi.client.drive.files.patch({ fileId: id, resource: { title: newTitle }});
+            return new Promise<IGoogleDriveFile>((resolve) => {
+                request.execute((response) => {
+                    if ((response as Error).message !== undefined) {
+                        throw response;
+                    } else {
+                        resolve(response as IGoogleDriveFile);
+                    }
+                });
+            });
+        });
 }
 
 export function loadGoogleApi(accessToken: string) {
