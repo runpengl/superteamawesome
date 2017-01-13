@@ -3,11 +3,15 @@ window.onload = function() {
         React.createElement(Clock),
         document.getElementById("clock")
     );
+    ReactDOM.render(
+        React.createElement(StaPrompt, {prompts: prompts}),
+        document.getElementById("subheader")
+    );
 };
 
 var port = chrome.runtime.connect({ name: "dashboardLoad" });
 port.onMessage.addListener(function(event) {
-    console.log(event);
+    // console.log(event);
     switch (event.msg) {
         case "puzzles":
             // Group by meta puzzles; ungrouped puzzles at the end
@@ -102,5 +106,27 @@ var Clock = React.createClass({
     },
     updateTime: function() {
         this.setState({ now: Date.now() });
+    }
+});
+
+var StaPrompt = React.createClass({
+    displayName: "STAPrompt",
+    getInitialState: function() {
+        return { prompt: 'Super Tired Asians' };
+    },
+    componentDidMount: function() {
+        setInterval(this.updatePrompt, 3000);
+    },
+    componentWillUnmount: function() {
+        setInterval(this.updatePrompt, 3000);
+    },
+    render: function() {
+        return r.div({ className: "Prompt" },
+            this.state.prompt
+        );
+    },
+    updatePrompt: function() {
+        newPrompt = this.props.prompts[Math.floor(Math.random() * this.props.prompts.length)];
+        this.setState({ prompt: newPrompt });
     }
 });
