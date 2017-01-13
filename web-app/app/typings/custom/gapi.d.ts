@@ -45,6 +45,19 @@ declare module "gapi" {
             drive?: IGoogleDriveClient;
             load: (apiName: string, version: string, callback: () => void) => void;
             sheets?: IGoogleSheetsClient;
+            urlshortener?: IGoogleUrlShortenerClient;
+        }
+
+        export interface IGoogleUrlShortenerClient {
+            url: IGoogleUrlClient;
+        }
+
+        export interface IGoogleUrlClient {
+            insert: (params: { resource: { longUrl: string } }) => IGoogleRequest<IGoogleShortUrl>;
+        }
+
+        export interface IGoogleShortUrl {
+            id: string;
         }
 
         export interface IGoogleSheetsClient {
