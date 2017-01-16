@@ -11,7 +11,7 @@ window.onload = function() {
 
 var port = chrome.runtime.connect({ name: "dashboardLoad" });
 port.onMessage.addListener(function(event) {
-    // console.log(event);
+    console.log(event);
     switch (event.msg) {
         case "puzzles":
             // Group by meta puzzles; ungrouped puzzles at the end
@@ -47,6 +47,9 @@ port.onMessage.addListener(function(event) {
 
 var r = React.DOM;
 function DashboardRounds(props) {
+    if (props.puzzleGroups.length == 0) {
+        return r.div({className: "Dashboard-nopuzzles"}, "No puzzles unlocked yet!");
+    }
     return r.div(null,
         props.puzzleGroups.map(function(pg) {
             if (pg[0].isMeta) {

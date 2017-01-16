@@ -161,9 +161,9 @@ function handleDashboardLoad(port) {
         if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
         var currentHuntKey = currentHuntSnap.val();
 
-        huntRef = db.ref("hunts/2016");// + currentHuntKey);
+        huntRef = db.ref(currentHuntKey);
         huntRef.on("value", handleHuntValue);
-        puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo("2016");//currentHuntKey);
+        puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(currentHuntKey);
         puzzlesRef.on("value", handlePuzzlesValue);
     }
     function handleCurrentHuntFailure(error) {
