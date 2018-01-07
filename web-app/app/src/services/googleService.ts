@@ -7,6 +7,7 @@ import {
     IGoogleDriveFile,
     IGoogleDrivePermission,
     IGoogleDrivePermissionsList,
+    IGoogleShortUrl,
 } from "gapi";
 
 import { scopes } from "../auth";
@@ -133,6 +134,38 @@ export function getDrivePermissions(driveFileId: string): Promise<IGoogleDrivePe
     });
 }
 
+export function getShortUrl(url: string): Promise<IGoogleShortUrl> {
+    return gapiPromise
+        .then((gapi: IGoogleClientApi) => {
+            const request = gapi.client.urlshortener.url.insert({ resource: { longUrl: url } } );
+            return new Promise<IGoogleShortUrl>((resolve) => {
+                request.execute((response) => {
+                    if ((response as Error).message !== undefined) {
+                        throw response;
+                    } else {
+                        resolve(response as IGoogleShortUrl);
+                    }
+                });
+            });
+        });
+}
+
+export function renameSheet(id: string, newTitle: string): Promise<IGoogleDriveFile> {
+    return gapiPromise
+        .then((gapi: IGoogleClientApi) => {
+            const request = gapi.client.drive.files.patch({ fileId: id, resource: { title: newTitle }});
+            return new Promise<IGoogleDriveFile>((resolve) => {
+                request.execute((response) => {
+                    if ((response as Error).message !== undefined) {
+                        throw response;
+                    } else {
+                        resolve(response as IGoogleDriveFile);
+                    }
+                });
+            });
+        });
+}
+
 export function loadGoogleApi(accessToken: string) {
     let gapi: IGoogleClientApi;
     return gapiPromise
@@ -141,7 +174,9 @@ export function loadGoogleApi(accessToken: string) {
             return new Promise((resolve) => {
                 gapi.client.load("drive", "v2", () => {
                     gapi.client.load("sheets", "v4", () => {
-                        resolve();
+                        gapi.client.load("urlshortener", "v1", () => {
+                            resolve();
+                        });
                     });
                 });
             });

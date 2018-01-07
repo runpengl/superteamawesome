@@ -7,7 +7,7 @@ import GoogleLogin from "react-google-login";
 
 import { config } from "./config";
 import { loginAction } from "./actions";
-import { firebaseAuth } from "./auth";
+import { firebaseAuth, scopes } from "./auth";
 import { IAppState } from "./state";
 
 // props from redux state
@@ -142,6 +142,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                             clientId={config.google.clientId}
                             onSuccess={this.handleLogin}
                             onFailure={this.handleLoginFailure}
+                            scope={scopes.join(" ")}
                         />
                     </div>
                     <canvas id="poofytoo"></canvas>

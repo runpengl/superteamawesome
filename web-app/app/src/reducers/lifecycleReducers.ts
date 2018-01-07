@@ -26,6 +26,8 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
                 return Object.assign({}, state, { createPuzzleFailure: action.error });
             } else if (isAsyncSucceeded(action)) {
                 return Object.assign({}, state, { createPuzzleFailure: undefined });
+            } else {
+                return state;
             }
         case CREATE_MANUAL_PUZZLE_ACTION:
             if (isAsyncInProgress(action)) {
