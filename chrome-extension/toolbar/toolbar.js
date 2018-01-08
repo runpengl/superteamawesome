@@ -1,3 +1,7 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { CSSTransitionGroup } from "react-transition-group";
+
 var toolbarType = null;
 var toolbarData = null;
 
@@ -85,7 +89,17 @@ function renderToolbar() {
     }
 }
 
+var r = {};
+[
+    "a",
+    "div",
+    "img",
+    "input",
+    "span",
+].map(function(type) { r[type] = React.createFactory(type); });
+
 function BasicToolbar(props) {
+    const div = <div />;
     return r.div({ className: "Toolbar" },
         r.img({ className: "Toolbar-loadingIndicator", src: "../ripple.svg" }),
         "SuperTeamAwesome Puzzle Tool"
@@ -113,7 +127,6 @@ function HuntToolbar(props) {
     );
 }
 
-var r = React.DOM;
 function PuzzleToolbar(props) {
     return r.div({ className: "Toolbar" },
         React.createElement(PuzzleStatusPicker, {
@@ -169,7 +182,7 @@ function PuzzleToolbar(props) {
                     : null
             ),
 
-        React.createElement(React.addons.CSSTransitionGroup, {
+        React.createElement(CSSTransitionGroup, {
             className: "Toolbar-right",
             transitionName: "Avatar",
             transitionEnterTimeout: 500,
@@ -189,30 +202,33 @@ function PuzzleToolbar(props) {
 }
 
 var PUZZLE_STATUSES = ["new", "inProgress", "stuck", "solved"];
-var PuzzleStatusPicker = React.createClass({
-    displayName: "PuzzleStatusPicker",
-    getInitialState: function() {
-        return {
+class PuzzleStatusPicker extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
             isCollapsed: true,
             optimisticStatusUpdate: null,
             solutionText: null
         };
-    },
-    componentWillReceiveProps: function(nextProps) {
+    }
+
+    componentWillReceiveProps(nextProps) {
         if (nextProps.puzzle.status === this.state.optimisticStatusUpdate) {
             this.setState({ optimisticStatusUpdate: null });
         }
         if (nextProps.puzzle.solution === this.state.optimisticSolution) {
             this.setState({ optimisticSolution: null });
         }
-    },
-    componentDidUpdate: function(prevProps, prevState) {
+    }
+
+    componentDidUpdate(prevProps, prevState) {
         if (prevState.solutionText === null &&
             this.state.solutionText !== null) {
             this.refs.solutionInput.focus();
         }
-    },
-    render: function() {
+    }
+
+    render() {
         var displaySolution = this.state.optimisticSolution
             || this.props.puzzle.solution
             || "(no solution)";
@@ -236,25 +252,27 @@ var PuzzleStatusPicker = React.createClass({
                     this.state.solutionText === null
                         ? r.div({
                             className: "PuzzleStatusPicker-solutionButton",
-                            onClick: this.handleSolutionClick
+                            onClick: this.handleSolutionClick.bind(this)
                         }, displaySolution)
                         : r.input({
                             ref: "solutionInput",
                             className: "PuzzleStatusPicker-solutionInput",
                             value: this.state.solutionText,
                             placeholder: "SOLUTION",
-                            onBlur: this.submitSolution,
-                            onChange: this.handleSolutionChange,
-                            onKeyDown: this.handleSolutionInputKeyDown
+                            onBlur: this.submitSolution.bind(this),
+                            onChange: this.handleSolutionChange.bind(this),
+                            onKeyDown: this.handleSolutionInputKeyDown.bind(this)
                         })
                 )
                 : null
         );
-    },
-    toHumanReadable: function(statusStr) {
+    }
+
+    toHumanReadable(statusStr) {
         return statusStr.replace(/([A-Z])/g, " $1").toLowerCase();
-    },
-    handleStatusClick: function(status, event) {
+    }
+
+    handleStatusClick(status, event) {
         if (this.state.isCollapsed) {
             this.setState({ isCollapsed: false });
             return;
@@ -273,14 +291,17 @@ var PuzzleStatusPicker = React.createClass({
         }
         this.setState({ isCollapsed: true });
         event.preventDefault();
-    },
-    handleSolutionClick: function() {
+    }
+
+    handleSolutionClick() {
         this.setState({ solutionText: this.props.puzzle.solution });
-    },
-    handleSolutionChange: function(event) {
+    }
+
+    handleSolutionChange(event) {
         this.setState({ solutionText: event.target.value });
-    },
-    submitSolution: function() {
+    }
+
+    submitSolution() {
         var solution = this.state.solutionText.trim().toUpperCase();
         if (solution) {
             chrome.runtime.sendMessage({
@@ -309,13 +330,14 @@ var PuzzleStatusPicker = React.createClass({
             optimisticSolution: this.state.solutionText,
             solutionText: null
         });
-    },
-    handleSolutionInputKeyDown: function(event) {
+    }
+
+    handleSolutionInputKeyDown(event) {
         if (event.key === "Enter") {
             this.submitSolution();
         }
     }
-});
+}
 
 function Avatar(props) {
     return r.div({

@@ -9,6 +9,7 @@ node_modules
 *.DS_Store
 
 # Build cruft
+chrome-extension/dist
 web-app/server/public
 web-app/app/build
 web-app/server/**/*.js
