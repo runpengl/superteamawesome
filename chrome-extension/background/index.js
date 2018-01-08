@@ -420,6 +420,12 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
         case "joinChannel":
             Slack.joinChannel(request.name);
             break;
+        case "puzzleBacksolved":
+            var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
+            firebase.database()
+                .ref("puzzles/" + puzzleKey + "/wasBacksolved")
+                .set(true);
+            break;
         case "puzzleSolutionChange":
             var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
@@ -436,6 +442,9 @@ function handleChromeRuntimeMessage(request, sender, sendResponse) {
             firebase.database()
                 .ref("puzzles/" + puzzleKey + "/status")
                 .set(request.status);
+            firebase.database()
+                .ref("puzzles/" + puzzleKey + "/wasBacksolved")
+                .set(false);
             logEvent({
                 name: "PuzzleStatusChanged",
                 puzzleId: puzzleKey,

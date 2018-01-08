@@ -168,6 +168,10 @@ body {
   max-width: 66px;
   width: 66px;
 }
+.PuzzleStatusPicker.isBacksolved .PuzzleStatusPicker-statusButton.solved {
+  max-width: 100px;
+  width: 100px;
+}
 .PuzzleStatusPicker-statusButton.solved:hover,
 .PuzzleStatusPicker-statusButton.solved.isCurrent {
   background: #07b05a;
@@ -218,6 +222,11 @@ body {
 }
 .PuzzleStatusPicker-solutionInput:focus {
   outline: none;
+}
+
+.PuzzleStatusPicker-backsolveButton {
+  cursor: pointer;
+  margin-right: 0;
 }
 
 /**

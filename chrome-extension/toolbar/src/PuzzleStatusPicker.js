@@ -30,18 +30,20 @@ class PuzzleStatusPicker extends React.Component {
     }
 
     render() {
-        var displaySolution = this.state.optimisticSolution
+        const currentStatus = this.state.optimisticStatusUpdate ||
+            this.props.puzzle.status;
+        const displaySolution = this.state.optimisticSolution
             || this.props.puzzle.solution
             || "(no solution)";
+
         return <div
             className={cx({
                 PuzzleStatusPicker: true,
-                isCollapsed: this.state.isCollapsed
+                isCollapsed: this.state.isCollapsed,
+                isBacksolved: this.props.puzzle.wasBacksolved
             })}
         >
             {PUZZLE_STATUSES.map((status) => {
-                var currentStatus = this.state.optimisticStatusUpdate ||
-                    this.props.puzzle.status;
                 return <div
                     key={status}
                     className={cx({
@@ -54,7 +56,7 @@ class PuzzleStatusPicker extends React.Component {
                     {this.toHumanReadable(status)}
                 </div>;
             })}
-            {this.state.optimisticStatusUpdate === "solved" || this.props.puzzle.status === "solved"
+            {currentStatus === "solved"
                 ? <div className="PuzzleStatusPicker-solution">
                     {this.state.solutionText === null
                         ? <div
@@ -73,10 +75,25 @@ class PuzzleStatusPicker extends React.Component {
                     }
                 </div>
                 : null}
+
+            { // Allow user to mark puzzle as backsolved after submitting solution
+            this.props.puzzle.status === "solved" && !this.props.puzzle.wasBacksolved
+                ? <div
+                      className={cx(
+                          "PuzzleStatusPicker-backsolveButton",
+                          "Toolbar-linkTooltip",
+                          "Toolbar-clickableTooltip"
+                      )}
+                      onClick={this.handleBacksolveClick.bind(this)}
+                  >Mark as Backsolved</div>
+                : null}
         </div>;
     }
 
     toHumanReadable(statusStr) {
+        if (statusStr === "solved" && this.props.puzzle.wasBacksolved) {
+            return "backsolved";
+        }
         return statusStr.replace(/([A-Z])/g, " $1").toLowerCase();
     }
 
@@ -144,6 +161,10 @@ class PuzzleStatusPicker extends React.Component {
         if (event.key === "Enter") {
             this.submitSolution();
         }
+    }
+
+    handleBacksolveClick() {
+        chrome.runtime.sendMessage({ msg: "puzzleBacksolved" });
     }
 }
 
