@@ -96,8 +96,9 @@ body {
   color: white;
   font-size: 10px;
   margin-left: 5px;
-  margin-top: -1px;
   padding: 0 3px 1px;
+  position: relative;
+  bottom: 1px;
 }
 
 .Toolbar-right {

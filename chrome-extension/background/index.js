@@ -515,7 +515,7 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
         var match = pathname.match(/\/messages\/([^\/?]+)/);
         if (match) {
             selectOnlyWhereChildEquals("puzzles",
-                "slackChannel", match[1], function(p) {
+                "slackChannelId", match[1], function(p) {
                     if (p) {
                         foundPuzzle(p, "slack");
                     } else {

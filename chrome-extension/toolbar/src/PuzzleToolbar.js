@@ -11,13 +11,13 @@ export default function PuzzleToolbar(props) {
 
         {props.location === "puzzle" ? null : <a
             className="Toolbar-link"
-            target="_blank"
+            target="_parent"
             href={`http://${props.hunt.domain}${props.puzzle.path}`}
         >puzzle</a>}
 
         {props.location === "spreadsheet" ? null : <a
             className="Toolbar-link"
-            target="_blank"
+            target="_parent"
             href={`https://docs.google.com/spreadsheets/d/${props.puzzle.spreadsheetId}`}
         >spreadsheet</a>}
 
@@ -29,8 +29,8 @@ export default function PuzzleToolbar(props) {
             : <div className="Toolbar-slackInfo">
                   <a
                       className="Toolbar-link"
-                      target="_blank"
-                      href={`https://superteamawesome.slack.com/messages/${props.puzzle.slackChannel}`}
+                      target="_parent"
+                      href={`https://superteamawesome.slack.com/messages/${props.puzzle.slackChannelId}`}
                       onClick={function() {
                           if (props.slackChannel && !props.slackChannel.is_member) {
                               chrome.runtime.sendMessage({
