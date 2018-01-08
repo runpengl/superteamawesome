@@ -197,6 +197,25 @@ function handleChromeRuntimeConnect(port) {
             var puzzleRef = db.ref("puzzles/" + toolbarInfo.puzzleKey);
             var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
 
+            var puzzleHierarchy = [];
+            traverseParents(toolbarInfo.puzzleKey);
+            function traverseParents(puzzleKey) {
+                db.ref("puzzles/" + puzzleKey)
+                    .once("value", function(puzzle) {
+                        puzzleHierarchy.unshift(Object.assign({}, puzzle.val(), {
+                            key: puzzle.key
+                        }));
+                        if (puzzle.val().parent) {
+                            traverseParents(puzzle.val().parent);
+                        } else {
+                            port.postMessage({
+                                msg: "puzzle",
+                                data: { hierarchy: puzzleHierarchy }
+                            });
+                        }
+                    });
+            }
+
             var detachPuzzleAndHuntRefs = onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
                 port.postMessage({
                     msg: "puzzle",

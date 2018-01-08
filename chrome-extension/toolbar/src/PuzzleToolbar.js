@@ -2,11 +2,14 @@ import * as React from "react";
 import { CSSTransitionGroup } from "react-transition-group";
 
 import Avatar from "./Avatar";
+import PuzzleHierarchyBreadcrumbs from "./PuzzleHierarchyBreadcrumbs";
 import PuzzleStatusPicker from "./PuzzleStatusPicker";
 
 export default function PuzzleToolbar(props) {
     return <div className="Toolbar">
         <PuzzleStatusPicker puzzle={props.puzzle} />
+        <PuzzleHierarchyBreadcrumbs hunt={props.hunt} hierarchy={props.hierarchy} />
+
         <div className="Toolbar-puzzleName">{props.puzzle.name}</div>
 
         {props.location === "puzzle" ? null : <a
