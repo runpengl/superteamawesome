@@ -14,10 +14,21 @@ export default function Message(props) {
         Message: true,
         pending: props.pending
     })}>
-        {props.collapsed ? null : <span className="Message-userName">{props.user}</span>}
+        {props.collapsed ? null : <span className="Message-userName">
+            {renderUserName(props.user, props.connectionInfo)}
+        </span>}
         {props.collapsed ? null : <span className="Message-timestamp">{renderTime(props.ts)}</span>}
         <div className="Message-message">{props.text}</div>
     </div>;
+}
+
+function renderUserName(id, connectionInfo) {
+    const users = connectionInfo.users.filter(user => user.id === id);
+    if (users.length === 0) {
+        return "Unknown User";
+    } else {
+        return users[0].real_name;
+    }
 }
 
 function renderTime(ts) {
@@ -28,5 +39,5 @@ function renderTime(ts) {
     const hours = date.getHours() % 12;
     const ampm = hours >= 12 ? "pm" : "am";
 
-    return `${hours ? hours : 12}:${minutes.substr(0, 2)} ${ampm}`;
+    return `${hours ? hours : 12}:${minutes.substr(-2, 2)} ${ampm}`;
 }

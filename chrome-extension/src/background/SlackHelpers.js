@@ -9,6 +9,8 @@ let wsOutgoingMessageCounter = 0;
 let pingInterval = null;
 let pingOk = true;
 
+export let connectionInfo = null;
+
 let slackChannelById = {};
 let slackChannelIdByName = {};
 let wsMessageConfirmationCallbacks = {};
@@ -157,8 +159,9 @@ function initSlackRtm() {
         response.channels.forEach(function(channel) {
             slackChannelById[channel.id] = channel;
             slackChannelIdByName[channel.name] = channel.id;
-            notifySubscribers(channel);
+            notifySubscribers({ type: "rtm.start" }, channel);
         });
+        connectionInfo = response;
 
         const userInfoRef = firebase.database().ref("users")
             .child(firebase.auth().currentUser.uid);
@@ -180,18 +183,18 @@ function handleSlackWsMessage(event) {
             break;
         case "channel_joined":
             slackChannelById[msg.channel.id] = msg.channel;
-            notifySubscribers(msg.channel);
+            notifySubscribers(msg, msg.channel);
             break;
         case "channel_left":
             var channel = slackChannelById[msg.channel];
             channel.is_member = false;
-            notifySubscribers(channel);
+            notifySubscribers(msg, channel);
             break;
         case "channel_marked":
             var channel = slackChannelById[msg.channel];
             channel.unread_count = msg.unread_count;
             channel.unread_count_display = msg.unread_count_display;
-            notifySubscribers(channel);
+            notifySubscribers(msg, channel);
             break;
         case "message":
             if (msg.subtype) {
@@ -203,8 +206,8 @@ function handleSlackWsMessage(event) {
             if (msg.user !== slackUserId && channel) {
                 channel.unread_count++;
                 channel.unread_count_display++;
-                notifySubscribers(channel);
             }
+            notifySubscribers(msg, channel);
             break;
     }
 
@@ -240,29 +243,29 @@ export function joinChannel(channelName) {
 }
 
 const subscriberTabIdsByChannelName = {};
-export function subscribeToChannel(tabId, channelName, callback) {
+export function subscribeToChannel(key, channelName, callback) {
     connect(/*interactive*/false);
 
     if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
         subscriberTabIdsByChannelName[channelName] = {};
     }
-    subscriberTabIdsByChannelName[channelName][tabId] = callback;
+    subscriberTabIdsByChannelName[channelName][key] = callback;
     if (slackChannelIdByName[channelName]) {
         callback(slackChannelById[slackChannelIdByName[channelName]]);
     }
     return function unsubscribe() {
-        delete subscriberTabIdsByChannelName[channelName][tabId];
+        delete subscriberTabIdsByChannelName[channelName][key];
         if (Object.keys(subscriberTabIdsByChannelName[channelName]).length === 0) {
             delete subscriberTabIdsByChannelName[channelName];
         }
     };
 }
 
-function notifySubscribers(channel) {
+function notifySubscribers(msg, channel) {
     const subscriberMap = subscriberTabIdsByChannelName[channel.name];
     if (subscriberMap) {
         Object.keys(subscriberMap).forEach(function(k) {
-            subscriberMap[k](channel);
+            subscriberMap[k](msg, channel);
         });
     }
 }

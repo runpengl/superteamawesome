@@ -217,7 +217,7 @@ function initializePuzzleToolbar(port, toolbarInfo) {
             });
         });
     const unsubscribeChannel = Slack.subscribeToChannel(
-        tabId, toolbarInfo.slackChannel, function(channel) {
+        `toolbar${tabId}`, toolbarInfo.slackChannel, function(msg, channel) {
             port.postMessage({
                 msg: "slackChannel",
                 data: { channel: channel }
@@ -355,10 +355,27 @@ function initializeSidebar(port) {
                 port.postMessage({
                     msg: "slackChannelInfo",
                     data: {
+                        connectionInfo: Slack.connectionInfo,
                         channel: channelInfo.channel,
                         messages: channelHistory.messages.reverse()
                     }
                 });
+            });
+
+            const unsubscribeChannel = Slack.subscribeToChannel(
+                `sidebar${tabId}`, tabId, toolbarInfo.slackChannel, msg => {
+                    switch (msg.type) {
+                        case "message":
+                            port.postMessage({
+                                msg: "slackMessage",
+                                data: msg
+                            });
+                            break;
+                    }
+                });
+
+            port.onDisconnect.addListener(function() {
+                unsubscribeChannel();
             });
         });
     }

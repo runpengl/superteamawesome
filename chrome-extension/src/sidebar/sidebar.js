@@ -11,14 +11,23 @@ function refreshConnection() {
     // Initialize a connection with the background script, which
     // will continue to send data as long as this connection is open.
     port = chrome.runtime.connect({ name: "sidebarLoad" });
+
+    let channel = null;
+    let connectionInfo = null;
+    let messages = [];
     port.onMessage.addListener(function(event) {
         console.log(event);
         switch (event.msg) {
             case "slackChannelInfo":
-                ReactDOM.render(
-                    <ChatWidget {...event.data} />,
-                    document.getElementById("sidebar")
-                );
+                channel = event.data.channel;
+                connectionInfo = event.data.connectionInfo;
+                messages = event.data.messages;
+                renderSidebar(channel, connectionInfo, messages);
+                break;
+
+            case "slackMessage":
+                messages.push(event.data);
+                renderSidebar(channel, connectionInfo, messages);
                 break;
         }
     });
@@ -29,3 +38,18 @@ function refreshConnection() {
 }
 
 refreshConnection();
+
+function renderSidebar(channel, connectionInfo, messages) {
+    ReactDOM.render(
+        <ChatWidget
+            channel={channel}
+            connectionInfo={connectionInfo}
+            messages={messages}
+            onConfirmMessage={msg => {
+                messages.push(msg);
+                renderSidebar(channel, connectionInfo, messages);
+            }}
+        />,
+        document.getElementById("sidebar")
+    );
+}

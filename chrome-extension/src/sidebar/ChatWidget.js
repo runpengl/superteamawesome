@@ -7,7 +7,7 @@ export default class ChatWidget extends React.Component {
         super(props);
         this.state = {
             inputValue: "",
-            moreMessages: []
+            pendingMessages: []
         };
     }
 
@@ -15,14 +15,24 @@ export default class ChatWidget extends React.Component {
         this.messagesNode.scrollTop = this.messagesNode.scrollHeight;
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            shouldStickToBottom: this.messagesNode.scrollTop ===
+                this.messagesNode.scrollHeight - this.messagesNode.offsetHeight
+        });
+    }
+
     componentDidUpdate(prevProps, prevState) {
-        if (prevState.moreMessages.length < this.state.moreMessages.length) {
+        if (
+            prevState.pendingMessages.length < this.state.pendingMessages.length ||
+            this.state.shouldStickToBottom
+        ) {
             this.messagesNode.scrollTop = this.messagesNode.scrollHeight;
         }
     }
 
     render() {
-        const allMessages = this.props.messages.concat(this.state.moreMessages);
+        const allMessages = this.props.messages.concat(this.state.pendingMessages);
         return <div className="ChatWidget">
             <div className="ChatWidget-header">
                 #{this.props.channel.name}
@@ -40,8 +50,9 @@ export default class ChatWidget extends React.Component {
                     }
                     return <Message
                         key={message.ts}
-                        collapsed={collapsed}
                         {...message}
+                        collapsed={collapsed}
+                        connectionInfo={this.props.connectionInfo}
                     />;
                 })}
             </div>
@@ -64,17 +75,17 @@ export default class ChatWidget extends React.Component {
     handleInputKeyDown(event) {
         if (event.key === "Enter") {
             const ts = `${Math.floor(Date.now() / 1000)}.808080`;
-            const moreMessages = this.state.moreMessages.slice();
-            moreMessages.push({
+            const pendingMessages = this.state.pendingMessages.slice();
+            pendingMessages.push({
                 type: "message",
-                user: "FIXME",
+                user: this.props.connectionInfo.self.id,
                 text: this.state.inputValue,
                 ts,
                 pending: true
             });
             this.setState({
                 inputValue: "",
-                moreMessages
+                pendingMessages
             });
             chrome.runtime.sendMessage({
                 msg: "sendMessage",
@@ -82,17 +93,15 @@ export default class ChatWidget extends React.Component {
                 message: this.state.inputValue
             }, /*options*/{}, response => {
                 if (response.ok) {
-                    const updatedMessages = [];
-                    for (let i = 0; i < this.state.moreMessages.length; ++i) {
-                        const msg = this.state.moreMessages[i];
-                        updatedMessages.push(msg.ts !== ts ? msg : {
-                            type: "messages",
-                            user: "FIXME",
-                            ts: response.ts,
-                            text: response.text
-                        });
-                    }
-                    this.setState({ moreMessages: updatedMessages });
+                    this.setState({
+                        pendingMessages: this.state.pendingMessages.filter(msg => msg.ts !== ts)
+                    });
+                    this.props.onConfirmMessage({
+                        type: "message",
+                        user: this.props.connectionInfo.self.id,
+                        ts: response.ts,
+                        text: response.text
+                    });
                 }
             });
             event.preventDefault();
