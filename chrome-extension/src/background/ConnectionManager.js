@@ -10,9 +10,13 @@ import toolbarInfoByTabId from "./toolbarInfoByTabId";
  * will open a connection to request data from the background script.
  */
 export function handleRuntimeConnect(port) {
-    if (port.name === "popupLoad") {
-        initializePopup(port);
-        return;
+    switch (port.name) {
+        case "popupLoad":
+            initializePopup(port);
+            return;
+        case "sidebarLoad":
+            initializeSidebar(port);
+            return;
     }
     const tabId = port.sender.tab.id;
     const toolbarInfo = toolbarInfoByTabId[tabId];
@@ -333,6 +337,29 @@ function initializePopup(port) {
         port.postMessage({
             msg: "puzzleViewers",
             puzzleViewers: puzzleViewers
+        });
+    }
+}
+
+function initializeSidebar(port) {
+    const tabId = port.sender.tab.id;
+    const toolbarInfo = toolbarInfoByTabId[tabId];
+
+    if (toolbarInfo.toolbarType === "puzzle")  {
+        firebase.database().ref(`puzzles/${toolbarInfo.puzzleKey}`).once("value", p => {
+            const channelId = p.val().slackChannelId;
+            Promise.all([
+                new Promise(resolve => Slack.getChannelInfo(channelId, resolve)),
+                new Promise(resolve => Slack.getChannelHistory(channelId, resolve))
+            ]).then(([channelInfo, channelHistory]) => {
+                port.postMessage({
+                    msg: "slackChannelInfo",
+                    data: {
+                        channel: channelInfo.channel,
+                        messages: channelHistory.messages.reverse()
+                    }
+                });
+            });
         });
     }
 }

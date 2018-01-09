@@ -1,0 +1,72 @@
+body {
+  margin: 0;
+}
+
+#sidebar {
+  height: 100vh;
+}
+
+/**
+ * ChatWidget
+ */
+.ChatWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ChatWidget-messages {
+  flex: 1 1 auto;
+  min-height: 1px;
+  overflow-y: auto;
+}
+
+.ChatWidget-header {
+  background: #616161;
+  color: #fff;
+  font-weight: bold;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 10px;
+}
+
+.ChatWidget-composer {
+  background: #eee;
+  display: flex;
+  flex-shrink: 0;
+  padding: 10px;
+}
+
+.ChatWidget-composerInput {
+  display: block;
+  flex: 1 1 auto;
+  font-size: 12px;
+  height: 15px;
+  min-width: 1px;
+  padding: 5px;
+  resize: none;
+}
+.ChatWidget-composerInput:focus {
+  border-color: #4285f4;
+  outline: none;
+}
+
+/**
+ * Message
+ */
+.Message {
+  padding: 0 10px;
+  margin: 5px 0;
+}
+
+.Message-userName {
+  color: #2c2d30;
+  font-weight: 900;
+  line-height: 18px;
+  margin-right: 5px;
+}
+
+.Message-timestamp {
+  color: #717274;
+  font-size: 12px;
+}

@@ -217,6 +217,13 @@ function handleSlackWsMessage(event) {
     }
 }
 
+export function getChannelInfo(channelId, callback) {
+    xhrGet("https://slack.com/api/channels.info", {
+        token: accessToken,
+        channel: channelId
+    }, callback);
+}
+
 export function getChannelHistory(channelId, callback) {
     xhrGet("https://slack.com/api/channels.history", {
         token: accessToken,

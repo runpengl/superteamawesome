@@ -22,13 +22,13 @@ function injectToolbar() {
         var docsChrome = document.getElementById("docs-chrome");
         docsChrome.insertBefore(iframe, docsChrome.firstChild);
 
-        var chatContainer = document.getElementById("docs-chat-mole");
+        var chatContainer = document.querySelector(".docs-chat-pane-container");
         if (chatContainer) {
-            injectChatBanner(chatContainer);
+            injectSidebar(chatContainer);
         } else {
             forEachChildNodeAdded(document.body, function(addedNode) {
-                if (addedNode.id === "docs-chat-mole") {
-                    injectChatBanner(addedNode);
+                if (addedNode.className === "docs-chat-pane-container") {
+                    injectSidebar(addedNode);
                 }
             });
         }
@@ -77,41 +77,26 @@ function monitorPresence() {
 }
 
 /**
- * If the user tries to use google docs chat, let them—but also inject a banner
- * to tell them to use Slack, pretty please.
+ * Instead of google docs chat, inject a Slack widget into the sidebar.
  */
-function injectChatBanner(chatContainer) {
-    if (document.getElementById("sta_toolbar_chat_banner")) {
+function injectSidebar(chatContainer) {
+    if (document.getElementById("sta_sidebar")) {
         // Already injected
         return;
     }
-    function maybeInjectBanner(node) {
-        if (node.id && node.id.startsWith("gtn") &&
-            node.className === "talk_chat_widget") {
-            var slackPromptBanner = document.createElement("div");
-            slackPromptBanner.id = "sta_toolbar_chat_banner";
-            slackPromptBanner.style.background = "#e12548";
-            slackPromptBanner.style.color = "#fff";
-            slackPromptBanner.style.fontSize = "12px";
-            slackPromptBanner.style.height = "20px";
-            slackPromptBanner.style.lineHeight = "20px";
-            slackPromptBanner.style.padding = "0 10px";
-            slackPromptBanner.innerText = "Use the Slack channel, please!";
-            node.insertBefore(
-                slackPromptBanner,
-                node.firstChild);
-            return true;
-        }
-    }
-    if (chatContainer.childNodes.length) {
-        for (var i = 0; i < chatContainer.childNodes.length; ++i) {
-            maybeInjectBanner(chatContainer.childNodes[i]);
-        }
-    } else {
-        forEachChildNodeAdded(chatContainer, function(addedNode) {
-            return maybeInjectBanner(addedNode);
-        });
-    }
+
+    var iframe = document.createElement("iframe");
+    iframe.id = "sta_sidebar";
+    iframe.src = chrome.extension.getURL("sidebar/sidebar.html");
+    iframe.style.background = "#fff";
+    iframe.style.border = "0";
+    iframe.style.display = "block";
+    iframe.style.height = "100%";
+    iframe.style.position = "absolute";
+    iframe.style.top = "0";
+    iframe.style.width = "300px";
+    iframe.style.zIndex = "99999";
+    chatContainer.appendChild(iframe);
 }
 
 function forEachChildNodeAdded(node, callback) {

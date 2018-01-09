@@ -78,6 +78,9 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 tabId: sender.tab.id
             });
             break;
+        case "sendMessage":
+            Slack.sendMessage(request.channel, request.message);
+            break;
         case "signIn":
             startAuth();
             break;
