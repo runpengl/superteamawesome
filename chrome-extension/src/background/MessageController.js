@@ -15,15 +15,18 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
         case "authorizeSlack":
             Slack.connect(/*interactive*/true);
             break;
+
         case "joinChannel":
             Slack.joinChannel(request.name);
             break;
+
         case "puzzleBacksolved":
             var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
                 .ref("puzzles/" + puzzleKey + "/wasBacksolved")
                 .set(true);
             break;
+
         case "puzzleSolutionChange":
             var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
@@ -35,6 +38,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 solution: request.solution
             });
             break;
+
         case "puzzleStatusChange":
             var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()
@@ -49,6 +53,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 status: request.status
             });
             break;
+
         case "pageVisibilityChange":
             var data = toolbarInfoByTabId[sender.tab.id];
             if (!(data && data.puzzleKey)) {
@@ -60,6 +65,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 .child(currentUserId).child(sender.tab.id)
                 .child("tabHidden").set(request.isHidden);
             break;
+
         case "idleStatusChange":
             var data = toolbarInfoByTabId[sender.tab.id];
             if (!(data && data.puzzleKey)) {
@@ -78,12 +84,15 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 tabId: sender.tab.id
             });
             break;
+
         case "sendMessage":
-            Slack.sendMessage(request.channel, request.message);
-            break;
+            Slack.sendMessage(request.channel, request.message, sendResponse);
+            return true; // sendResponse will be called asynchronously
+
         case "signIn":
             startAuth();
             break;
+
         case "signOut":
             logEvent({ name: "LoggedOut" });
             firebase.auth().signOut();

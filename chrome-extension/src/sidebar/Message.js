@@ -1,3 +1,4 @@
+import cx from "classnames";
 import * as React from "react";
 
 /**
@@ -9,9 +10,12 @@ import * as React from "react";
  *   ts: string
  */
 export default function Message(props) {
-    return <div className="Message">
-        <span className="Message-userName">{props.user}</span>
-        <span className="Message-timestamp">{renderTime(props.ts)}</span>
+    return <div className={cx({
+        Message: true,
+        pending: props.pending
+    })}>
+        {props.collapsed ? null : <span className="Message-userName">{props.user}</span>}
+        {props.collapsed ? null : <span className="Message-timestamp">{renderTime(props.ts)}</span>}
         <div className="Message-message">{props.text}</div>
     </div>;
 }

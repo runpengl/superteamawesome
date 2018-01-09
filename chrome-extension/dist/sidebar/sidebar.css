@@ -70,3 +70,7 @@ body {
   color: #717274;
   font-size: 12px;
 }
+
+.Message.pending .Message-message {
+  color: #aaa;
+}
