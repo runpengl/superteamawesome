@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import BasicToolbar from "./src/BasicToolbar";
-import HuntToolbar from "./src/HuntToolbar";
-import PuzzleToolbar from "./src/PuzzleToolbar";
+import BasicToolbar from "./BasicToolbar";
+import HuntToolbar from "./HuntToolbar";
+import PuzzleToolbar from "./PuzzleToolbar";
 
 let toolbarType = null;
 let toolbarData = null;

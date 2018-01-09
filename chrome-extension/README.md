@@ -8,8 +8,36 @@ The Chrome Extension has three major components: the popup, the background scrip
 
 ## Development
 
-You'll need a `config.js` in the root directory that declares a `config` variable with a `firebase` key,
-similar to the config needed for the `web-app`.
+### Config
 
-Then, to load the extension into Chrome, go to the [Extensions tab](chrome://extensions/),
-click "Load unpacked extension...", and select this directory (`chrome-extension`).
+You'll need a `config.js` in the `dist` directory that declares a `config` variable with the following properties:
+
+
+```js
+var config = {
+    firebase: {
+        apiKey: "EXAMPLE",
+        authDomain: "EXAMPLE.firebaseapp.com",
+        databaseURL: "https://EXAMPLE.firebaseio.com",
+        storageBucket: "EXAMPLE.appspot.com"
+    },
+    slack: {
+        clientId: "EXAMPLE",
+        clientSecret: "EXAMPLE"
+    }
+};
+````
+
+Do not check this file into version control; make sure that it is gitignored.
+
+### Build
+
+Run `npm install`, which should install the required dependencies for development and bundling.
+
+Next, run `webpack`, which reads configuration from `webpack.config.js` and `.babelrc` to preprocess and bundle the JavaScript source before outputting `*.bundle.js` files in `dist`.
+
+### Load
+
+
+Finally, to load the extension into Chrome, go to the [Extensions tab](chrome://extensions/),
+click "Load unpacked extension...", and select the directory `chrome-extension/dist`.
