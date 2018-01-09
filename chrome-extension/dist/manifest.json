@@ -7,10 +7,7 @@
 
   "background": {
     "scripts": [
-      "firebase-3.6.2.js",
-      "config.js",
-      "background/slack.js",
-      "background/index.js"
+      "background.bundle.js"
     ]
   },
 

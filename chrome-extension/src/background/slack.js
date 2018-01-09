@@ -1,4 +1,6 @@
-var Slack = (function() {
+import * as firebase from "firebase";
+
+import config from "./config"
 
 var accessToken = null;
 var slackUserId = null;
@@ -10,7 +12,8 @@ var webSocket = null;
 /** "authorized" | "connected" | "error"; */
 var connectState = null;
 var connectStateListeners = [];
-function onConnectStateChanged(callback) {
+
+export function onConnectStateChanged(callback) {
     if (connectState) {
         callback(connectState);
     }
@@ -46,7 +49,7 @@ function setConnectState(state) {
  * Retrieves a slack access token for the given user and initializes a
  * slack RTM session. New tokens are saved to `userPrivateData/$userId`.
  */
-function connect(interactive) {
+export function connect(interactive) {
     if (accessToken) {
         initSlackRtm();
     }
@@ -90,7 +93,7 @@ function connect(interactive) {
     });
 }
 
-function disconnect() {
+export function disconnect() {
     if (webSocket && webSocket.readyState !== WebSocket.CLOSED) {
         webSocket.close();
     }
@@ -179,14 +182,14 @@ function handleSlackWsMessage(event) {
     }
 }
 
-function joinChannel(channelName) {
+export function joinChannel(channelName) {
     xhrGet("https://slack.com/api/channels.join", {
         token: accessToken,
         name: channelName
     });
 }
 
-function subscribeToChannel(tabId, channelName, callback) {
+export function subscribeToChannel(tabId, channelName, callback) {
     connect(/*interactive*/false);
 
     if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
@@ -212,15 +215,6 @@ function notifySubscribers(channel) {
         });
     }
 }
-
-return {
-    connect: connect,
-    disconnect: disconnect,
-    onConnectStateChanged: onConnectStateChanged,
-    joinChannel: joinChannel,
-    subscribeToChannel: subscribeToChannel
-};
-})();
 
 //
 // XMLHttpRequest Helpers

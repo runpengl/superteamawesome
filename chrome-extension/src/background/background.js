@@ -1,3 +1,8 @@
+import * as firebase from "firebase";
+
+import config from "./config";
+import * as Slack from "./slack";
+
 // Initialization
 firebase.initializeApp(config.firebase);
 chrome.runtime.onMessage.addListener(handleChromeRuntimeMessage);
@@ -198,7 +203,6 @@ function handleChromeRuntimeConnect(port) {
             var huntRef = db.ref("hunts/" + toolbarInfo.huntKey);
 
             var puzzleHierarchy = [];
-            traverseParents(toolbarInfo.puzzleKey);
             function traverseParents(puzzleKey) {
                 db.ref("puzzles/" + puzzleKey)
                     .once("value", function(puzzle) {
@@ -215,6 +219,7 @@ function handleChromeRuntimeConnect(port) {
                         }
                     });
             }
+            traverseParents(toolbarInfo.puzzleKey);
 
             var detachPuzzleAndHuntRefs = onValue2(puzzleRef, huntRef, function(puzzle, hunt) {
                 port.postMessage({

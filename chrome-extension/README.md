@@ -10,11 +10,11 @@ The Chrome Extension has three major components: the popup, the background scrip
 
 ### Config
 
-You'll need a `config.js` in the `dist` directory that declares a `config` variable with the following properties:
+You'll need a `config.js` in the `src/background` directory that declares an object with the following properties:
 
 
 ```js
-var config = {
+export default {
     firebase: {
         apiKey: "EXAMPLE",
         authDomain: "EXAMPLE.firebaseapp.com",
