@@ -1,3 +1,10 @@
+a {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 body {
   margin: 0;
   overflow: hidden;
@@ -73,6 +80,57 @@ body {
   font-size: 12px;
 }
 
+.Message-message {
+  word-wrap: break-word;
+}
 .Message.pending .Message-message {
   color: #aaa;
+}
+.Message.system .Message-message {
+  color: #717274;
+}
+
+.Message-channelMention {
+  color: #0576b9;
+}
+
+.Message-userMention {
+  background: #eef7fd;
+  border-radius: 3px;
+  color: #0576b9;
+  padding: 0 2px 1px;
+}
+
+.Message-selfMention {
+  background: #fff6d1;
+  border-radius: 3px;
+  color: #2c2d30;
+  padding: 0 2px 1px;
+}
+
+.Message-edited {
+  font-size: 10px;
+  color: #717274;
+  margin-left: 5px;
+  cursor: default;
+}
+
+.Message-pre {
+  background: #f9f9f9;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 4px;
+  color: #333;
+  font-family: Consolas,monaco,"Ubuntu Mono",courier,monospace;
+  margin: 5px 0;
+  padding: 5px;
+}
+
+.Message-code {
+  color: #d14;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  font-family: Consolas,monaco,"Ubuntu Mono",courier,monospace;
+  font-size: 11px;
+  padding: 2px 3px 1px;
 }
