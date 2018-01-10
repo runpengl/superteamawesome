@@ -59,10 +59,9 @@ export function deleteSheet(spreadsheetFileId: string) {
             const request = gapi.client.drive.files.delete({ fileId: spreadsheetFileId });
             request.execute((response) => {
                 if ((response as Error).message !== undefined) {
-                    throw response;
-                } else {
-                    resolve();
+                    console.error(response);
                 }
+                resolve();
             });
         });
     });
