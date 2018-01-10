@@ -7,10 +7,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             injectChatWidget();
             break;
         case "removeChatWidget":
-            const chatWidget = document.getElementById("sta_chat");
-            if (chatWidget) {
-                chatWidget.parentNode.removeChild(chatWidget);
-            }
+            removeChatWidget();
+            break;
+        case "toggleChatWidget":
+            toggleChatWidget();
             break;
     }
 });
@@ -131,6 +131,26 @@ function injectChatWidget() {
     iframe.style.width = "300px";
     iframe.style.zIndex = "99999"; // match .docs-chat-pane
     document.documentElement.appendChild(iframe);
+}
+
+function removeChatWidget() {
+    const chatWidget = document.getElementById("sta_chat");
+    if (chatWidget) {
+        chatWidget.parentNode.removeChild(chatWidget);
+    }
+}
+
+function toggleChatWidget() {
+    const chatWidget = document.getElementById("sta_chat");
+    if (chatWidget) {
+        if (chatWidget.hasAttribute("data-sta-collapsed")) {
+            chatWidget.removeAttribute("data-sta-collapsed");
+            chatWidget.style.height = "400px";
+        } else {
+            chatWidget.setAttribute("data-sta-collapsed", true);
+            chatWidget.style.height = "30px";
+        }
+    }
 }
 
 function forEachChildNodeAdded(node, callback) {

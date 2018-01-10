@@ -33,12 +33,14 @@ body {
 .ChatWidget-header {
   background: #616161;
   color: #fff;
+  cursor: pointer;
   font-weight: bold;
   height: 30px;
   line-height: 30px;
   padding: 0 10px;
 }
 
+.ChatWidget-toggleButton,
 .ChatWidget-closeButton {
   align-items: center;
   cursor: pointer;
@@ -46,11 +48,19 @@ body {
   float: right;
   height: 20px;
   justify-content: center;
+  margin-left: 5px;
   margin-top: 5px;
   width: 20px;
 }
+.ChatWidget-toggleButton:hover,
 .ChatWidget-closeButton:hover {
   background: #999;
+}
+
+.ChatWidget-toggleIcon {
+  background: white;
+  height: 2px;
+  width: 12px;
 }
 
 .ChatWidget-closeIcon {

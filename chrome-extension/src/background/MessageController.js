@@ -106,6 +106,10 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             firebase.auth().signOut();
             Slack.disconnect();
             break;
+
+        case "toggleChatWidget":
+            chrome.tabs.sendMessage(sender.tab.id, { msg: "toggleChatWidget" });
+            break;
     }
 }
 

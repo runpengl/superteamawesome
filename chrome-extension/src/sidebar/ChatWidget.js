@@ -13,19 +13,23 @@ export default class ChatWidget extends React.Component {
 
     render() {
         return <div className="ChatWidget">
-            <div className="ChatWidget-header">
+            <div
+                className="ChatWidget-header"
+                onClick={() => chrome.runtime.sendMessage({ msg: "toggleChatWidget" })}
+            >
                 {this.props.channel
                     ? `#${this.props.channel.name}`
                     : "SuperTeamAwesome Chat"}
                 <div
                     className="ChatWidget-closeButton"
-                    onClick={function() {
-                        chrome.runtime.sendMessage({ msg: "closeChatWidget" });
-                    }}
+                    onClick={() => chrome.runtime.sendMessage({ msg: "closeChatWidget" })}
                 >
                     <svg className="ChatWidget-closeIcon" viewBox="0 0 32 32">
                         <polygon points="24.485,27.314 27.314,24.485 18.828,16 27.314,7.515 24.485,4.686 16,13.172 7.515,4.686 4.686,7.515 13.172,16 4.686,24.485 7.515,27.314 16,18.828 " />
                     </svg>
+                </div>
+                <div className="ChatWidget-toggleButton">
+                    <div className="ChatWidget-toggleIcon" />
                 </div>
             </div>
             {this.props.connectionStatus === "error"
