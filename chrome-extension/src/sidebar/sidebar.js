@@ -60,7 +60,7 @@ function renderSidebar({
             messages={messages}
             onConfirmMessage={msg => {
                 messages.push(msg);
-                renderSidebar(channel, connectionInfo, messages);
+                renderSidebar(data);
             }}
         />,
         document.getElementById("sidebar")

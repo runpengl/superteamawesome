@@ -1,12 +1,12 @@
 import * as React from "react";
 
+import ChatComposer from "./ChatComposer";
 import MessageList from "./MessageList";
 
 export default class ChatWidget extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            inputValue: "",
             pendingMessages: []
         };
     }
@@ -53,53 +53,45 @@ export default class ChatWidget extends React.Component {
             return null;
         }
         return <div className="ChatWidget-composer">
-            <textarea
-                className="ChatWidget-composerInput"
+            <ChatComposer
                 placeholder={`Message #${this.props.channel.name}`}
-                value={this.state.inputValue}
-                onChange={this.handleInputChange.bind(this)}
-                onKeyDown={this.handleInputKeyDown.bind(this)}
+                onNewMessage={this.handleNewMessage.bind(this)}
+                connectionInfo={this.props.connectionInfo}
             />
         </div>;
     }
 
-    handleInputChange(event) {
-        this.setState({ inputValue: event.target.value });
-    }
+    handleNewMessage(message) {
+        const ts = `${Math.floor(Date.now() / 1000)}.808080`;
+        const pendingMessages = this.state.pendingMessages.slice();
+        pendingMessages.push({
+            type: "message",
+            user: this.props.connectionInfo.self.id,
+            text: message,
+            ts,
+            pending: true
+        });
 
-    handleInputKeyDown(event) {
-        if (event.key === "Enter") {
-            const ts = `${Math.floor(Date.now() / 1000)}.808080`;
-            const pendingMessages = this.state.pendingMessages.slice();
-            pendingMessages.push({
-                type: "message",
-                user: this.props.connectionInfo.self.id,
-                text: this.state.inputValue,
-                ts,
-                pending: true
-            });
-            this.setState({
-                inputValue: "",
-                pendingMessages
-            });
-            chrome.runtime.sendMessage({
-                msg: "sendMessage",
-                channel: this.props.channel.id,
-                message: this.state.inputValue
-            }, /*options*/{}, response => {
-                if (response.ok) {
-                    this.setState({
-                        pendingMessages: this.state.pendingMessages.filter(msg => msg.ts !== ts)
-                    });
-                    this.props.onConfirmMessage({
-                        type: "message",
-                        user: this.props.connectionInfo.self.id,
-                        ts: response.ts,
-                        text: response.text
-                    });
-                }
-            });
-            event.preventDefault();
-        }
+        // optimistic update
+        this.setState({ pendingMessages });
+
+        // send to slack via API and wait for confirmation
+        chrome.runtime.sendMessage({
+            msg: "sendMessage",
+            channel: this.props.channel.id,
+            message
+        }, /*options*/{}, response => {
+            if (response.ok) {
+                this.setState({
+                    pendingMessages: this.state.pendingMessages.filter(msg => msg.ts !== ts)
+                });
+                this.props.onConfirmMessage({
+                    type: "message",
+                    user: this.props.connectionInfo.self.id,
+                    ts: response.ts,
+                    text: response.text
+                });
+            }
+        });
     }
 }

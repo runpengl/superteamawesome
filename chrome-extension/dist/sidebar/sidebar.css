@@ -147,11 +147,18 @@ body {
   padding: 0 2px 1px;
 }
 
+.Message-command {
+  font-weight: 600;
+}
+
 .Message-selfMention {
   background: #fff6d1;
   border-radius: 3px;
   color: #2c2d30;
   padding: 0 2px 1px;
+}
+.Message-selfMention.Message-userMention {
+  color: #0576b9;
 }
 
 .Message-edited {

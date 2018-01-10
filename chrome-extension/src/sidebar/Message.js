@@ -21,7 +21,9 @@ export default function Message(props) {
         {props.collapsed ? null : <span className="Message-userName">
             {renderUserName(props.user, props.connectionInfo)}
         </span>}
-        {props.collapsed ? null : <span className="Message-timestamp">{renderTime(props.ts)}</span>}
+        {props.collapsed || props.pending ? null : <span className="Message-timestamp">
+            {renderTime(props.ts)}
+        </span>}
         <div className="Message-message">
             {renderRichText(props.text, props.connectionInfo)}
             {props.edited ? <span className="Message-edited">(edited)</span> : null}
@@ -123,7 +125,13 @@ function renderChannelMention([id, displayName], connectionInfo, key) {
 
 function renderUserMention([id, displayName], connectionInfo, key) {
     const users = connectionInfo.users.filter(user => user.id === id);
-    return <span className="Message-userMention" key={key}>
+    return <span
+        key={key}
+        className={cx({
+            "Message-userMention": true,
+            "Message-selfMention": id === connectionInfo.self.id
+        })}
+    >
         @{displayName || (users.length === 0 ? "unknown" : users[0].name)}
     </span>;
 }
@@ -142,7 +150,7 @@ function renderCommand([commandName, displayName], key) {
             text = "@everyone";
             break;
     }
-    return <span className="Message-selfMention" key={key}>{text}</span>;
+    return <span className="Message-command Message-selfMention" key={key}>{text}</span>;
 }
 
 function renderLink([url, displayName], key) {
