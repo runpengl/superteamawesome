@@ -1,4 +1,19 @@
 injectToolbar();
+monitorPresence();
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    switch (request.msg) {
+        case "injectChatWidget":
+            injectChatWidget();
+            break;
+        case "removeChatWidget":
+            const chatWidget = document.getElementById("sta_chat");
+            if (chatWidget) {
+                chatWidget.parentNode.removeChild(chatWidget);
+            }
+            break;
+    }
+});
 
 function injectToolbar() {
     if (document.body.__staToolbarInjected) {
@@ -45,8 +60,6 @@ function injectToolbar() {
         document.body.style.transform = "translateY(" + toolbarHeight + ")";
     }
     document.body.__staToolbarInjected = true;
-
-    monitorPresence();
 }
 
 function monitorPresence() {
@@ -97,6 +110,27 @@ function injectSidebar(chatContainer) {
     iframe.style.width = "300px";
     iframe.style.zIndex = "801"; // match .docs-chat-pane
     chatContainer.appendChild(iframe);
+}
+
+function injectChatWidget() {
+    if (document.getElementById("sta_sidebar") || document.getElementById("sta_chat")) {
+        // Already injected
+        return;
+    }
+
+    var iframe = document.createElement("iframe");
+    iframe.id = "sta_chat";
+    iframe.src = chrome.extension.getURL("sidebar/sidebar.html");
+    iframe.style.background = "#fff";
+    iframe.style.border = "0";
+    iframe.style.display = "block";
+    iframe.style.height = "400px";
+    iframe.style.right = "30px";
+    iframe.style.position = "fixed";
+    iframe.style.bottom = "0";
+    iframe.style.width = "300px";
+    iframe.style.zIndex = "99999"; // match .docs-chat-pane
+    document.documentElement.appendChild(iframe);
 }
 
 function forEachChildNodeAdded(node, callback) {

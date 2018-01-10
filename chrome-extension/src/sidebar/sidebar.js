@@ -4,6 +4,16 @@ import * as ReactDOM from "react-dom";
 import ChatWidget from "./ChatWidget";
 
 let port;
+let data = {
+    channel: null,
+    connectionInfo: null,
+    connectionStatus: "disconnected",
+    messages: []
+};
+
+renderSidebar(data);
+refreshConnection();
+
 function refreshConnection() {
     if (port) {
         port.disconnect();
@@ -11,13 +21,6 @@ function refreshConnection() {
     // Initialize a connection with the background script, which
     // will continue to send data as long as this connection is open.
     port = chrome.runtime.connect({ name: "sidebarLoad" });
-
-    let data = {
-        channel: null,
-        connectionInfo: null,
-        connectionStatus: "disconnected",
-        messages: []
-    };
     port.onMessage.addListener(function(event) {
         console.log(event);
         switch (event.msg) {
@@ -42,8 +45,6 @@ function refreshConnection() {
         refreshConnection();
     });
 }
-
-refreshConnection();
 
 function renderSidebar({
     channel,

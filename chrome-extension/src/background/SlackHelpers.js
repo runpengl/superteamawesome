@@ -160,7 +160,7 @@ function initSlackRtm() {
         response.channels.forEach(function(channel) {
             slackChannelById[channel.id] = channel;
             slackChannelIdByName[channel.name] = channel.id;
-            notifySubscribers({ type: "rtm.start" }, channel);
+            notifySubscribers({ type: "sta_rtm_start" }, channel);
         });
         connectionInfo = response;
 
@@ -252,7 +252,7 @@ export function subscribeToChannel(key, channelName, callback) {
     }
     subscriberTabIdsByChannelName[channelName][key] = callback;
     if (slackChannelIdByName[channelName]) {
-        callback(slackChannelById[slackChannelIdByName[channelName]]);
+        callback({ type: "sta_subscribe" }, slackChannelById[slackChannelIdByName[channelName]]);
     }
     return function unsubscribe() {
         delete subscriberTabIdsByChannelName[channelName][key];

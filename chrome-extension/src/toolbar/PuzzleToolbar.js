@@ -6,11 +6,14 @@ import PuzzleHierarchyBreadcrumbs from "./PuzzleHierarchyBreadcrumbs";
 import PuzzleStatusPicker from "./PuzzleStatusPicker";
 
 export default function PuzzleToolbar(props) {
+    if (!props.puzzle) {
+        return <div className="Toolbar" />;
+    }
     return <div className="Toolbar">
         <PuzzleStatusPicker puzzle={props.puzzle} />
         <PuzzleHierarchyBreadcrumbs hunt={props.hunt} hierarchy={props.hierarchy} />
 
-        <div className="Toolbar-puzzleName">{props.puzzle.name}</div>
+        <div className="Toolbar-puzzleName">{props.puzzle && props.puzzle.name}</div>
 
         {props.location === "puzzle" ? null : <a
             className="Toolbar-link"
@@ -30,10 +33,8 @@ export default function PuzzleToolbar(props) {
                   href={`slack://channel?team=T03A0NUTH&id=${props.puzzle.slackChannelId}`}
               >open in app</a>
             : <div className="Toolbar-slackInfo">
-                  <a
+                  <div
                       className="Toolbar-link"
-                      target="_parent"
-                      href={`https://superteamawesome.slack.com/messages/${props.puzzle.slackChannelId}`}
                       onClick={function() {
                           if (props.slackChannel && !props.slackChannel.is_member) {
                               chrome.runtime.sendMessage({
@@ -41,8 +42,11 @@ export default function PuzzleToolbar(props) {
                                   name: props.puzzle.slackChannel
                               });
                           }
+                          chrome.runtime.sendMessage({
+                              msg: "openChatWidget"
+                          });
                       }}
-                  >slack</a>
+                  >slack</div>
 
                   {props.puzzle.status === "solved" || !props.slackChannel || props.slackChannel.is_member
                       ? null

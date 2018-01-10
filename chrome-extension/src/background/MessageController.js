@@ -16,6 +16,10 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             Slack.connect(/*interactive*/true);
             break;
 
+        case "closeChatWidget":
+            chrome.tabs.sendMessage(sender.tab.id, { msg: "removeChatWidget" });
+            break;
+
         case "joinChannel":
             Slack.joinChannel(request.name);
             break;
@@ -52,6 +56,10 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 puzzleId: puzzleKey,
                 status: request.status
             });
+            break;
+
+        case "openChatWidget":
+            chrome.tabs.sendMessage(sender.tab.id, { msg: "injectChatWidget" });
             break;
 
         case "pageVisibilityChange":

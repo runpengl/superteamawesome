@@ -50,6 +50,7 @@ body {
 
 .Toolbar-link {
   color: #1c71b9;
+  cursor: pointer;
   display: inline-block;
   line-height: 100%;
   margin-left: 10px;
