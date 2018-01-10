@@ -17,7 +17,7 @@ web-app/server/**/*.js
 # Editor cruft
 .vscode/
 .idea/
-*config.ts
-*config.js
+config.ts
+config.js
 *.swp
 *slackbot_auth.json
