@@ -59,7 +59,7 @@ export default class ChatWidget extends React.Component {
             <div className="ChatWidget-composer">
                 <textarea
                     className="ChatWidget-composerInput"
-                    placeholder={`Message ${this.props.channel.name}`}
+                    placeholder={`Message #${this.props.channel.name}`}
                     value={this.state.inputValue}
                     onChange={this.handleInputChange.bind(this)}
                     onKeyDown={this.handleInputKeyDown.bind(this)}

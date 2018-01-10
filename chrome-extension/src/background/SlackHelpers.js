@@ -231,7 +231,7 @@ export function getChannelHistory(channelId, callback) {
     xhrGet("https://slack.com/api/channels.history", {
         token: accessToken,
         channel: channelId,
-        count: 200,
+        count: 1000,
     }, callback);
 }
 

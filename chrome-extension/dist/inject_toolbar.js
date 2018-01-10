@@ -95,7 +95,7 @@ function injectSidebar(chatContainer) {
     iframe.style.position = "absolute";
     iframe.style.top = "0";
     iframe.style.width = "300px";
-    iframe.style.zIndex = "99999";
+    iframe.style.zIndex = "801"; // match .docs-chat-pane
     chatContainer.appendChild(iframe);
 }
 

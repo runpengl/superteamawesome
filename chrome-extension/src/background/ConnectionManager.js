@@ -363,7 +363,7 @@ function initializeSidebar(port) {
             });
 
             const unsubscribeChannel = Slack.subscribeToChannel(
-                `sidebar${tabId}`, tabId, toolbarInfo.slackChannel, msg => {
+                `sidebar${tabId}`, toolbarInfo.slackChannel, msg => {
                     switch (msg.type) {
                         case "message":
                             port.postMessage({
