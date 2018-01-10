@@ -2,7 +2,10 @@
   "name": "chrome-extension",
   "version": "0.6.2",
   "description": "SuperTeamAwesome Toolbar",
-  "scripts": {},
+  "scripts": {
+    "dist": "webpack",
+    "watch": "webpack --watch"
+  },
   "author": "vsiao",
   "license": "MIT",
   "dependencies": {

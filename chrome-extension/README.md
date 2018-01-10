@@ -34,7 +34,9 @@ Do not check this file into version control; make sure that it is gitignored.
 
 Run `npm install`, which should install the required dependencies for development and bundling.
 
-Next, run `webpack`, which reads configuration from `webpack.config.js` and `.babelrc` to preprocess and bundle the JavaScript source before outputting `*.bundle.js` files in `dist`.
+Next, run `npm run dist` (or `yarn dist` if you have yarn), which reads configuration from `webpack.config.js` and `.babelrc` to preprocess and bundle the JavaScript source before outputting `*.bundle.js` files in `dist`.
+
+To have webpack watch your changes while you develop, run `npm run watch` or `yarn watch`.
 
 ### Load
 
