@@ -15,7 +15,7 @@ let slackChannelById = {};
 let slackChannelIdByName = {};
 let wsMessageConfirmationCallbacks = {};
 
-/** "disconnected" | "authorized" | "connected" | "error"; */
+/** "disconnected" | "connecting" | "authorized" | "connected" | "error"; */
 let connectState = "disconnected";
 const connectStateListeners = [];
 
@@ -82,6 +82,7 @@ export function connect(interactive) {
             initSlackRtm();
             return;
         }
+        setConnectState("connecting");
 
         // Authorize Slack via chrome.identity API
         chrome.identity.launchWebAuthFlow({

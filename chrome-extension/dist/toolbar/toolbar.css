@@ -44,12 +44,14 @@ body {
 
 .Toolbar-slackInfo {
   display: inline-block;
+  line-height: 100%;
   position: relative;
 }
 
 .Toolbar-link {
   color: #1c71b9;
   display: inline-block;
+  line-height: 100%;
   margin-left: 10px;
   text-decoration: none;
 }

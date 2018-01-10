@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import Message from "./Message";
+import MessageList from "./MessageList";
 
 export default class ChatWidget extends React.Component {
     constructor(props) {
@@ -11,60 +11,45 @@ export default class ChatWidget extends React.Component {
         };
     }
 
-    componentDidMount() {
-        this.messagesNode.scrollTop = this.messagesNode.scrollHeight;
-    }
-
-    componentWillReceiveProps(nextProps) {
-        this.setState({
-            shouldStickToBottom: this.messagesNode.scrollTop ===
-                this.messagesNode.scrollHeight - this.messagesNode.offsetHeight
-        });
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if (
-            prevState.pendingMessages.length < this.state.pendingMessages.length ||
-            this.state.shouldStickToBottom
-        ) {
-            this.messagesNode.scrollTop = this.messagesNode.scrollHeight;
-        }
-    }
-
     render() {
-        const allMessages = this.props.messages.concat(this.state.pendingMessages);
         return <div className="ChatWidget">
             <div className="ChatWidget-header">
-                #{this.props.channel.name}
+                {this.props.channel
+                    ? `#${this.props.channel.name}`
+                    : "SuperTeamAwesome Chat"}
             </div>
-            <div className="ChatWidget-messages" ref={n => this.messagesNode = n}>
-                {allMessages.map((message, i) => {
-                    let collapsed = false;
-                    if (i > 0 && allMessages[i-1].user === message.user) {
-                        const currentTs = parseInt(message.ts.split(".")[0], 10);
-                        const prevTs = parseInt(allMessages[i-1].ts.split(".")[0], 10);
-                        if (prevTs >= currentTs - 60 * 5) {
-                            // last message was by the same user within 5 minutes; collapse
-                            collapsed = true
-                        }
-                    }
-                    return <Message
-                        key={message.ts}
-                        {...message}
-                        collapsed={collapsed}
-                        connectionInfo={this.props.connectionInfo}
-                    />;
-                })}
-            </div>
-            <div className="ChatWidget-composer">
-                <textarea
-                    className="ChatWidget-composerInput"
-                    placeholder={`Message #${this.props.channel.name}`}
-                    value={this.state.inputValue}
-                    onChange={this.handleInputChange.bind(this)}
-                    onKeyDown={this.handleInputKeyDown.bind(this)}
-                />
-            </div>
+            {this.props.connectionStatus === "error"
+                ? this.renderSlackAuthPrompt()
+                : <MessageList
+                      messages={this.props.messages}
+                      pendingMessages={this.state.pendingMessages}
+                      connectionInfo={this.props.connectionInfo}
+                  />}
+            {this.maybeRenderFooter()}
+        </div>;
+    }
+
+    renderSlackAuthPrompt() {
+        return <div
+            className="ChatWidget-slackConnectionErrorBanner"
+            onClick={function() {
+                chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+            }}
+        >Couldn't connect to Slack. Try again?</div>;
+    }
+
+    maybeRenderFooter() {
+        if (!this.props.channel) {
+            return null;
+        }
+        return <div className="ChatWidget-composer">
+            <textarea
+                className="ChatWidget-composerInput"
+                placeholder={`Message #${this.props.channel.name}`}
+                value={this.state.inputValue}
+                onChange={this.handleInputChange.bind(this)}
+                onKeyDown={this.handleInputKeyDown.bind(this)}
+            />
         </div>;
     }
 

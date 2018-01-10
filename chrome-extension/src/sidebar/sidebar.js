@@ -12,22 +12,28 @@ function refreshConnection() {
     // will continue to send data as long as this connection is open.
     port = chrome.runtime.connect({ name: "sidebarLoad" });
 
-    let channel = null;
-    let connectionInfo = null;
-    let messages = [];
+    let data = {
+        channel: null,
+        connectionInfo: null,
+        connectionStatus: "disconnected",
+        messages: []
+    };
     port.onMessage.addListener(function(event) {
         console.log(event);
         switch (event.msg) {
+            case "slackConnectionStatus":
+                data.connectionStatus = event.status;
+                renderSidebar(data);
+                break;
+
             case "slackChannelInfo":
-                channel = event.data.channel;
-                connectionInfo = event.data.connectionInfo;
-                messages = event.data.messages;
-                renderSidebar(channel, connectionInfo, messages);
+                data = Object.assign({}, data, event.data);
+                renderSidebar(data);
                 break;
 
             case "slackMessage":
-                messages.push(event.data);
-                renderSidebar(channel, connectionInfo, messages);
+                data.messages.push(event.data);
+                renderSidebar(data);
                 break;
         }
     });
@@ -39,11 +45,17 @@ function refreshConnection() {
 
 refreshConnection();
 
-function renderSidebar(channel, connectionInfo, messages) {
+function renderSidebar({
+    channel,
+    connectionInfo,
+    connectionStatus,
+    messages
+}) {
     ReactDOM.render(
         <ChatWidget
             channel={channel}
             connectionInfo={connectionInfo}
+            connectionStatus={connectionStatus}
             messages={messages}
             onConfirmMessage={msg => {
                 messages.push(msg);

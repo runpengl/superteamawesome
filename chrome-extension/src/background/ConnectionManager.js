@@ -362,6 +362,13 @@ function initializeSidebar(port) {
                 });
             });
 
+            const unsubscribeSlackState = Slack.onConnectStateChanged(
+                function(state) {
+                    port.postMessage({
+                        msg: "slackConnectionStatus",
+                        status: state
+                    });
+                });
             const unsubscribeChannel = Slack.subscribeToChannel(
                 `sidebar${tabId}`, toolbarInfo.slackChannel, msg => {
                     switch (msg.type) {
@@ -375,6 +382,7 @@ function initializeSidebar(port) {
                 });
 
             port.onDisconnect.addListener(function() {
+                unsubscribeSlackState();
                 unsubscribeChannel();
             });
         });

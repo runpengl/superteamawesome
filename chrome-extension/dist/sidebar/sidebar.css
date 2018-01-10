@@ -14,6 +14,11 @@ body {
   height: 100vh;
 }
 
+#loading-indicator {
+  display: block;
+  margin: 100px auto;
+}
+
 /**
  * ChatWidget
  */
@@ -23,13 +28,6 @@ body {
   height: 100%;
 }
 
-.ChatWidget-messages {
-  flex: 1 1 auto;
-  min-height: 1px;
-  overflow-y: auto;
-  padding: 5px 0;
-}
-
 .ChatWidget-header {
   background: #616161;
   color: #fff;
@@ -37,6 +35,17 @@ body {
   height: 30px;
   line-height: 30px;
   padding: 0 10px;
+}
+
+.ChatWidget-slackConnectionErrorBanner {
+  background: #fbb03b;
+  color: #fff;
+  cursor: pointer;
+  line-height: 20px;
+  text-align: center;
+}
+.ChatWidget-slackConnectionErrorBanner:hover {
+  opacity: .9;
 }
 
 .ChatWidget-composer {
@@ -58,6 +67,16 @@ body {
 .ChatWidget-composerInput:focus {
   border-color: #4285f4;
   outline: none;
+}
+
+/**
+ * MessageList
+ */
+.MessageList {
+  flex: 1 1 auto;
+  min-height: 1px;
+  overflow-y: auto;
+  padding: 5px 0;
 }
 
 /**
