@@ -40,6 +40,7 @@ To have webpack watch your changes while you develop, run `npm run watch` or `ya
 
 ### Load
 
-
 Finally, to load the extension into Chrome, go to the [Extensions tab](chrome://extensions/),
 click "Load unpacked extension...", and select the directory `chrome-extension/dist`.
+
+To find the extensions tab click on the three dots on the top right > More tools > Extensions
