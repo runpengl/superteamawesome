@@ -129,6 +129,10 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
                 chatWidgetState: ChatWidgetState.state()
             });
             break;
+
+        case "userTyping":
+            Slack.sendTypingIndicator(request.channel);
+            break;
     }
 }
 

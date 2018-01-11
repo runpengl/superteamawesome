@@ -12,7 +12,6 @@ let pingOk = true;
 export let connectionInfo = null;
 
 let slackChannelById = {};
-let slackChannelIdByName = {};
 let wsMessageConfirmationCallbacks = {};
 
 /** "disconnected" | "connecting" | "authorized" | "connected" | "error"; */
@@ -121,7 +120,6 @@ export function disconnect() {
     }
     webSocket = null;
     slackChannelById = {};
-    slackChannelIdByName = {};
     wsOutgoingMessageCounter = 0;
     wsMessageConfirmationCallbacks = {};
     if (pingInterval) {
@@ -159,7 +157,6 @@ function initSlackRtm() {
         slackUserId = response.self.id;
         response.channels.forEach(function(channel) {
             slackChannelById[channel.id] = channel;
-            slackChannelIdByName[channel.name] = channel.id;
             notifySubscribers({ type: "sta_rtm_start" }, channel);
         });
         connectionInfo = response;
@@ -180,7 +177,6 @@ function handleSlackWsMessage(event) {
             break;
         case "channel_created":
             slackChannelById[msg.channel.id] = msg.channel;
-            slackChannelIdByName[msg.channel.name] = msg.channel.id;
             break;
         case "channel_joined":
             if (!slackChannelById.hasOwnProperty(msg.channel.id)) {
@@ -214,6 +210,19 @@ function handleSlackWsMessage(event) {
                 channel.unread_count++;
                 channel.unread_count_display++;
             }
+            notifySubscribers(msg, channel);
+            break;
+        case "user_typing":
+            var channel = slackChannelById[msg.channel];
+            channel.user_typing = true;
+            if (channel.user_typing_timeout) {
+                clearTimeout(channel.user_typing_timeout);
+            }
+            channel.user_typing_timeout = setTimeout(() => {
+                channel.user_typing_timeout = null;
+                channel.user_typing = false;
+                notifySubscribers({ type: "not_typing" }, channel);
+            }, 2000);
             notifySubscribers(msg, channel);
             break;
     }
@@ -257,21 +266,19 @@ export function markChannel(channelId, ts) {
     });
 }
 
-const subscriberTabIdsByChannelName = {};
-export function subscribeToChannel(key, channelName, callback) {
+const subscriberTabIdsByChannelId = {};
+export function subscribeToChannel(key, channelId, callback) {
     connect(/*interactive*/false);
 
-    if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
-        subscriberTabIdsByChannelName[channelName] = {};
+    if (!subscriberTabIdsByChannelId.hasOwnProperty(channelId)) {
+        subscriberTabIdsByChannelId[channelId] = {};
     }
-    subscriberTabIdsByChannelName[channelName][key] = callback;
-    if (slackChannelIdByName[channelName]) {
-        callback({ type: "sta_subscribe" }, slackChannelById[slackChannelIdByName[channelName]]);
-    }
+    subscriberTabIdsByChannelId[channelId][key] = callback;
+    callback({ type: "sta_subscribe" }, slackChannelById[channelId]);
     return function unsubscribe() {
-        delete subscriberTabIdsByChannelName[channelName][key];
-        if (Object.keys(subscriberTabIdsByChannelName[channelName]).length === 0) {
-            delete subscriberTabIdsByChannelName[channelName];
+        delete subscriberTabIdsByChannelId[channelId][key];
+        if (Object.keys(subscriberTabIdsByChannelId[channelId]).length === 0) {
+            delete subscriberTabIdsByChannelId[channelId];
         }
     };
 }
@@ -281,7 +288,7 @@ function notifySubscribers(msg, channel) {
         // might be a DM or group that we don't care about
         return;
     }
-    const subscriberMap = subscriberTabIdsByChannelName[channel.name];
+    const subscriberMap = subscriberTabIdsByChannelId[channel.id];
     if (subscriberMap) {
         Object.keys(subscriberMap).forEach(function(k) {
             subscriberMap[k](msg, channel);

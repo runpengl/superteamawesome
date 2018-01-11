@@ -95,6 +95,7 @@ export default class ChatWidget extends React.Component {
                       onFocus={this.handleComposerFocus.bind(this)}
                       onBlur={this.handleComposerBlur.bind(this)}
                       onNewMessage={this.handleNewMessage.bind(this)}
+                      channel={this.props.channel}
                       connectionInfo={this.props.connectionInfo}
                   />
               </div>

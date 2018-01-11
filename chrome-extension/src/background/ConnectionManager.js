@@ -388,6 +388,7 @@ function sendChannelInfo(channelId, port) {
                     });
                     break;
             }
+            console.log("[chat channel]", channel);
             port.postMessage({
                 msg: "slackChannelInfo",
                 data: { channel }

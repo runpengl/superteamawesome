@@ -1,3 +1,4 @@
+import cx from "classnames";
 import * as React from "react";
 
 import Message from "./Message";
@@ -96,6 +97,7 @@ export default class MessageList extends React.Component {
                         connectionInfo={this.props.connectionInfo}
                     />;
                 })}
+                {this.maybeRenderTypingIndicator()}
             </div>
         </div>;
     }
@@ -132,5 +134,12 @@ export default class MessageList extends React.Component {
                 Clear
             </span>
         </div>;
+    }
+
+    maybeRenderTypingIndicator() {
+        return <div className={cx({
+            "MessageList-typingIndicator": true,
+            visible: this.props.channel && this.props.channel.user_typing
+        })}>Someone is typing…</div>;
     }
 }

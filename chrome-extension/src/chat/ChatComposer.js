@@ -50,6 +50,11 @@ export default class ChatComposer extends React.Component {
 
             this.props.onNewMessage(message);
             event.preventDefault();
+        } else {
+            chrome.runtime.sendMessage({
+                msg: "userTyping",
+                channel: this.props.channel.id
+            });
         }
     }
 }
