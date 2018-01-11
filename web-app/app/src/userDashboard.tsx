@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
-import { InjectedRouter } from "react-router";
+import { Redirect } from "react-router";
 
 import {
     IAsyncLoaded,
@@ -35,33 +35,22 @@ interface IDispatchProps {
 
 export interface IUserDashboardProps extends IOwnProps, IStateProps, IDispatchProps {}
 
-interface IRouterContext {
-    router: InjectedRouter;
-}
-
 interface IUserDashboardState {
     isFirebaseLoggedIn?: boolean;
     loggedIn?: boolean;
+    isFirebaseLoaded: boolean;
 }
 
 class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUserDashboardState> {
     public state: IUserDashboardState = {
+        isFirebaseLoaded: false,
         isFirebaseLoggedIn: false,
         loggedIn: false,
     };
 
-    public context: IRouterContext;
-    static contextTypes = {
-        router: React.PropTypes.object.isRequired,
-    };
-
     public componentDidMount() {
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            if (user == null) {
-                this.context.router.push("/login");
-            } else {
-                this.setState({ isFirebaseLoggedIn: true });
-            }
+            this.setState({ isFirebaseLoaded: true, isFirebaseLoggedIn: user != null });    
         });
     }
 
@@ -81,6 +70,9 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
     }
 
     public render() {
+        if (this.state.isFirebaseLoaded && !this.state.isFirebaseLoggedIn) {
+            return <Redirect to="/login" />;
+        }
         if (this.state.loggedIn) {
             return this.renderDashboard();
         } else {

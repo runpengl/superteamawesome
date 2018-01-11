@@ -1,5 +1,5 @@
 import * as React from "react";
-import { InjectedRouter } from "react-router";
+import { Redirect } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
@@ -20,27 +20,17 @@ interface IDispatchProps {
 
 export interface ISlackAuthProps extends IDispatchProps, IOwnProps, IStateProps {}
 
-interface IRouterContext {
-    router: InjectedRouter;
-}
 
 class UnconnectedSlackAuth extends React.Component<ISlackAuthProps, {}> {
-    public context: IRouterContext;
-    static contextTypes = {
-        router: React.PropTypes.object.isRequired,
-    };
 
     public componentDidMount() {
         this.props.loadSlackToken(this.props.location.query.code);
     }
 
-    public componentDidUpdate(oldProps: ISlackAuthProps) {
-        if (oldProps.slackToken === undefined && this.props.slackToken !== undefined) {
-            this.context.router.push("/admin");
-        }
-    }
-
     public render() {
+        if (this.props.slackToken !== undefined) {
+            return <Redirect to="/admin" />;
+        }
         return <div>Logging into Slack...</div>;
     }
 }

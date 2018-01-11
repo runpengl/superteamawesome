@@ -6,66 +6,49 @@ const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const staticFileRegex = /\.(woff|svg|ttf|eot|gif|jpeg|jpg|png)([\?]?.*)$/;
-const autoprefixerConfig = {
-    browsers: [
-        "> 1%",
-        "last 2 versions",
-        "Firefox ESR",
-        "Opera 12.1",
-    ]
-};
 
 module.exports = {
     entry: {
         app: [
-            path.join(__dirname, "../app/build/src/app.js"),
-            path.join(__dirname, "../app/build/src/app.css"),
+            path.join(__dirname, "../app/src/app.tsx"),
+            path.join(__dirname, "../app/src/app.less"),
         ],
     },
     output: {
         filename: "[name].js",
-        path: path.join(__dirname, "../server/public/javascripts"),
+        path: path.resolve(__dirname, "../server/public/javascripts"),
     },
     devtool: "cheap-module-inline-source-map",
+    resolve: {
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".less"]
+    },
     module: {
-        preLoaders: [
-            {
-                test: /\.js$/,
-                loader: "source-map-loader",
-                query: {
-                    presets: ['es2015']
-                }
-            },
-            {
-                test: /\.css$/,
-                loader: "source-map-loader",
-            }
-        ],
         loaders: [
+            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
             {
-                test: /\.css$/,
-                loader: ExtractTextPlugin.extract("style", "css?sourceMap!postcss"),
-            },
-            {
-                test: staticFileRegex,
-                include: [
-                    path.resolve(__dirname, "../server/public"),
-                ],
-                loader: "file-loader",
-                query: {
-                    name: "[path][name].[ext]",
+                test: /\.tsx?$/,
+                loader: "awesome-typescript-loader",
+                options: {
+                    configFileName: "./app/src/tsconfig.json",
                 },
             },
+
             {
-                test: /\.json$/,
-                loader: "json"
-            }
+                test: /\.less$/,
+                loader: ExtractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: "css-loader!less-loader",
+                })
+            },
+
+            // All font files will be handled by 'file-loader'
+            {
+                test: /\.(eot|svg|ttf|woff|woff2|jpg|png)$/,
+                loader: "file-loader",
+            },
         ],
     },
     plugins: [
         new ExtractTextPlugin("../stylesheets/[name].css"),
-    ],
-    postcss: function () {
-        return [ autoprefixer(autoprefixerConfig) ];
-    },
+    ]
 };
