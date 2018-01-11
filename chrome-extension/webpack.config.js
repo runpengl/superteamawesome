@@ -4,6 +4,7 @@ const webpack = require("webpack");
 const config = {
     entry: {
         background: "./src/background/background.js",
+        dashboard: "./src/dashboard/dashboard.js",
         popup: "./src/popup/popup.js",
         sidebar: "./src/sidebar/sidebar.js",
         toolbar: "./src/toolbar/toolbar.js"

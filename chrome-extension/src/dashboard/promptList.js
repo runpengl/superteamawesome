@@ -1,4 +1,5 @@
-var prompts = [
+export default {
+    promptsList: [
 "Super Tired Asians",
 "Secret Time Apocalypse",
 "Secretly Tall Asians",
@@ -152,4 +153,4 @@ var prompts = [
 "Struggling Telemarketers Anonymous",
 "Slightly Ticklish Armpits",
 "Sunburnt Toast Adjustments"
-];
+]};
