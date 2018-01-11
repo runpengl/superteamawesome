@@ -15,4 +15,5 @@
 # [START app_yaml]
 runtime: nodejs
 env: flex
+service: slackbot
 # [END app_yaml]

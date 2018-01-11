@@ -2,15 +2,13 @@
   "manifest_version": 2,
 
   "name": "SuperTeamAwesome Toolbar",
-  "description": "MIT Mystery Hunt Helper",
-  "version": "0.6.1",
+  "description": "Mystery Hunt Helper",
+  "version": "0.7.0",
 
   "background": {
     "scripts": [
-      "firebase-3.6.2.js",
-      "config.js",
-      "background/slack.js",
-      "background/index.js"
+      "firebase.js",
+      "background.bundle.js"
     ]
   },
 
@@ -40,6 +38,7 @@
   ],
 
   "web_accessible_resources": [
+    "sidebar/sidebar.html",
     "toolbar/toolbar.html"
   ]
 }

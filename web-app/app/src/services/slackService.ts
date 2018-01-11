@@ -5,7 +5,7 @@ const { slack: slackConfig } = config;
 
 export function getSlackAuthUrl() {
     const { slack: slackConfig } = config;
-    const scope = "channels:write team:read";
+    const scope = "channels:write team:read client";
     return `https://slack.com/oauth/authorize?client_id=${slackConfig.clientId}`
         + `&redirect_uri=${slackConfig.redirectURL}`
         + `&team=${slackConfig.team}`
@@ -71,9 +71,27 @@ function archiveChannel(token: string, id: string): Promise<void> {
     })
 }
 
+function setChannelTopic(token: string, id: string, topic: string): Promise<void> {
+    return makeRequest<ISlackResponse>(`${slackApi}/channels.setTopic?token=${token}&channel=${id}&topic=${topic}`, "GET").then((responses) => {
+        if (!responses.ok) {
+            throw new Error(responses.error);
+        }
+    });
+}
+
+function leaveChannel(token: string, id: string): Promise<void> {
+    return makeRequest<ISlackResponse>(`${slackApi}/channels.leave?token=${token}&channel=${id}`, "GET").then((response) => {
+        if (!response.ok) {
+            throw new Error(response.error);
+        }
+    })
+}
+
 const channels = {
     create: createChannel,
     archive: archiveChannel,
+    leave: leaveChannel,
+    setTopic: setChannelTopic,
 };
 
 export interface ISlackTeamInfo {

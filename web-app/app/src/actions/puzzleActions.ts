@@ -2,12 +2,13 @@
 
 import { Dispatch } from "redux";
 import * as firebase from "firebase";
-import { IGoogleDriveFile } from "gapi";
+import { IGoogleDriveFile, IGoogleShortUrl } from "gapi";
 
 import { firebaseDatabase } from "../auth";
 import {
     createSheet,
     deleteSheet,
+    getShortUrl,
     ISlackChannel,
     setSheetLinks,
     setSheetPuzzleLink,
@@ -216,6 +217,7 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
         let spreadsheet: IGoogleDriveFile;
         let slackChannel: ISlackChannel;
         let ignoreLink: boolean;
+        let shortPuzzleUrl: string;
         checkPuzzleExists
             .then(() => {
                 // save the domain if it doesn't exist
@@ -265,8 +267,22 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
             .then((channel: ISlackChannel) => {
                 slackChannel = channel;
                 return setSheetLinks(spreadsheet.id,
-                    `http://${host}${path}`,
+                    puzzleLink,
                     `https://superteamawesome.slack.com/messages/${channel.name}`);
+            })
+            .then(() => {
+                return getShortUrl(puzzleLink);
+            })
+            .then((shortUrl: IGoogleShortUrl) => {
+                shortPuzzleUrl = shortUrl.id;
+                return getShortUrl(`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit`);
+            })
+            .then((shortUrl: IGoogleShortUrl) => {
+                const topic = `Puzzle: ${shortPuzzleUrl} | GSheet: ${shortUrl.id}`;
+                return slack.channels.setTopic(auth.slackToken, slackChannel.id, topic);
+            })
+            .then(() => {
+                return slack.channels.leave(auth.slackToken, slackChannel.id);
             })
             .then(() => {
                 const newPuzzle: IPuzzle = {
@@ -334,6 +350,8 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
 
         let spreadsheet: IGoogleDriveFile;
         let slackChannel: ISlackChannel;
+        let puzzleLink = `http://${discoveredPage.host}${discoveredPage.path}`;
+        let shortPuzzleUrl: string;
         checkPuzzleExists
             .then((exists: boolean) => {
                 if (exists) {
@@ -349,8 +367,22 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
             .then((channel: ISlackChannel) => {
                 slackChannel = channel;
                 return setSheetLinks(spreadsheet.id,
-                    `http://${discoveredPage.host}${discoveredPage.path}`,
+                    puzzleLink,
                     `https://superteamawesome.slack.com/messages/${channel.name}`);
+            })
+            .then(() => {
+                return getShortUrl(puzzleLink);
+            })
+            .then((shortUrl: IGoogleShortUrl) => {
+                shortPuzzleUrl = shortUrl.id;
+                return getShortUrl(`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit`);
+            })
+            .then((shortUrl: IGoogleShortUrl) => {
+                const topic = `Puzzle: ${shortPuzzleUrl} | GSheet: ${shortUrl.id}`;
+                return slack.channels.setTopic(auth.slackToken, slackChannel.id, topic);
+            })
+            .then(() => {
+                return slack.channels.leave(auth.slackToken, slackChannel.id);
             })
             .then(() => {
                 const newPuzzle: IPuzzle = {

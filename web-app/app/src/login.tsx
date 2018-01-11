@@ -1,13 +1,12 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { InjectedRouter } from "react-router";
+import { Redirect } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
-import * as ReactGoogleLogin from "react-google-login";
 import GoogleLogin from "react-google-login";
 
 import { config } from "./config";
 import { loginAction } from "./actions";
-import { firebaseAuth } from "./auth";
+import { firebaseAuth, scopes } from "./auth";
 import { IAppState } from "./state";
 
 // props from redux state
@@ -24,35 +23,24 @@ interface IDispatchProps {
     login: (accessToken: string) => void;
 }
 
-interface IRouterContext {
-    router: InjectedRouter;
-}
-
 export interface ILoginProps extends IStateProps, IOwnProps, IDispatchProps {}
 
 interface ILoginState {
     loginErrors?: string;
     googleLogin?: boolean;
     showLogin?: boolean;
+    isFirebaseLoaded: boolean;
 }
 
 class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
     public state: ILoginState = {
         loginErrors: undefined,
-    };
-
-    public context: IRouterContext;
-    static contextTypes = {
-        router: React.PropTypes.object.isRequired,
+        isFirebaseLoaded: false,
     };
 
     public componentDidMount() {
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            if (user != null) {
-                this.context.router.push("/admin");
-            } else {
-                this.setState({ showLogin: true });
-            }
+            this.setState({ showLogin: user == null, isFirebaseLoaded: true });
         });
     }
 
@@ -63,18 +51,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
             let elapsedTime = 0, w = 0, h = 0, cx = 0, cy = 0;
             let d = Date.now()
 
-            window.addEventListener("resize", resizeCanvas, false);
-
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                
-                drawBackground(); 
-            }
-
-            resizeCanvas();
-
-            function drawDiamond(ox: number, oy: number, w: number, h: number, c: string) {
+            const drawDiamond = function(ox: number, oy: number, w: number, h: number, c: string) {
                 w = w || 100;
                 h = h || 200;
                 context.beginPath();
@@ -88,7 +65,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                 context.fill();
             }
 
-            function drawBackground() {
+            const drawBackground = function() {
                 var DIA_WIDTH = 100
                 var DIA_HEIGHT = 190
                 var rA = 254, rB = 210
@@ -116,10 +93,21 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                 }
             }
 
-            function animateBackground() {
+            const animateBackground = function() {
                 elapsedTime = (Date.now() - d) / 1000;
                 drawBackground();
             }
+
+            const resizeCanvas = function() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                drawBackground(); 
+            }
+
+            window.addEventListener("resize", resizeCanvas, false);
+
+            resizeCanvas();
 
             window.setInterval(animateBackground,80);
         }
@@ -127,6 +115,10 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
 
     public render() {
         const random = Math.floor(Math.random() * 8);
+        if (this.state.isFirebaseLoaded && !this.state.showLogin) {
+            return <Redirect to="/admin" />;
+        }
+
         if (this.state.showLogin) {
             return (
                 <div className="login">
@@ -142,6 +134,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                             clientId={config.google.clientId}
                             onSuccess={this.handleLogin}
                             onFailure={this.handleLoginFailure}
+                            scope={scopes.join(" ")}
                         />
                     </div>
                     <canvas id="poofytoo"></canvas>
@@ -152,7 +145,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
         }
     }
 
-    private handleLogin = (response: ReactGoogleLogin.GoogleLoginResponse) => {
+    private handleLogin = (response: any) => {
         const { login } = this.props;
         login(response.getAuthResponse().access_token);
     }

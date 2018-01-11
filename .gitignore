@@ -9,6 +9,7 @@ node_modules
 *.DS_Store
 
 # Build cruft
+chrome-extension/dist/*.bundle.js
 web-app/server/public
 web-app/app/build
 web-app/server/**/*.js
@@ -16,7 +17,7 @@ web-app/server/**/*.js
 # Editor cruft
 .vscode/
 .idea/
-*config.ts
-*config.js
+config.ts
+config.js
 *.swp
 *slackbot_auth.json

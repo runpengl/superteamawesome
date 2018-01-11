@@ -1,3 +1,6 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+
 initApp();
 
 var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
@@ -100,13 +103,32 @@ function renderPopup() {
     );
 }
 
-var r = React.DOM;
-var Popup = React.createClass({
-    displayName: "Popup",
-    getInitialState: function() {
-        return { sortBy: "rounds" };
-    },
-    render: function() {
+var r = {};
+[
+    "a",
+    "canvas",
+    "circle",
+    "div",
+    "g",
+    "img",
+    "input",
+    "li",
+    "path",
+    "span",
+    "strong",
+    "svg",
+    "ul"
+].map(function(type) { r[type] = React.createFactory(type); });
+
+class Popup extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            sortBy: "rounds"
+        };
+    }
+
+    render() {
         var props = this.props;
         return r.div({ className: "Popup" },
             r.div({ className: "Popup-toolbar" },
@@ -163,7 +185,7 @@ var Popup = React.createClass({
                             : null,
                         r.div({
                             className: "Popup-sortToggle",
-                            onClick: this.handleSortToggleClick
+                            onClick: this.handleSortToggleClick.bind(this)
                         },
                             this.state.sortBy,
                             React.createElement(SortIcon, {
@@ -193,8 +215,9 @@ var Popup = React.createClass({
                     : null
             )
         );
-    },
-    handleSortToggleClick: function() {
+    }
+
+    handleSortToggleClick() {
         switch (this.state.sortBy) {
             case "rounds":
                 this.setState({ sortBy: "status" });
@@ -204,14 +227,17 @@ var Popup = React.createClass({
                 break;
         }
     }
-});
+}
 
-var PopupLogin = React.createClass({
-    displayName: "PopupLogin",
-    getInitialState: function() {
-        return { isSigningIn: false };
-    },
-    componentDidMount: function() {
+class PopupLogin extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isSigningIn: false
+        };
+    }
+
+    componentDidMount() {
         var me = this;
         var context = me.refs.canvas.getContext("2d");
         var w = 0, h = 0, cx = 0, cy = 0;
@@ -264,11 +290,13 @@ var PopupLogin = React.createClass({
             window.requestAnimationFrame(drawBackground);
         }
         drawBackground(0);
-    },
-    componentWillReceiveProps: function() {
+    }
+
+    componentWillReceiveProps() {
         this.setState({ isSigningIn: false });
-    },
-    render: function() {
+    }
+
+    render() {
         var me = this;
         return r.div({ className: "PopupLogin" },
             r.canvas({ ref: "canvas", className: "PopupLogin-background" }),
@@ -291,11 +319,10 @@ var PopupLogin = React.createClass({
                 }, "Sign in with Google")
         );
     }
-});
+}
 
-var AllPuzzles = React.createClass({
-    displayName: "AllPuzzles",
-    render: function() {
+class AllPuzzles extends React.Component {
+    render() {
         return r.div({ className: "AllPuzzles" },
             this.props.puzzles.length === 0
                 ? [
@@ -307,8 +334,9 @@ var AllPuzzles = React.createClass({
                 ]
                 : this.renderPuzzles()
         );
-    },
-    renderPuzzles: function() {
+    }
+
+    renderPuzzles() {
         switch (this.props.sortBy) {
             case "rounds":
                 return this.props.puzzleGroups.map(function(pg) {
@@ -339,21 +367,24 @@ var AllPuzzles = React.createClass({
                 }, this);
         }
     }
-});
+};
 
-var PuzzleList = React.createClass({
-    displayName: "PuzzleList",
-    getInitialState: function() {
-        return { isCollapsed: false };
-    },
-    render: function() {
+class PuzzleList extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isCollapsed: false
+        };
+    }
+
+    render() {
         var props = this.props;
         return r.div({
             className: "PuzzleList" + (this.state.isCollapsed ? " isCollapsed" : "")
         },
             r.div({
                 className: "PuzzleList-groupHeader",
-                onClick: this.handleHeaderClick
+                onClick: this.handleHeaderClick.bind(this)
             },
                 props.groupName,
                 this.props.groupType === "round"
@@ -368,8 +399,9 @@ var PuzzleList = React.createClass({
             ),
             this.renderPuzzles()
         );
-    },
-    renderPuzzles: function() {
+    }
+
+    renderPuzzles() {
         var props = this.props;
         return r.ul({ className: "PuzzleList-list" },
             props.puzzles.map(function(puzzle, i) {
@@ -416,11 +448,12 @@ var PuzzleList = React.createClass({
                 );
             })
         );
-    },
-    handleHeaderClick: function() {
+    }
+
+    handleHeaderClick() {
         this.setState({ isCollapsed: !this.state.isCollapsed });
     }
-});
+}
 
 function KeyIcon(props) {
     return r.svg({

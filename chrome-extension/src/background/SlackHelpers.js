@@ -1,16 +1,25 @@
-var Slack = (function() {
+import * as firebase from "firebase";
 
-var accessToken = null;
-var slackUserId = null;
-var slackChannelById = {};
-var slackChannelIdByName = {};
-var subscriberTabIdsByChannelName = {};
-var webSocket = null;
+import config from "./config"
 
-/** "authorized" | "connected" | "error"; */
-var connectState = null;
-var connectStateListeners = [];
-function onConnectStateChanged(callback) {
+let accessToken = null;
+let slackUserId = null;
+let webSocket = null;
+let wsOutgoingMessageCounter = 0;
+let pingInterval = null;
+let pingOk = true;
+
+export let connectionInfo = null;
+
+let slackChannelById = {};
+let slackChannelIdByName = {};
+let wsMessageConfirmationCallbacks = {};
+
+/** "disconnected" | "connecting" | "authorized" | "connected" | "error"; */
+let connectState = "disconnected";
+const connectStateListeners = [];
+
+export function onConnectStateChanged(callback) {
     if (connectState) {
         callback(connectState);
     }
@@ -35,6 +44,21 @@ function setConnectState(state) {
             .remove();
         accessToken = null;
     }
+    if (state === "connected") {
+        pingOk = true;
+        pingInterval = setInterval(function() {
+            if (!pingOk) {
+                // Haven't received response for previous ping yet. Disconnect.
+                disconnect();
+            } else {
+                pingOk = false;
+                maybeSend({
+                    type: "ping",
+                    timestamp: Date.now()
+                }, function() { pingOk = true; });
+            }
+        }, 3000);
+    }
     console.log("[slack/connectState]", state);
     connectState = state;
     connectStateListeners.forEach(function(callback) {
@@ -46,11 +70,11 @@ function setConnectState(state) {
  * Retrieves a slack access token for the given user and initializes a
  * slack RTM session. New tokens are saved to `userPrivateData/$userId`.
  */
-function connect(interactive) {
+export function connect(interactive) {
     if (accessToken) {
         initSlackRtm();
     }
-    var slackTokenRef = firebase.database().ref("userPrivateData")
+    const slackTokenRef = firebase.database().ref("userPrivateData")
         .child(firebase.auth().currentUser.uid).child("slackAccessToken");
     slackTokenRef.once("value", function(snap) {
         if (snap.val()) {
@@ -58,6 +82,7 @@ function connect(interactive) {
             initSlackRtm();
             return;
         }
+        setConnectState("connecting");
 
         // Authorize Slack via chrome.identity API
         chrome.identity.launchWebAuthFlow({
@@ -72,8 +97,8 @@ function connect(interactive) {
                 console.error(chrome.runtime.lastError);
                 setConnectState("error");
             } else {
-                var queryString = redirectUrl.split("?")[1];
-                var matchCode = queryString.match(/code=([^&]+)/);
+                const queryString = redirectUrl.split("?")[1];
+                const matchCode = queryString.match(/code=([^&]+)/);
                 if (matchCode) {
                     xhrGet("https://slack.com/api/oauth.access", {
                         client_id: config.slack.clientId,
@@ -90,16 +115,23 @@ function connect(interactive) {
     });
 }
 
-function disconnect() {
+export function disconnect() {
     if (webSocket && webSocket.readyState !== WebSocket.CLOSED) {
         webSocket.close();
     }
     webSocket = null;
     slackChannelById = {};
     slackChannelIdByName = {};
+    wsOutgoingMessageCounter = 0;
+    wsMessageConfirmationCallbacks = {};
+    if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+    }
+    setConnectState("disconnected");
 }
 
-var isStartingRtm = false;
+let isStartingRtm = false;
 function initSlackRtm() {
     if (webSocket || isStartingRtm) {
         return;
@@ -128,10 +160,11 @@ function initSlackRtm() {
         response.channels.forEach(function(channel) {
             slackChannelById[channel.id] = channel;
             slackChannelIdByName[channel.name] = channel.id;
-            notifySubscribers(channel);
+            notifySubscribers({ type: "sta_rtm_start" }, channel);
         });
+        connectionInfo = response;
 
-        var userInfoRef = firebase.database().ref("users")
+        const userInfoRef = firebase.database().ref("users")
             .child(firebase.auth().currentUser.uid);
         userInfoRef.child("slackUserName").set(response.self.name);
         userInfoRef.child("slackUserId").set(slackUserId);
@@ -139,7 +172,8 @@ function initSlackRtm() {
 }
 
 function handleSlackWsMessage(event) {
-    var msg = JSON.parse(event.data);
+    const msg = JSON.parse(event.data);
+    console.log("[slack/rtm.message]", msg);
     switch (msg.type) {
         case "hello":
             setConnectState("connected");
@@ -149,19 +183,25 @@ function handleSlackWsMessage(event) {
             slackChannelIdByName[msg.channel.name] = msg.channel.id;
             break;
         case "channel_joined":
+            if (!slackChannelById.hasOwnProperty(msg.channel.id)) {
+                slackChannelById[msg.channel.id] = msg.channel;
+            } else {
+                Object.assign(slackChannelById[msg.channel.id], msg.channel);
+            }
             slackChannelById[msg.channel.id] = msg.channel;
-            notifySubscribers(msg.channel);
+            notifySubscribers(msg, slackChannelById[msg.channel.id]);
             break;
         case "channel_left":
             var channel = slackChannelById[msg.channel];
             channel.is_member = false;
-            notifySubscribers(channel);
+            notifySubscribers(msg, channel);
             break;
         case "channel_marked":
             var channel = slackChannelById[msg.channel];
             channel.unread_count = msg.unread_count;
             channel.unread_count_display = msg.unread_count_display;
-            notifySubscribers(channel);
+            channel.last_read = msg.ts;
+            notifySubscribers(msg, channel);
             break;
         case "message":
             if (msg.subtype) {
@@ -173,54 +213,112 @@ function handleSlackWsMessage(event) {
             if (msg.user !== slackUserId && channel) {
                 channel.unread_count++;
                 channel.unread_count_display++;
-                notifySubscribers(channel);
             }
+            notifySubscribers(msg, channel);
             break;
+    }
+
+    if (
+        msg.hasOwnProperty("reply_to") &&
+        wsMessageConfirmationCallbacks.hasOwnProperty(msg.reply_to)
+    ) {
+        wsMessageConfirmationCallbacks[msg.reply_to](msg);
+        delete wsMessageConfirmationCallbacks[msg.reply_to];
     }
 }
 
-function joinChannel(channelName) {
+export function getChannelInfo(channelId, callback) {
+    xhrGet("https://slack.com/api/channels.info", {
+        token: accessToken,
+        channel: channelId
+    }, callback);
+}
+
+export function getChannelHistory(channelId, callback) {
+    xhrGet("https://slack.com/api/channels.history", {
+        token: accessToken,
+        channel: channelId,
+        count: 1000,
+    }, callback);
+}
+
+export function joinChannel(channelName) {
     xhrGet("https://slack.com/api/channels.join", {
         token: accessToken,
         name: channelName
     });
 }
 
-function subscribeToChannel(tabId, channelName, callback) {
+export function markChannel(channelId, ts) {
+    xhrGet("https://slack.com/api/channels.mark", {
+        token: accessToken,
+        channel: channelId,
+        ts
+    });
+}
+
+const subscriberTabIdsByChannelName = {};
+export function subscribeToChannel(key, channelName, callback) {
     connect(/*interactive*/false);
 
     if (!subscriberTabIdsByChannelName.hasOwnProperty(channelName)) {
         subscriberTabIdsByChannelName[channelName] = {};
     }
-    subscriberTabIdsByChannelName[channelName][tabId] = callback;
+    subscriberTabIdsByChannelName[channelName][key] = callback;
     if (slackChannelIdByName[channelName]) {
-        callback(slackChannelById[slackChannelIdByName[channelName]]);
+        callback({ type: "sta_subscribe" }, slackChannelById[slackChannelIdByName[channelName]]);
     }
     return function unsubscribe() {
-        delete subscriberTabIdsByChannelName[channelName][tabId];
+        delete subscriberTabIdsByChannelName[channelName][key];
         if (Object.keys(subscriberTabIdsByChannelName[channelName]).length === 0) {
             delete subscriberTabIdsByChannelName[channelName];
         }
     };
 }
 
-function notifySubscribers(channel) {
-    var subscriberMap = subscriberTabIdsByChannelName[channel.name];
+function notifySubscribers(msg, channel) {
+    if (!channel) {
+        // might be a DM or group that we don't care about
+        return;
+    }
+    const subscriberMap = subscriberTabIdsByChannelName[channel.name];
     if (subscriberMap) {
         Object.keys(subscriberMap).forEach(function(k) {
-            subscriberMap[k](channel);
+            subscriberMap[k](msg, channel);
         });
     }
 }
 
-return {
-    connect: connect,
-    disconnect: disconnect,
-    onConnectStateChanged: onConnectStateChanged,
-    joinChannel: joinChannel,
-    subscribeToChannel: subscribeToChannel
-};
-})();
+function maybeSend(data, callback) {
+    if (webSocket) {
+        const id = ++wsOutgoingMessageCounter;
+        if (typeof callback === "function") {
+            wsMessageConfirmationCallbacks[id] = callback;
+        }
+        const msg = Object.assign({}, data, { id });
+        console.log("[slack/rtm.send]", msg);
+        webSocket.send(JSON.stringify(msg));
+    }
+}
+
+export function sendMessage(channelId, message, callback) {
+    if (webSocket) {
+        maybeSend({
+            type: "message",
+            channel: channelId,
+            text: message
+        }, callback);
+    }
+}
+
+export function sendTypingIndicator(channelId) {
+    if (webSocket) {
+        maybeSend({
+            type: "typing",
+            channel: channelId
+        });
+    }
+}
 
 //
 // XMLHttpRequest Helpers

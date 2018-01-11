@@ -28,34 +28,32 @@ export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () 
     dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
     return loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
         return new Promise((resolve, reject) => {
-            firebaseDatabase
-                .ref("hunts")
-                .orderByChild("isCurrent")
-                .equalTo(true)
-                .limitToFirst(1)
-                .on("value", (huntSnapshots) => {
-                    huntSnapshots.forEach((huntSnapshot) => {
-                        const hunt = huntSnapshot.val() as IHunt;
-                        if (slackAccessToken !== undefined) {
-                            slack.team.info(slackAccessToken).then((teamInfo) => {
-                                dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                    LOAD_HUNT_ACTION,
-                                    Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
-                                ));
-                            });
-                        } else {
+            firebaseDatabase.ref("currentHunt").once("value", (snapshot) => {
+                const huntRef = snapshot.val();
+                firebaseDatabase.ref(`hunts/${huntRef}`).once("value", (huntSnapshot) => {
+                    const hunt = huntSnapshot.val() as IHunt;
+                    if (slackAccessToken !== undefined) {
+                        slack.team.info(slackAccessToken).then((teamInfo) => {
                             dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
                                 LOAD_HUNT_ACTION,
-                                Object.assign({}, hunt, { year: huntSnapshot.key }),
+                                Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
                             ));
-                        }
-                        return true;
-                    });
+                        });
+                    } else {
+                        dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
+                            LOAD_HUNT_ACTION,
+                            Object.assign({}, hunt, { year: huntSnapshot.key }),
+                        ));
+                    }
                     resolve();
                 }, (error: Error) => {
                     dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
                     reject(error);
                 });
+            }, (error: Error) => {
+                dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+                reject(error);
+            });
         })
     });
 }
