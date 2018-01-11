@@ -3,7 +3,6 @@ ATS Mystery Hunt Organization Site
 
 ### Setup
 
-1. `npm install`
-1. `npm run setup` (make sure your /usr/local and such are appropriately permissioned)
-1. `npm run dev`
+1. `brew install yarn` or `npm install -g yarn` if you're not on Mac
+1. `yarn dev`
 1. Go to http://localhost:3000

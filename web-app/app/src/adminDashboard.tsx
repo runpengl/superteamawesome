@@ -1,8 +1,9 @@
 /// <reference path="../typings/custom/gapi.d.ts" />
 
 import * as React from "react";
-import { InjectedRouter } from "react-router";
 import { connect } from "react-redux";
+import { Redirect } from "react-router";
+import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
 
@@ -32,10 +33,7 @@ interface IAdminDashboardState {
     isLoading?: boolean;
     loggedIn?: boolean;
     loginError?: Error;
-}
-
-interface IRouterContext {
-    router: InjectedRouter;
+    isFirebaseLoaded: boolean;
 }
 
 interface IOwnProps {}
@@ -63,22 +61,14 @@ interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
 class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IAdminDashboardState> {
     public state: IAdminDashboardState = {
         isFirebaseLoggedIn: false,
+        isFirebaseLoaded: false,
         isLoading: true,
         loggedIn: false,
     };
 
-    public context: IRouterContext;
-    static contextTypes = {
-        router: React.PropTypes.object.isRequired,
-    };
-
     public componentDidMount() {
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            if (user == null) {
-                this.context.router.push("/login");
-            } else {
-                this.setState({ isFirebaseLoggedIn: true });
-            }
+            this.setState({ isFirebaseLoggedIn: user != null, isFirebaseLoaded: true });
         });
     }
 
@@ -133,6 +123,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     public render() {
         const { hunt, lifecycle } = this.props;
+        if (this.state.isFirebaseLoaded && !this.state.isFirebaseLoggedIn) {
+            return <Redirect to="/login" />;
+        }
+
         if (this.state.isLoading || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
             return (
                 <div className="dashboard">
@@ -141,7 +135,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                             <h1>STAPH [ADMIN]</h1>
                             <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                         </div>
-                        {lifecycle.loginError === undefined ? <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button> : undefined}
+                        {lifecycle.loginError === undefined ? <Link to="/admin/users"><button className="user-button">Manage Users</button></Link> : undefined}
                         <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                     </div>
                     <span>{ lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..." }</span>
@@ -224,10 +218,6 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         logout();
     }
 
-    private routeToUsersPage = () => {
-        this.context.router.push("/admin/users");
-    }
-
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
@@ -237,7 +227,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
-                    <button className="user-button" onClick={this.routeToUsersPage}>Manage Users</button>
+                    <Link to="/admin/users"><button className="user-button">Manage Users</button></Link>
                     <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
                 <div className="hunt-edit-container">
