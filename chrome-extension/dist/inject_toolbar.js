@@ -121,7 +121,6 @@ function injectChatWidget() {
     var iframe = document.createElement("iframe");
     iframe.id = "sta_chat";
     iframe.src = chrome.extension.getURL("sidebar/sidebar.html");
-    iframe.style.background = "#fff";
     iframe.style.border = "0";
     iframe.style.display = "block";
     iframe.style.height = "400px";

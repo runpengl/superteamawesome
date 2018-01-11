@@ -31,13 +31,53 @@ body {
 
 #sidebar-header,
 .ChatWidget-header {
-  background: #616161;
+  background: #4d394b;
+  border-radius: 3px 3px 0 0;
   color: #fff;
   cursor: pointer;
   font-weight: bold;
   height: 30px;
   line-height: 30px;
   padding: 0 10px;
+}
+
+.ChatWidget-headerOctothorpe {
+  color: #ccc;
+  font-weight: 300;
+  margin-right: 5px;
+}
+
+.ChatWidget-deeplink {
+  color: #fff;
+  position: relative;
+}
+
+.ChatWidget-deeplinkTooltip {
+  background: #333;
+  border-radius: 2px;
+  display: none;
+  font-size: 10px;
+  left: 100%;
+  line-height: normal;
+  margin-left: 10px;
+  padding: 3px 5px;
+  position: absolute;
+  top: -1px;
+  white-space: nowrap;
+}
+.ChatWidget-deeplinkTooltip::after {
+  border: 5px solid;
+  border-color: transparent #333;
+  border-left: none;
+  content: "";
+  display: block;
+  right: 100%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ChatWidget-deeplink:hover .ChatWidget-deeplinkTooltip {
+  display: block;
 }
 
 .ChatWidget-toggleButton,
@@ -54,7 +94,7 @@ body {
 }
 .ChatWidget-toggleButton:hover,
 .ChatWidget-closeButton:hover {
-  background: #999;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .ChatWidget-toggleIcon {
@@ -82,15 +122,17 @@ body {
 }
 
 .ChatWidget-composer {
-  background: #eee;
+  background: #fff;
   border: 1px solid #ddd;
   border-width: 0 1px;
   display: flex;
   flex-shrink: 0;
-  padding: 10px;
+  padding: 0 10px 10px;
 }
 
 .ChatWidget-composerInput {
+  border: 1px solid #aaa;
+  border-radius: 3px;
   display: block;
   flex: 1 1 auto;
   font-size: 12px;
@@ -100,7 +142,7 @@ body {
   resize: none;
 }
 .ChatWidget-composerInput:focus {
-  border-color: #4285f4;
+  border-color: #666;
   outline: none;
 }
 
@@ -137,6 +179,7 @@ body {
  * MessageList
  */
 .MessageList {
+  background: #fff;
   border: 1px solid #ddd;
   border-width: 0 1px;
   flex: 1 1 auto;

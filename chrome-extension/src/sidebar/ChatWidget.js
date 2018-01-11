@@ -18,7 +18,19 @@ export default class ChatWidget extends React.Component {
                 onClick={() => chrome.runtime.sendMessage({ msg: "toggleChatWidget" })}
             >
                 {this.props.channel
-                    ? `#${this.props.channel.name}`
+                    ? [
+                          <span className="ChatWidget-headerOctothorpe">#</span>,
+                          <a
+                              className="ChatWidget-deeplink"
+                              href={`slack://channel?team=T03A0NUTH&id=${this.props.channel.id}`}
+                              onClick={event => event.stopPropagation()}
+                          >
+                              {this.props.channel.name}
+                              <span className="ChatWidget-deeplinkTooltip">
+                                  Open in Slack
+                              </span>
+                          </a>
+                      ]
                     : "SuperTeamAwesome Chat"}
                 <div
                     className="ChatWidget-closeButton"
