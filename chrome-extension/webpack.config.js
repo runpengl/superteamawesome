@@ -5,7 +5,7 @@ const config = {
     entry: {
         background: "./src/background/background.js",
         popup: "./src/popup/popup.js",
-        sidebar: "./src/sidebar/sidebar.js",
+        chat: "./src/chat/chat.js",
         toolbar: "./src/toolbar/toolbar.js"
     },
     externals: {

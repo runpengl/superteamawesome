@@ -83,7 +83,7 @@ function injectChatWidget(chatWidgetState) {
     if (!document.getElementById("sta_chat")) {
         var iframe = document.createElement("iframe");
         iframe.id = "sta_chat";
-        iframe.src = chrome.extension.getURL("sidebar/sidebar.html");
+        iframe.src = chrome.extension.getURL("chat/chat.html");
         iframe.style.border = "0";
         iframe.style.display = "block";
         iframe.style.right = "30px";

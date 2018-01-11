@@ -14,8 +14,8 @@ export function handleRuntimeConnect(port) {
         case "popupLoad":
             initializePopup(port);
             return;
-        case "sidebarLoad":
-            initializeSidebar(port);
+        case "chatWidgetLoad":
+            initializeChatWidget(port);
             return;
     }
     const tabId = port.sender.tab.id;
@@ -345,7 +345,7 @@ function initializePopup(port) {
     }
 }
 
-function initializeSidebar(port) {
+function initializeChatWidget(port) {
     const tabId = port.sender.tab.id;
     const toolbarInfo = toolbarInfoByTabId[tabId];
 
@@ -374,7 +374,7 @@ function initializeSidebar(port) {
                     });
                 });
             const unsubscribeChannel = Slack.subscribeToChannel(
-                `sidebar${tabId}`, toolbarInfo.slackChannel, (msg, channel) => {
+                `chat${tabId}`, toolbarInfo.slackChannel, (msg, channel) => {
                     switch (msg.type) {
                         case "message":
                             port.postMessage({

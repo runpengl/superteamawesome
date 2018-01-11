@@ -38,7 +38,7 @@
   ],
 
   "web_accessible_resources": [
-    "sidebar/sidebar.html",
+    "chat/chat.html",
     "toolbar/toolbar.html"
   ]
 }

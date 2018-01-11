@@ -10,7 +10,7 @@ body {
   overflow: hidden;
 }
 
-#sidebar {
+#chat {
   height: 100vh;
 }
 
@@ -29,7 +29,7 @@ body {
   height: 100%;
 }
 
-#sidebar-header,
+#chat-header,
 .ChatWidget-header {
   background: #4d394b;
   border-radius: 3px 3px 0 0;

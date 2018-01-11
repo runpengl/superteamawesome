@@ -20,7 +20,7 @@ function refreshConnection() {
     }
     // Initialize a connection with the background script, which
     // will continue to send data as long as this connection is open.
-    port = chrome.runtime.connect({ name: "sidebarLoad" });
+    port = chrome.runtime.connect({ name: "chatWidgetLoad" });
     port.onMessage.addListener(function(event) {
         console.log(event);
         switch (event.msg) {
@@ -65,6 +65,6 @@ function renderSidebar({
                 renderSidebar(data);
             }}
         />,
-        document.getElementById("sidebar")
+        document.getElementById("chat")
     );
 }
