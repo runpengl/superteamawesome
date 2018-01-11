@@ -67,7 +67,7 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
             locationType: locationType,
             huntKey: puzzleSnapshot.val().hunt,
             puzzleKey: puzzleSnapshot.key,
-            slackChannel: puzzleSnapshot.val().slackChannel
+            slackChannelId: puzzleSnapshot.val().slackChannelId
         });
     }
     if (hostname === "docs.google.com") {

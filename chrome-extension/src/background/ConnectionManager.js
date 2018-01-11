@@ -221,7 +221,7 @@ function initializePuzzleToolbar(port, toolbarInfo) {
             });
         });
     const unsubscribeChannel = Slack.subscribeToChannel(
-        `toolbar${tabId}`, toolbarInfo.slackChannel, function(msg, channel) {
+        `toolbar${tabId}`, toolbarInfo.slackChannelId, function(msg, channel) {
             port.postMessage({
                 msg: "slackChannel",
                 data: { channel: channel }
@@ -350,49 +350,52 @@ function initializeChatWidget(port) {
     const toolbarInfo = toolbarInfoByTabId[tabId];
 
     if (toolbarInfo.toolbarType === "puzzle")  {
-        firebase.database().ref(`puzzles/${toolbarInfo.puzzleKey}`).once("value", p => {
-            const channelId = p.val().slackChannelId;
-            Promise.all([
-                new Promise(resolve => Slack.getChannelInfo(channelId, resolve)),
-                new Promise(resolve => Slack.getChannelHistory(channelId, resolve))
-            ]).then(([channelInfo, channelHistory]) => {
-                port.postMessage({
-                    msg: "slackChannelInfo",
-                    data: {
-                        connectionInfo: Slack.connectionInfo,
-                        channel: channelInfo.channel,
-                        messages: channelHistory.messages.reverse()
-                    }
-                });
-            });
+        sendChannelInfo(toolbarInfo.slackChannelId, port);
+    } else {
+        sendChannelInfo("C03A0NUTV", port);
+    }
+}
 
-            const unsubscribeSlackState = Slack.onConnectStateChanged(
-                function(state) {
-                    port.postMessage({
-                        msg: "slackConnectionStatus",
-                        status: state
-                    });
-                });
-            const unsubscribeChannel = Slack.subscribeToChannel(
-                `chat${tabId}`, toolbarInfo.slackChannel, (msg, channel) => {
-                    switch (msg.type) {
-                        case "message":
-                            port.postMessage({
-                                msg: "slackMessage",
-                                data: msg
-                            });
-                            break;
-                    }
-                    port.postMessage({
-                        msg: "slackChannelInfo",
-                        data: { channel }
-                    });
-                });
+function sendChannelInfo(channelId, port) {
+    Promise.all([
+        new Promise(resolve => Slack.getChannelInfo(channelId, resolve)),
+        new Promise(resolve => Slack.getChannelHistory(channelId, resolve))
+    ]).then(([channelInfo, channelHistory]) => {
+        port.postMessage({
+            msg: "slackChannelInfo",
+            data: {
+                connectionInfo: Slack.connectionInfo,
+                channel: channelInfo.channel,
+                messages: channelHistory.messages.reverse()
+            }
+        });
+    });
 
-            port.onDisconnect.addListener(function() {
-                unsubscribeSlackState();
-                unsubscribeChannel();
+    const unsubscribeSlackState = Slack.onConnectStateChanged(
+        function(state) {
+            port.postMessage({
+                msg: "slackConnectionStatus",
+                status: state
             });
         });
-    }
+    const unsubscribeChannel = Slack.subscribeToChannel(
+        `chat${port.sender.tab.id}`, channelId, (msg, channel) => {
+            switch (msg.type) {
+                case "message":
+                    port.postMessage({
+                        msg: "slackMessage",
+                        data: msg
+                    });
+                    break;
+            }
+            port.postMessage({
+                msg: "slackChannelInfo",
+                data: { channel }
+            });
+        });
+
+    port.onDisconnect.addListener(function() {
+        unsubscribeSlackState();
+        unsubscribeChannel();
+    });
 }

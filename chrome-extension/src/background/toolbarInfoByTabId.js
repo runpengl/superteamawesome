@@ -4,6 +4,7 @@
  *     locationType: "puzzle" | "spreadsheet" | "slack";
  *     puzzleKey?: string;
  *     huntKey?: string;
+ *     slackChannelId?: string;
  *     host?: string;
  *     path?: string;
  *     title?: string;
