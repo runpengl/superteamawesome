@@ -14,7 +14,7 @@
     "dev": "npm-run-all build:copy build:compile dev:run",
     "dev:run": "npm-run-all -p watch start:dev",
     "clean": "rm -rf server/public/*",
-    "dist": "npm-run-all clean:public build:copy build:compile dist:bundle:webpack",
+    "dist": "npm-run-all clean build:copy build:compile dist:bundle:webpack",
     "dist:bundle:webpack": "webpack --config config/webpack.config.prod.js",
     "setup": "npm-run-all setup:install build:compile",
     "setup:install": "npm install -g webpack typescript tslint nodemon",
