@@ -7,7 +7,7 @@
 
   "background": {
     "scripts": [
-      "common.bundle.js",
+      "firebase.js",
       "background.bundle.js"
     ]
   },

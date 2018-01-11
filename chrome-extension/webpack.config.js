@@ -6,8 +6,12 @@ const config = {
         background: "./src/background/background.js",
         popup: "./src/popup/popup.js",
         sidebar: "./src/sidebar/sidebar.js",
-        toolbar: "./src/toolbar/toolbar.js",
-        common: ["classnames", "react", "react-dom"]
+        toolbar: "./src/toolbar/toolbar.js"
+    },
+    externals: {
+        firebase: "firebase",
+        react: "React",
+        "react-dom": "ReactDOM"
     },
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -17,12 +21,7 @@ const config = {
         rules: [
             { test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" }
         ]
-    },
-    plugins: [
-        new webpack.optimize.CommonsChunkPlugin({
-            name: "common"
-        })
-    ]
+    }
 };
 
 module.exports = config;
