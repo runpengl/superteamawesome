@@ -20,13 +20,6 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
 
         fetchTabInfoForLocation(a.hostname, a.pathname,
             function(info) {
-                if (info.locationType === "spreadsheet" &&
-                    toolbarInfoByTabId.hasOwnProperty(tabId) &&
-                    toolbarInfoByTabId[tabId].locationType === "spreadsheet" &&
-                    info.puzzleKey === toolbarInfoByTabId[tabId].puzzleKey) {
-                    // Already displaying appropriate toolbar for puzzle
-                    return;
-                }
                 console.log("[tabs.onUpdate]", tabId, info);
                 toolbarInfoByTabId[tabId] = Object.assign(info, {
                     host: a.hostname,

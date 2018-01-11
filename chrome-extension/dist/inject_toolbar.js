@@ -16,13 +16,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 function injectToolbar() {
-    if (document.body.__staToolbarInjected) {
+    if (document.getElementById("sta_toolbar")) {
         return;
     }
     var toolbarHeight = "24px";
 
     // Set up iframe
     var iframe = document.createElement("iframe");
+    iframe.id = "sta_toolbar";
     iframe.src = chrome.extension.getURL("toolbar/toolbar.html");
     iframe.style.background = "#fff";
     iframe.style.border = "0";
@@ -59,7 +60,6 @@ function injectToolbar() {
         // Shift the body down so that the toolbar doesn't obscure it
         document.body.style.transform = "translateY(" + toolbarHeight + ")";
     }
-    document.body.__staToolbarInjected = true;
 }
 
 function monitorPresence() {
