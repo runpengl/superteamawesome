@@ -9,26 +9,31 @@ import * as React from "react";
  *   text: string
  *   ts: string
  */
-export default function Message(props) {
-    if (props.hidden) {
-        return null;
+export default class Message extends React.Component {
+    render() {
+        const props = this.props;
+
+        if (props.hidden) {
+            return null;
+        }
+        return <div className={cx({
+            Message: true,
+            pending: props.pending,
+            system: isSystemMessage(props),
+            unread: props.unread
+        })}>
+            {props.collapsed ? null : <span className="Message-userName">
+                {renderUserName(props.user, props.connectionInfo)}
+            </span>}
+            {props.collapsed || props.pending ? null : <span className="Message-timestamp">
+                {renderTime(props.ts)}
+            </span>}
+            <div className="Message-message">
+                {renderRichText(props.text, props.connectionInfo)}
+                {props.edited ? <span className="Message-edited">(edited)</span> : null}
+            </div>
+        </div>;
     }
-    return <div className={cx({
-        Message: true,
-        pending: props.pending,
-        system: isSystemMessage(props)
-    })}>
-        {props.collapsed ? null : <span className="Message-userName">
-            {renderUserName(props.user, props.connectionInfo)}
-        </span>}
-        {props.collapsed || props.pending ? null : <span className="Message-timestamp">
-            {renderTime(props.ts)}
-        </span>}
-        <div className="Message-message">
-            {renderRichText(props.text, props.connectionInfo)}
-            {props.edited ? <span className="Message-edited">(edited)</span> : null}
-        </div>
-    </div>;
 }
 
 function isSystemMessage(props) {

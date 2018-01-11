@@ -7,7 +7,8 @@ export default class ChatWidget extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            pendingMessages: []
+            pendingMessages: [],
+            isFocused: false
         };
     }
 
@@ -19,8 +20,9 @@ export default class ChatWidget extends React.Component {
             >
                 {this.props.channel
                     ? [
-                          <span className="ChatWidget-headerOctothorpe">#</span>,
+                          <span key="#" className="ChatWidget-headerOctothorpe">#</span>,
                           <a
+                              key="channelName"
                               className="ChatWidget-deeplink"
                               href={`slack://channel?team=T03A0NUTH&id=${this.props.channel.id}`}
                               onClick={event => event.stopPropagation()}
@@ -44,15 +46,30 @@ export default class ChatWidget extends React.Component {
                     <div className="ChatWidget-toggleIcon" />
                 </div>
             </div>
+            {this.maybeRenderSlackDisconnectedBanner()}
             {this.props.connectionStatus === "error"
                 ? this.renderSlackAuthPrompt()
                 : <MessageList
                       messages={this.props.messages}
+                      channel={this.props.channel}
                       pendingMessages={this.state.pendingMessages}
                       connectionInfo={this.props.connectionInfo}
+                      isComposerFocused={this.state.isFocused}
                   />}
             {this.maybeRenderFooter()}
         </div>;
+    }
+
+    maybeRenderSlackDisconnectedBanner() {
+        if (this.props.connectionStatus !== "disconnected") {
+            return;
+        }
+        return <div
+            className="ChatWidget-slackConnectionErrorBanner"
+            onClick={function() {
+                chrome.runtime.sendMessage({ msg: "authorizeSlack" });
+            }}
+        >Disconnected from Slack. Try again?</div>;
     }
 
     renderSlackAuthPrompt() {
@@ -72,6 +89,8 @@ export default class ChatWidget extends React.Component {
             ? <div className="ChatWidget-composer">
                   <ChatComposer
                       placeholder={`Message #${this.props.channel.name}`}
+                      onFocus={this.handleComposerFocus.bind(this)}
+                      onBlur={this.handleComposerBlur.bind(this)}
                       onNewMessage={this.handleNewMessage.bind(this)}
                       connectionInfo={this.props.connectionInfo}
                   />
@@ -95,6 +114,14 @@ export default class ChatWidget extends React.Component {
                 Join Channel
             </div>
         </div>;
+    }
+
+    handleComposerFocus() {
+        this.setState({ isFocused: true });
+    }
+
+    handleComposerBlur() {
+        this.setState({ isFocused: false });
     }
 
     handleNewMessage(message) {

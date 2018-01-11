@@ -24,6 +24,10 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             Slack.joinChannel(request.name);
             break;
 
+        case "markChannelRead":
+            Slack.markChannel(request.channel, request.ts);
+            break;
+
         case "puzzleBacksolved":
             var puzzleKey = toolbarInfoByTabId[sender.tab.id].puzzleKey;
             firebase.database()

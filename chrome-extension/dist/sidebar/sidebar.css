@@ -42,7 +42,7 @@ body {
 }
 
 .ChatWidget-headerOctothorpe {
-  color: #ccc;
+  color: #ddd;
   font-weight: 300;
   margin-right: 5px;
 }
@@ -114,7 +114,7 @@ body {
   background: #fbb03b;
   color: #fff;
   cursor: pointer;
-  line-height: 20px;
+  line-height: 25px;
   text-align: center;
 }
 .ChatWidget-slackConnectionErrorBanner:hover {
@@ -180,6 +180,31 @@ body {
  */
 .MessageList {
   background: #fff;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 1px;
+  position: relative;
+}
+
+.MessageList-unreadBanner {
+  background: #2d9ee0;
+  color: #fff;
+  line-height: 25px;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  width: 100%;
+}
+
+.MessageList-clearUnreadLink {
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 5px;
+  text-decoration: underline;
+}
+
+.MessageList-messages {
   border: 1px solid #ddd;
   border-width: 0 1px;
   flex: 1 1 auto;
@@ -192,8 +217,10 @@ body {
  * Message
  */
 .Message {
-  padding: 0 10px;
-  margin: 5px 0;
+  padding: 3px 10px;
+}
+.Message.unread {
+  box-shadow: inset 2px 0 0 #2d9ee0;
 }
 
 .Message-userName {

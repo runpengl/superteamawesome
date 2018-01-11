@@ -35,6 +35,7 @@ function refreshConnection() {
                 break;
 
             case "slackMessage":
+                data.messages = data.messages.slice();
                 data.messages.push(event.data);
                 renderSidebar(data);
                 break;
@@ -59,7 +60,8 @@ function renderSidebar({
             connectionStatus={connectionStatus}
             messages={messages}
             onConfirmMessage={msg => {
-                messages.push(msg);
+                data.messages = data.messages.slice();
+                data.messages.push(msg);
                 renderSidebar(data);
             }}
         />,

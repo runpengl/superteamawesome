@@ -11,16 +11,18 @@ export default class ChatComposer extends React.Component {
            className="ChatWidget-composerInput"
            placeholder={this.props.placeholder}
            value={this.state.inputValue}
-           onChange={this.handleInputChange.bind(this)}
-           onKeyDown={this.handleInputKeyDown.bind(this)}
+           onChange={this.handleChange.bind(this)}
+           onBlur={this.props.onBlur}
+           onFocus={this.props.onFocus}
+           onKeyDown={this.handleKeyDown.bind(this)}
         />;
     }
 
-    handleInputChange(event) {
+    handleChange(event) {
         this.setState({ inputValue: event.target.value });
     }
 
-    handleInputKeyDown(event) {
+    handleKeyDown(event) {
         if (event.key === "Enter") {
             const inputValue = this.state.inputValue;
             this.setState({ inputValue: "" });

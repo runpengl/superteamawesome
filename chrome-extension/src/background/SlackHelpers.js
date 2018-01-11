@@ -183,8 +183,13 @@ function handleSlackWsMessage(event) {
             slackChannelIdByName[msg.channel.name] = msg.channel.id;
             break;
         case "channel_joined":
+            if (!slackChannelById.hasOwnProperty(msg.channel.id)) {
+                slackChannelById[msg.channel.id] = msg.channel;
+            } else {
+                Object.assign(slackChannelById[msg.channel.id], msg.channel);
+            }
             slackChannelById[msg.channel.id] = msg.channel;
-            notifySubscribers(msg, msg.channel);
+            notifySubscribers(msg, slackChannelById[msg.channel.id]);
             break;
         case "channel_left":
             var channel = slackChannelById[msg.channel];
@@ -195,6 +200,7 @@ function handleSlackWsMessage(event) {
             var channel = slackChannelById[msg.channel];
             channel.unread_count = msg.unread_count;
             channel.unread_count_display = msg.unread_count_display;
+            channel.last_read = msg.ts;
             notifySubscribers(msg, channel);
             break;
         case "message":
@@ -240,6 +246,14 @@ export function joinChannel(channelName) {
     xhrGet("https://slack.com/api/channels.join", {
         token: accessToken,
         name: channelName
+    });
+}
+
+export function markChannel(channelId, ts) {
+    xhrGet("https://slack.com/api/channels.mark", {
+        token: accessToken,
+        channel: channelId,
+        ts
     });
 }
 
