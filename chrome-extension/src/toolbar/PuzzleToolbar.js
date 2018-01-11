@@ -37,7 +37,7 @@ export default function PuzzleToolbar(props) {
                       className="Toolbar-link"
                       onClick={function() {
                           chrome.runtime.sendMessage({
-                              msg: "openChatWidget"
+                              msg: "toggleChatWidget"
                           });
                       }}
                   >slack</div>

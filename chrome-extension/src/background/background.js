@@ -1,5 +1,6 @@
 import * as firebase from "firebase";
 
+import * as ChatWidgetState from "./ChatWidgetState";
 import * as ConnectionManager from "./ConnectionManager";
 import config from "./config";
 import { selectAllWhereChildEquals, selectOnlyWhereChildEquals } from "./FirebaseHelpers";
@@ -21,6 +22,7 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
         fetchTabInfoForLocation(a.hostname, a.pathname,
             function(info) {
                 console.log("[tabs.onUpdate]", tabId, info);
+                console.log("chat widget state", ChatWidgetState.state());
                 toolbarInfoByTabId[tabId] = Object.assign(info, {
                     host: a.hostname,
                     path: a.pathname,
@@ -34,7 +36,13 @@ function handleChromeTabsUpdated(tabId, changeInfo, tab) {
                 if (info.toolbarType !== "none") {
                     // Try and inject a toolbar onto the page. If we have previously
                     // injected a toolbar this is a noop.
-                    chrome.tabs.executeScript(tabId, { file: "inject_toolbar.js" });
+                    chrome.tabs.executeScript(tabId, { file: "inject_toolbar.js" }, () => {
+                        console.log("chat widget state", ChatWidgetState.state());
+                        chrome.tabs.sendMessage(tabId, {
+                            msg: "injectChatWidget",
+                            chatWidgetState: ChatWidgetState.state()
+                        });
+                    });
                 }
             });
     }

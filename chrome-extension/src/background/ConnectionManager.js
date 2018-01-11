@@ -108,6 +108,11 @@ function initializeHuntToolbar(port, toolbarInfo) {
 }
 
 function initializePuzzleToolbar(port, toolbarInfo) {
+    // This is a hack. When the port disconnects, we should cancel all firebase listeners,
+    // but some of the nested queries on users/ are hard to cancel. So we'll just set a flag
+    // when the port is disconnected and noop when the queries return.
+    let portDisconnected = false;
+
     const tabId = port.sender.tab.id;
     const db = firebase.database();
     const currentUser = firebase.auth().currentUser;
@@ -119,6 +124,9 @@ function initializePuzzleToolbar(port, toolbarInfo) {
     function traverseParents(puzzleKey) {
         db.ref("puzzles/" + puzzleKey)
             .once("value", function(puzzle) {
+                if (portDisconnected) {
+                    return;
+                }
                 puzzleHierarchy.unshift(Object.assign({}, puzzle.val(), {
                     key: puzzle.key
                 }));
@@ -163,10 +171,6 @@ function initializePuzzleToolbar(port, toolbarInfo) {
         }
     }
 
-    // This is a hack. When the port disconnects, we should cancel all firebase listeners,
-    // but some of the nested queries on users/ are hard to cancel. So we'll just set a flag
-    // when the port is disconnected and noop when the queries return.
-    let portDisconnected = false;
     function handlePuzzleViewersValue(snap) {
         const changeId = ++currentViewersChangeId;
         const viewers = [];

@@ -1,5 +1,6 @@
 import * as firebase from "firebase";
 
+import * as ChatWidgetState from "./ChatWidgetState";
 import { logEvent } from "./Logger";
 import * as Slack from "./SlackHelpers";
 import toolbarInfoByTabId from "./toolbarInfoByTabId";
@@ -17,6 +18,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "closeChatWidget":
+            ChatWidgetState.setState("closed");
             chrome.tabs.sendMessage(sender.tab.id, { msg: "removeChatWidget" });
             break;
 
@@ -63,7 +65,11 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "openChatWidget":
-            chrome.tabs.sendMessage(sender.tab.id, { msg: "injectChatWidget" });
+            ChatWidgetState.setState("expanded");
+            chrome.tabs.sendMessage(sender.tab.id, {
+                msg: "injectChatWidget",
+                chatWidgetState: "expanded"
+            });
             break;
 
         case "pageVisibilityChange":
@@ -112,7 +118,16 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "toggleChatWidget":
-            chrome.tabs.sendMessage(sender.tab.id, { msg: "toggleChatWidget" });
+            ChatWidgetState.setState(
+                ChatWidgetState.state() === "closed" ||
+                ChatWidgetState.state() === "collapsed"
+                    ? "expanded"
+                    : "collapsed"
+            );
+            chrome.tabs.sendMessage(sender.tab.id, {
+                msg: "injectChatWidget",
+                chatWidgetState: ChatWidgetState.state()
+            });
             break;
     }
 }
