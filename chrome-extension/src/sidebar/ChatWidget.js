@@ -56,12 +56,32 @@ export default class ChatWidget extends React.Component {
         if (!this.props.channel) {
             return null;
         }
-        return <div className="ChatWidget-composer">
-            <ChatComposer
-                placeholder={`Message #${this.props.channel.name}`}
-                onNewMessage={this.handleNewMessage.bind(this)}
-                connectionInfo={this.props.connectionInfo}
-            />
+        return this.props.channel.is_member
+            ? <div className="ChatWidget-composer">
+                  <ChatComposer
+                      placeholder={`Message #${this.props.channel.name}`}
+                      onNewMessage={this.handleNewMessage.bind(this)}
+                      connectionInfo={this.props.connectionInfo}
+                  />
+              </div>
+            : this.renderChannelPreviewFooter();
+    }
+
+    renderChannelPreviewFooter() {
+        return <div className="ChatWidget-previewFooter">
+            {"You are viewing "}
+            <span className="ChatWidget-previewFooterChannelName">
+                #{this.props.channel.name}
+            </span>
+            <div
+                className="ChatWidget-previewJoinChannelButton"
+                onClick={() => chrome.runtime.sendMessage({
+                    msg: "joinChannel",
+                    name: this.props.channel.name
+                })}
+            >
+                Join Channel
+            </div>
         </div>;
     }
 

@@ -104,6 +104,35 @@ body {
   outline: none;
 }
 
+.ChatWidget-previewFooter {
+  background: #eee;
+  border: 1px solid #ddd;
+  border-width: 1px 1px 0;
+  padding: 10px;
+  text-align: center;
+}
+
+.ChatWidget-previewFooterChannelName {
+  font-weight: 600;
+}
+
+.ChatWidget-previewJoinChannelButton {
+  background: #fbb03b;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .14), 0 1px 1px 0 rgba(0, 0, 0, .14);
+  color: white;
+  cursor: pointer;
+  display: block;
+  height: 30px;
+  line-height: 30px;
+  margin: 5px auto 0;
+  text-align: center;
+  width: 100px;
+}
+.ChatWidget-previewJoinChannelButton:hover {
+  opacity: 0.9;
+}
+
 /**
  * MessageList
  */

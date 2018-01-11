@@ -263,6 +263,10 @@ export function subscribeToChannel(key, channelName, callback) {
 }
 
 function notifySubscribers(msg, channel) {
+    if (!channel) {
+        // might be a DM or group that we don't care about
+        return;
+    }
     const subscriberMap = subscriberTabIdsByChannelName[channel.name];
     if (subscriberMap) {
         Object.keys(subscriberMap).forEach(function(k) {

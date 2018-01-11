@@ -36,12 +36,6 @@ export default function PuzzleToolbar(props) {
                   <div
                       className="Toolbar-link"
                       onClick={function() {
-                          if (props.slackChannel && !props.slackChannel.is_member) {
-                              chrome.runtime.sendMessage({
-                                  msg: "joinChannel",
-                                  name: props.puzzle.slackChannel
-                              });
-                          }
                           chrome.runtime.sendMessage({
                               msg: "openChatWidget"
                           });
