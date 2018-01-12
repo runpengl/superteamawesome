@@ -189,6 +189,26 @@ a:hover {
   position: relative;
 }
 
+.AllPuzzles-search {
+  padding: 10px 10px 0;
+  display: flex;
+}
+
+.AllPuzzles-searchInput {
+  flex: 1 1 auto;
+  min-width: 1px;
+  font-size: 11px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  height: 16px;
+  line-height: 16px;
+}
+.AllPuzzles-searchInput:focus {
+  border-color: #aaa;
+  outline: none;
+}
+
 .AllPuzzles-emptyImage {
   background: url("characters.svg") no-repeat;
   background-size: 800%;

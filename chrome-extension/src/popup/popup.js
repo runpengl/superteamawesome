@@ -312,6 +312,13 @@ class PopupLogin extends React.Component {
 }
 
 class AllPuzzles extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            searchInputValue: ""
+        };
+    }
+
     render() {
         return r.div({ className: "AllPuzzles" },
             this.props.puzzles.length === 0
@@ -322,7 +329,21 @@ class AllPuzzles extends React.Component {
                         className: "AllPuzzles-empty"
                     }, "No puzzles yet. Check back later!")
                 ]
-                : this.renderPuzzles()
+                : [
+                    this.renderSearchInput(),
+                    this.renderPuzzles()
+                ]
+        );
+    }
+
+    renderSearchInput() {
+        return r.div({ className: "AllPuzzles-search" },
+            r.input({
+                className: "AllPuzzles-searchInput",
+                placeholder: "Search Puzzles",
+                value: this.state.searchInputValue,
+                onChange: this.handleSearchInputChange.bind(this)
+            })
         );
     }
 
@@ -336,7 +357,8 @@ class AllPuzzles extends React.Component {
                         groupType: "round",
                         huntDomain: this.props.huntDomain,
                         puzzles: pg,
-                        puzzleViewers: this.props.puzzleViewers
+                        puzzleViewers: this.props.puzzleViewers,
+                        searchInputValue: this.state.searchInputValue
                     });
                 }, this);
             case "status":
@@ -352,10 +374,15 @@ class AllPuzzles extends React.Component {
                         groupType: "status",
                         huntDomain: this.props.huntDomain,
                         puzzles: puzzles,
-                        puzzleViewers: this.props.puzzleViewers
+                        puzzleViewers: this.props.puzzleViewers,
+                        searchInputValue: this.state.searchInputValue
                     });
                 }, this);
         }
+    }
+
+    handleSearchInputChange(event) {
+        this.setState({ searchInputValue: event.target.value });
     }
 };
 
@@ -369,6 +396,9 @@ class PuzzleList extends React.Component {
 
     render() {
         var props = this.props;
+        if (props.puzzles.filter(this.filterBySearchInputValue, this).length === 0) {
+            return null;
+        }
         return r.div({
             className: "PuzzleList" + (this.state.isCollapsed ? " isCollapsed" : "")
         },
@@ -398,6 +428,9 @@ class PuzzleList extends React.Component {
                 var numActiveViewers = props.puzzleViewers &&
                     props.puzzleViewers[puzzle.key];
 
+                if (!this.filterBySearchInputValue(puzzle)) {
+                    return null;
+                }
                 return r.li({ key: puzzle.key },
                     r.a({
                         className: "PuzzleList-puzzle " + puzzle.status,
@@ -436,8 +469,12 @@ class PuzzleList extends React.Component {
                         )
                     )
                 );
-            })
+            }, this)
         );
+    }
+
+    filterBySearchInputValue(puzzle) {
+        return puzzle.name.toLowerCase().indexOf(this.props.searchInputValue.toLowerCase()) !== -1;
     }
 
     handleHeaderClick() {
