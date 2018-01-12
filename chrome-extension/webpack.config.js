@@ -6,6 +6,7 @@ const config = {
         background: "./src/background/background.js",
         popup: "./src/popup/popup.js",
         chat: "./src/chat/chat.js",
+        dashboard: "./src/dashboard/dashboard.js",
         toolbar: "./src/toolbar/toolbar.js"
     },
     externals: {

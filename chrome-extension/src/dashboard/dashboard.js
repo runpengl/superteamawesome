@@ -2,6 +2,8 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import promptsList from "./promptList.js";
 
+console.log("something is working");
+
 initApp();
 
 var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
@@ -11,6 +13,7 @@ var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
  * callbacks for the auth status.
  */
 function initApp() {
+    console.log("init called");
     var port = chrome.runtime.connect({ name: "dashboardLoad" });
     port.onMessage.addListener(function(event) {
         switch (event.msg) {
