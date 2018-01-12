@@ -34,6 +34,17 @@ function injectToolbar() {
     if (window.location.hostname === "docs.google.com") {
         var docsChrome = document.getElementById("docs-chrome");
         docsChrome.insertBefore(iframe, docsChrome.firstChild);
+
+        var chatContainer = document.querySelector(".docs-chat-pane-container");
+        if (chatContainer) {
+            injectSlackBanner();
+        } else {
+            forEachChildNodeAdded(document.body, function(addedNode) {
+                if (addedNode.className === "docs-chat-pane-container") {
+                    return injectSlackBanner();
+                }
+            });
+        }
     } else if (window.location.hostname === "superteamawesome.slack.com") {
         var clientUi = document.getElementById("client-ui");
         clientUi.insertBefore(iframe, clientUi.firstChild);
@@ -106,4 +117,47 @@ function removeChatWidget() {
     if (chatWidget) {
         chatWidget.parentNode.removeChild(chatWidget);
     }
+}
+
+function injectSlackBanner() {
+    var docsChatPane = document.querySelector(".docs-chat-pane");
+    var docsChatTitleBar = document.querySelector(".docs-chat-title-bar");
+    if (docsChatPane && docsChatTitleBar) {
+        var slackBanner = document.createElement("div");
+        slackBanner.style.alignItems = "center";
+        slackBanner.style.background = "#e62d41";
+        slackBanner.style.color = "#fff";
+        slackBanner.style.display = "flex";
+        slackBanner.style.height = "20px";
+        slackBanner.style.padding = "0 10px";
+        docsChatPane.insertBefore(slackBanner, docsChatTitleBar.nextSibling);
+
+        var slackLink = document.createElement("span");
+        slackLink.innerHTML = "(open now)";
+        slackLink.style.cursor = "pointer";
+        slackLink.style.textDecoration = "underline";
+        slackLink.addEventListener("click", function() {
+            chrome.runtime.sendMessage({ msg: "openChatWidget" })
+        });
+
+        slackBanner.appendChild(document.createTextNode("Please use the Slack widget!"));
+        slackBanner.innerHTML += "&nbsp;";
+        slackBanner.appendChild(slackLink);
+        return true;
+    }
+}
+
+function forEachChildNodeAdded(node, callback) {
+    var mutationObserver = new MutationObserver(function(records) {
+        records.forEach(function(record) {
+            for (var i = 0; i < record.addedNodes.length; ++i) {
+                if (callback(record.addedNodes[i])) {
+                    mutationObserver.disconnect();
+                }
+            }
+        });
+    });
+    mutationObserver.observe(node, {
+        childList: true
+    });
 }
