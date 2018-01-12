@@ -143,6 +143,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         onPuzzleDelete={this.onPuzzleDelete}
                         onPuzzleNameChange={this.onPuzzleNameChange}
                         slackTeamId={slackTeamId}
+                        onAssignMeta={this.props.assignToMeta}
+                        puzzles={puzzles.value}
                     />
                 </div>
             </div>
