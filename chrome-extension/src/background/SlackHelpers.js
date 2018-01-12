@@ -9,7 +9,7 @@ let wsOutgoingMessageCounter = 0;
 let pingInterval = null;
 let pingOk = true;
 
-export let connectionInfo = new Promise();
+let connectionInfo = null;
 
 let slackChannelById = {};
 let wsMessageConfirmationCallbacks = {};
