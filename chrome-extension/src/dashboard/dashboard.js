@@ -239,7 +239,7 @@ class DashboardRounds extends React.Component {
                         return r.div({ className: "Dashboard-round" },
                             r.a({
                                 className: "Dashboard-puzzle " + pg[0].status,
-                                href: "http://" + pg[0].host + pg[0].path
+                                href: "https://" + pg[0].host + pg[0].path
                             }, r.div({
                                 className: "Dashboard-puzzle-backsolve"},
                                 pg[0].wasBacksolved ? "B" : "")),
@@ -249,7 +249,7 @@ class DashboardRounds extends React.Component {
                                     return r.a({
                                         key: puzzle.key,
                                         className: "Dashboard-puzzle " + puzzle.status + (puzzle.wasBacksolved ? " backsolved" : ""),
-                                        href: "http://" + puzzle.host + puzzle.path},
+                                        href: "https://" + puzzle.host + puzzle.path},
                                      r.div({
                                         className: "Dashboard-puzzle-backsolve"},
                                         puzzle.wasBacksolved ? "B" : ""))
@@ -263,7 +263,7 @@ class DashboardRounds extends React.Component {
                                 return r.a({
                                     key: puzzle.key,
                                     className: "Dashboard-puzzle " + puzzle.status,
-                                    href: "http://" + puzzle.host + puzzle.path
+                                    href: "https://" + puzzle.host + puzzle.path
                                 }, r.div({
                                     className: "Dashboard-puzzle-backsolve"
                                 }, puzzle.wasBacksolved ? "B" : ""));
