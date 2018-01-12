@@ -8,7 +8,6 @@ let webSocket = null;
 let wsOutgoingMessageCounter = 0;
 let pingInterval = null;
 let pingOk = true;
-let isThrottled = false;
 
 export let connectionInfo = new Promise();
 
@@ -309,7 +308,8 @@ function maybeSend(data, callback) {
     }
 }
 
-export function throttle(fn, msThrottle) {
+function throttle(fn, msThrottle) {
+    let isThrottled = false;
     return function() {
         if (!isThrottled) {
             fn.apply(null, arguments);
@@ -331,14 +331,14 @@ export function sendMessage(channelId, message, callback) {
     }
 }
 
-export function sendTypingIndicator(channelId) {
+export const sendTypingIndicator = throttle(channelId => {
     if (webSocket) {
         maybeSend({
             type: "typing",
             channel: channelId
         });
     }
-}
+}, 2000);
 
 //
 // XMLHttpRequest Helpers
