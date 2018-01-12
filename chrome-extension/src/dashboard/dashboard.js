@@ -2,8 +2,6 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import promptsList from "./promptList.js";
 
-console.log("something is working");
-
 initApp();
 
 var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
@@ -13,7 +11,6 @@ var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
  * callbacks for the auth status.
  */
 function initApp() {
-    console.log("init called");
     var port = chrome.runtime.connect({ name: "dashboardLoad" });
     port.onMessage.addListener(function(event) {
         switch (event.msg) {
@@ -96,7 +93,7 @@ function initApp() {
 
 var port = chrome.runtime.connect({ name: "dashboardLoad" });
 port.onMessage.addListener(function(event) {
-    console.log(event);
+    // console.log(event);
     switch (event.msg) {
         case "puzzles":
             // Group by meta puzzles; ungrouped puzzles at the end
@@ -137,21 +134,14 @@ port.onMessage.addListener(function(event) {
 var dashboardData = null;
 
 function renderDashboard(dashboardData) {
-    // console.log("dashboard data");
-    // console.log(dashboardData)
     ReactDOM.render(
         React.createElement(Clock, null),
         document.getElementById("clock")
     );
-    // console.log(promptsList);
     ReactDOM.render(
         React.createElement(BackronymPrompt, {prompts: promptsList}),
         document.getElementById("subheader")
     );
-    // ReactDOM.render(
-    //     React.createElement(DashboardRounds, { puzzleGroups: [], huntDomain: dashboardData.currentHunt.domain }),
-    //     document.getElementById("puzzles")
-    // );
 }
 
 var r = {};
@@ -236,7 +226,6 @@ class DashboardRounds extends React.Component {
     }
 
     render() {
-        console.log(this.props);
         if (this.props.puzzleGroups.length == 0) {
             return (
                 <div className="Dashboard-nopuzzles">
