@@ -194,6 +194,21 @@ export function toggleMetaAction(puzzle: IPuzzle, isMeta: boolean) {
     };
 }
 
+export const ASSIGN_TO_META = "ASSIGN_TO_META_PUZZLE";
+export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<void>(ASSIGN_TO_META, { key: puzzle.key, parent: metaPuzzleKey }));
+        firebaseDatabase.ref(`puzzles/${puzzle.key}`).set({
+            ...puzzle,
+            parent: metaPuzzleKey,
+        }).then(() => {
+            dispatch(asyncActionSucceededPayload<void>(ASSIGN_TO_META, undefined, { key: puzzle.key, parent: metaPuzzleKey }));
+        }, (error) => {
+            dispatch(asyncActionFailedPayload<void>(ASSIGN_TO_META, error, { key: puzzle.key, parent: metaPuzzleKey }));
+        })
+    };
+}
+
 export const CREATE_PUZZLE_ACTION = "CREATE_PUZZLE";
 export const CREATE_MANUAL_PUZZLE_ACTION = "CREATE_MANUAL_PUZZLE";
 export interface ICreatePuzzleActionPayload {

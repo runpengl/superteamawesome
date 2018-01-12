@@ -12,6 +12,7 @@ import {
     IPuzzleInfoChanges,
     loadPuzzlesAction,
     saveHierarchyAction,
+    assignToMetaAction,
 } from "../actions";
 import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
@@ -28,6 +29,7 @@ interface IDispatchProps {
     loadPuzzles?: (huntKey: string) => void;
     saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges}) => void;
     toggleMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
+    assignToMeta?: (puzzle: IPuzzle, metaParentKey: string) => void;
 }
 
 interface IStateProps {
@@ -295,8 +297,16 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         }
     }
 
+    private handleAssignment(puzzle: IPuzzle) {
+        return (event: React.ChangeEvent<HTMLSelectElement>) => {
+            if (event.target.value !== puzzle.key) {
+                this.props.assignToMeta(puzzle, event.target.value);
+            }
+        }
+    }
+
     private renderUnsortedPuzzles() {
-        const { lifecycle, slackTeamId } = this.props;
+        const { lifecycle, slackTeamId, puzzles } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map((puzzle) => {
             const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
@@ -320,6 +330,12 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <button onClick={this.toggleMeta(puzzle)}>
                             {puzzle.isMeta ? "Remove meta" : "Mark as Meta"}
                         </button>
+                        <select onChange={this.handleAssignment(puzzle)}>
+                            <option>Assign to meta...</option>
+                            {puzzles.value.filter(puzzle => puzzle.isMeta).map(metaPuzzle => (
+                                <option value={metaPuzzle.key} key={metaPuzzle.key}>{metaPuzzle.name}</option>
+                            ))}
+                        </select>
                     </td>
                 </tr>
             );
@@ -332,7 +348,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <th>Status</th>
                         <th>Created At</th>
                         <th colSpan={3}>Links</th>
-                        <th colSpan={2}>Actions</th>
+                        <th colSpan={3}>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -357,6 +373,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
         loadPuzzles: loadPuzzlesAction,
         saveHierarchy: saveHierarchyAction,
         toggleMeta: toggleMetaAction,
+        assignToMeta: assignToMetaAction,
     }, dispatch);
 }
 
