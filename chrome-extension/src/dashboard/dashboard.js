@@ -248,25 +248,33 @@ class DashboardRounds extends React.Component {
                             r.a({
                                 className: "Dashboard-puzzle " + pg[0].status,
                                 href: "http://" + pg[0].host + pg[0].path
-                            }),
+                            }, r.div({
+                                className: "Dashboard-puzzle-backsolve"},
+                                pg[0].wasBacksolved ? "B" : "")),
                             r.span({ className: "Dashboard-roundName" }, pg[0].name),
                             r.div({ className: "Dashboard-puzzles" },
                                 pg.slice(1).map(function(puzzle) {
                                     return r.a({
                                         key: puzzle.key,
-                                        className: "Dashboard-puzzle " + puzzle.status,
-                                        href: "http://" + puzzle.host + puzzle.path})
-                                })
+                                        className: "Dashboard-puzzle " + puzzle.status + (puzzle.wasBacksolved ? " backsolved" : ""),
+                                        href: "http://" + puzzle.host + puzzle.path},
+                                     r.div({
+                                        className: "Dashboard-puzzle-backsolve"},
+                                        puzzle.wasBacksolved ? "B" : ""))
+                                    })
                             )
-                        )
+                        );
                     } else {
                         return r.div({ className: "Dashboard-otherPuzzles" },
                             r.div({ className: "Dashboard-otherPuzzlesHeader" }, "Other Puzzles"),
                             pg.map(function(puzzle) {
-                                return r.span({
+                                return r.a({
                                     key: puzzle.key,
-                                    className: "Dashboard-puzzle " + puzzle.status
-                                }, puzzle.name);
+                                    className: "Dashboard-puzzle " + puzzle.status,
+                                    href: "http://" + puzzle.host + puzzle.path
+                                }, r.div({
+                                    className: "Dashboard-puzzle-backsolve"
+                                }, puzzle.wasBacksolved ? "B" : ""));
                             })
                         );
                     }
