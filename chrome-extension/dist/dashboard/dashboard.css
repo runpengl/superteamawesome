@@ -17,6 +17,7 @@ body {
   font-size: 30px;
   font-weight: bold;
   margin: -5px 0 30px;
+  text-transform: capitalize;
 }
 
 #clock {
