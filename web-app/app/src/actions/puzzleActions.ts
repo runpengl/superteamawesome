@@ -4,7 +4,7 @@ import { Dispatch } from "redux";
 import * as firebase from "firebase";
 import { IGoogleDriveFile, IGoogleShortUrl } from "gapi";
 
-import { firebaseDatabase } from "../auth";
+import { firebaseDatabase } from '../auth';
 import {
     createSheet,
     deleteSheet,
@@ -176,6 +176,36 @@ export function deletePuzzleAction(puzzle: IPuzzle) {
             .catch((error) => {
                 dispatch(asyncActionFailedPayload<void>(DELETE_PUZZLE_ACTION, error, puzzle.key));
             });
+    };
+}
+
+export const TOGGLE_META_ACTION = "TOGGLE_META_PUZZLE";
+export function toggleMetaAction(puzzle: IPuzzle, isMeta: boolean) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<void>(TOGGLE_META_ACTION, { key: puzzle.key, isMeta }));
+        firebaseDatabase.ref(`puzzles/${puzzle.key}`).set({
+            ...puzzle,
+            isMeta,
+        }).then(() => {
+            dispatch(asyncActionSucceededPayload<void>(TOGGLE_META_ACTION, undefined, { key: puzzle.key, isMeta }));
+        }, (error) => {
+            dispatch(asyncActionFailedPayload<void>(TOGGLE_META_ACTION, error, { key: puzzle.key, isMeta }));
+        })
+    };
+}
+
+export const ASSIGN_TO_META = "ASSIGN_TO_META_PUZZLE";
+export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<void>(ASSIGN_TO_META, { key: puzzle.key, parent: metaPuzzleKey }));
+        firebaseDatabase.ref(`puzzles/${puzzle.key}`).set({
+            ...puzzle,
+            parent: metaPuzzleKey,
+        }).then(() => {
+            dispatch(asyncActionSucceededPayload<void>(ASSIGN_TO_META, undefined, { key: puzzle.key, parent: metaPuzzleKey }));
+        }, (error) => {
+            dispatch(asyncActionFailedPayload<void>(ASSIGN_TO_META, error, { key: puzzle.key, parent: metaPuzzleKey }));
+        })
     };
 }
 

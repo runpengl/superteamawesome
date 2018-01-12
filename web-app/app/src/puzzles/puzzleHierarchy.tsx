@@ -9,7 +9,9 @@ export interface IPuzzleHierarchyProps {
     lifecycle: IAppLifecycle;
     onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
     onPuzzleDelete: (puzzle: IPuzzle) => void;
+    puzzles: IPuzzle[];
     slackTeamId: string;
+    onAssignMeta: (puzzle: IPuzzle, metaPuzzleKey: string) => void;
 }
 
 interface IPuzzleHierarchyState {
@@ -96,7 +98,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     }
 
     private renderPuzzles(puzzles: IPuzzle[], meta: IPuzzle) {
-        const { lifecycle, slackTeamId } = this.props;
+        const { lifecycle, slackTeamId, puzzles: allPuzzles } = this.props;
         const { puzzleChanges } = this.state;
         const puzzleRows = puzzles.map((puzzle) => {
             const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
@@ -115,6 +117,14 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         >
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
+                    </td>
+                    <td>
+                        <select onChange={this.assignToMeta(puzzle)}>
+                            <option>Move to meta...</option>
+                            {allPuzzles.filter(allPuzzle => allPuzzle.isMeta).map(allPuzzle => (
+                                <option key={allPuzzle.key} value={allPuzzle.key}>{allPuzzle.name}</option>
+                            ))}
+                        </select>
                     </td>
                 </tr>
             );
@@ -135,5 +145,13 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                 </tbody>
             </table>
         );
+    }
+
+    private assignToMeta(puzzle: IPuzzle) {
+        return (event: React.ChangeEvent<HTMLSelectElement>) => {
+            if (event.target.value !== puzzle.key) {
+                this.props.onAssignMeta(puzzle, event.target.value);
+            }
+        }
     }
 }

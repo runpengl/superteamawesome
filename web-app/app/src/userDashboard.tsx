@@ -1,7 +1,8 @@
 import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
-import { Redirect } from "react-router";
+import { Redirect } from 'react-router';
+import { Link } from "react-router-dom";
 
 import {
     IAsyncLoaded,
@@ -86,10 +87,6 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         logout();
     }
 
-    private routeToAdminDashboard = () => {
-        this.context.router.push("/admin");
-    }
-
     private renderDashboard() {
         return (
             <div className="dashboard">
@@ -98,7 +95,7 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
-                    <button className="user-button" onClick={this.routeToAdminDashboard}>Manage Puzzles</button>
+                    <Link to="/admin"><button className="user-button">Manage Puzzles</button></Link>
                     <button className="logout-button" onClick={this.handleLogout}>Logout</button>
                 </div>
                 {this.maybeRenderUserInfo()}
