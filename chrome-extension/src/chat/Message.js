@@ -22,9 +22,7 @@ export default class Message extends React.Component {
             system: isSystemMessage(props),
             unread: props.unread
         })}>
-            {props.collapsed ? null : <span className="Message-userName">
-                {renderUserName(props.user, props.connectionInfo)}
-            </span>}
+            {props.collapsed ? null : renderUserName(props.user, props.connectionInfo) }
             {props.collapsed || props.pending ? null : <span className="Message-timestamp">
                 {renderTime(props.ts)}
             </span>}
@@ -53,11 +51,16 @@ function isSystemMessage(props) {
 
 function renderUserName(id, connectionInfo) {
     const users = connectionInfo.users.filter(user => user.id === id);
-    if (users.length === 0) {
-        return "Unknown User";
-    } else {
-        return users[0].real_name;
-    }
+    return <span className="Message-userName">
+        {users.length === 0
+            ? "Unknown User"
+            : [
+                  users[0].real_name,
+                  <span className="Message-nameTooltip">
+                      @{users[0].name}
+                  </span>
+              ]}
+    </span>;
 }
 
 function renderTime(ts) {
