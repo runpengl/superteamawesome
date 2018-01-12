@@ -131,7 +131,9 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "userTyping":
-            Slack.sendTypingIndicator(request.channel);
+            Slack.throttle(function() {
+                Slack.sendTypingIndicator(request.channel);
+            }, 1000)();
             break;
     }
 }

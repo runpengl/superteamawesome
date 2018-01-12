@@ -8,6 +8,7 @@ let webSocket = null;
 let wsOutgoingMessageCounter = 0;
 let pingInterval = null;
 let pingOk = true;
+let isThrottled = false;
 
 export let connectionInfo = new Promise();
 
@@ -306,6 +307,18 @@ function maybeSend(data, callback) {
         console.log("[slack/rtm.send]", msg);
         webSocket.send(JSON.stringify(msg));
     }
+}
+
+export function throttle(fn, msThrottle) {
+    return function() {
+        if (!isThrottled) {
+            fn.apply(null, arguments);
+            isThrottled = true;
+            setTimeout(function() {
+                isThrottled = false;
+            }, msThrottle);
+        }
+    };
 }
 
 export function sendMessage(channelId, message, callback) {
