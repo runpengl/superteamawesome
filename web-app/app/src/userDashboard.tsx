@@ -87,10 +87,6 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUse
         logout();
     }
 
-    private routeToAdminDashboard = () => {
-        this.context.router.push("/admin");
-    }
-
     private renderDashboard() {
         return (
             <div className="dashboard">
