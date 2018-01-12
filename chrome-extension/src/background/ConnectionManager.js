@@ -11,6 +11,9 @@ import toolbarInfoByTabId from "./toolbarInfoByTabId";
  */
 export function handleRuntimeConnect(port) {
     switch (port.name) {
+        case "dashboardLoad":
+            initializeDashboard(port);
+            return;
         case "popupLoad":
             initializePopup(port);
             return;
@@ -248,6 +251,95 @@ function initializePuzzleToolbar(port, toolbarInfo) {
             tabId: tabId
         });
     });
+}
+
+
+function initializeDashboard(port) {
+    console.log("[chrome.runtime.onConnect]", "dashboardLoad");
+    const db = firebase.database();
+    const currentHuntRef = db.ref("currentHunt");
+    const viewersRef = db.ref("puzzleViewers");
+    let huntRef;
+    let puzzlesRef;
+
+    const unsubscribeAuth = firebase.auth().onAuthStateChanged(function(userOrNull) {
+        port.postMessage({
+            msg: "auth",
+            user: userOrNull
+        });
+        if (userOrNull) {
+            currentHuntRef.on("value", handleCurrentHuntValue, handleCurrentHuntFailure);
+            viewersRef.on("value", handleViewersValue);
+        }
+    });
+
+    port.onDisconnect.addListener(function() {
+        unsubscribeAuth();
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        if (viewersRef) viewersRef.off("value", handleViewersValue);
+        if (currentHuntRef) currentHuntRef.off("value", handleCurrentHuntValue);
+    });
+
+    function handleCurrentHuntValue(currentHuntSnap) {
+        if (huntRef) huntRef.off("value", handleHuntValue);
+        if (puzzlesRef) puzzlesRef.off("value", handlePuzzlesValue);
+        const currentHuntKey = currentHuntSnap.val();
+
+        huntRef = db.ref("hunts/" + currentHuntKey);
+        huntRef.on("value", handleHuntValue);
+        puzzlesRef = db.ref("puzzles").orderByChild("hunt").equalTo(currentHuntKey);
+        puzzlesRef.on("value", handlePuzzlesValue);
+    }
+    function handleCurrentHuntFailure(error) {
+        if (error.code === "PERMISSION_DENIED") {
+            port.postMessage({
+                msg: "permissionDenied"
+            });
+        }
+    }
+    function handleHuntValue(huntSnap) {
+        port.postMessage({
+            msg: "hunt",
+            hunt: huntSnap.val()
+        });
+    }
+    function handlePuzzlesValue(puzzlesSnap) {
+        var puzzles = [];
+        puzzlesSnap.forEach(function(puzzle) {
+            puzzles.push(Object.assign({}, puzzle.val(), {
+                key: puzzle.key
+            }))
+        });
+        puzzles.sort(function(p1, p2) {
+            // sort by createdAt descending
+            return new Date(p2.createdAt).getTime() -
+                new Date(p1.createdAt).getTime();
+        });
+        port.postMessage({
+            msg: "puzzles",
+            puzzles: puzzles
+        });
+    }
+    function handleViewersValue(viewersSnap) {
+        const puzzleViewers = {};
+        viewersSnap.forEach(function(viewersForPuzzle) {
+            let numActiveViewers = 0;
+            viewersForPuzzle.forEach(function(viewerTabs) {
+                viewerTabs.forEach(function(tab) {
+                    if (!tab.val().idle) {
+                        numActiveViewers++;
+                        return true; // stop iterating
+                    }
+                });
+            });
+            puzzleViewers[viewersForPuzzle.key] = numActiveViewers;
+        });
+        port.postMessage({
+            msg: "puzzleViewers",
+            puzzleViewers: puzzleViewers
+        });
+    }
 }
 
 function initializePopup(port) {
