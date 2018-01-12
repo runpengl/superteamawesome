@@ -52,6 +52,7 @@ export interface IPuzzle {
     hunt: string;
     ignoreLink?: boolean;
     index?: number;
+    isMeta?: boolean;
     key?: string;
     name: string;
     parent?: string;

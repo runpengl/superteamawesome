@@ -2,6 +2,7 @@ import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
+import { isEqual } from "lodash";
 
 import {
     createManualPuzzleAction,
@@ -14,6 +15,7 @@ import {
 } from "../actions";
 import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
+import { toggleMetaAction } from '../actions/puzzleActions';
 
 interface IOwnProps {
     huntKey: string;
@@ -25,6 +27,7 @@ interface IDispatchProps {
     deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
     saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges}) => void;
+    toggleMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
 }
 
 interface IStateProps {
@@ -69,7 +72,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             || (isAsyncLoaded(oldProps.puzzles)
                 && isAsyncLoaded(puzzles)
                 && oldProps.puzzles.value.length !== puzzles.value.length)
-            || isAsyncLoaded(puzzles) && !this.state.isHierarchyLoaded) {
+            || (isAsyncLoaded(puzzles) && !this.state.isHierarchyLoaded)
+            || (isAsyncLoaded(puzzles) && isAsyncLoaded(oldProps.puzzles) && !isEqual(puzzles.value, oldProps.puzzles.value))) {
             // puzzles have changed, reevaluate hierarchy
             let hierarchy: IPuzzleHierarchy = {};
             let sortedPuzzles = puzzles.value.filter((puzzle) => puzzle.parent !== undefined);
@@ -138,12 +142,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         onPuzzleNameChange={this.onPuzzleNameChange}
                         slackTeamId={slackTeamId}
                     />
-                </div>
-                <div className="hierarchy-text-container">
-                    { isHierarchyLoaded ? <textarea defaultValue={textareaText} onChange={this.handleTextHierarchyChange} /> : undefined}
-                    { parseError !== undefined ? <div className="error">Error parsing: {parseError}</div> : undefined }
-                    <button disabled={!isAsyncLoaded(puzzles)} onClick={this.parseHierarchy}>Preview Hierarchy</button>
-                    <button className="puzzles-save-button" disabled={!hasChanges} onClick={this.handleSaveHierarchy}>{ hasChanges ? "Save" : "Saved" }</button>
                 </div>
             </div>
         )
@@ -291,6 +289,12 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         };
     }
 
+    private toggleMeta = (puzzle: IPuzzle) => {
+        return () => {
+            this.props.toggleMeta(puzzle, !puzzle.isMeta);
+        }
+    }
+
     private renderUnsortedPuzzles() {
         const { lifecycle, slackTeamId } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
@@ -313,6 +317,9 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         >
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
+                        <button onClick={this.toggleMeta(puzzle)}>
+                            {puzzle.isMeta ? "Remove meta" : "Mark as Meta"}
+                        </button>
                     </td>
                 </tr>
             );
@@ -325,7 +332,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <th>Status</th>
                         <th>Created At</th>
                         <th colSpan={3}>Links</th>
-                        <th>Actions</th>
+                        <th colSpan={2}>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -349,6 +356,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
         deletePuzzle: deletePuzzleAction,
         loadPuzzles: loadPuzzlesAction,
         saveHierarchy: saveHierarchyAction,
+        toggleMeta: toggleMetaAction,
     }, dispatch);
 }
 

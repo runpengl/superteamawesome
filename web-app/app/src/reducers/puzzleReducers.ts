@@ -14,6 +14,7 @@ import {
     ICreatePuzzleActionPayload,
 } from "../actions";
 import { IDiscoveredPage, IPuzzle } from "../state";
+import { TOGGLE_META_ACTION } from '../actions/puzzleActions';
 
 const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
     status: AsyncActionStatus.NONE,
@@ -27,6 +28,21 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
         case LOGOUT_ACTION:
             if (isAsyncSucceeded(action)) {
                 return puzzlesInitialState;
+            }
+        case TOGGLE_META_ACTION:
+            if (isAsyncSucceeded(action)) {
+                const index = state.value.findIndex(puzzle => puzzle.key === action.payload.key);
+                return {
+                    ...state,
+                    value: [
+                        ...state.value.slice(0, index),
+                        {
+                            ...state.value[index],
+                            isMeta: action.payload.isMeta,
+                        },
+                        ...state.value.slice(index + 1),
+                    ],
+                };
             }
         default: return state;
     }
