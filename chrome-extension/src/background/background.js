@@ -110,10 +110,18 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                 selectAllWhereChildEquals("puzzles",
                     "hunt", huntKey, function(puzzlesSnapshot) {
                         var didFindPuzzle = puzzlesSnapshot.forEach(function(p) {
-                            var puzzlePath = p.val().path;
-                            if (puzzlePath && pathname.startsWith(puzzlePath)) {
-                                foundPuzzle(p, "puzzle");
-                                return true; // stop forEach iteration
+                            const puzzlePath = p.val().path;
+                            if (!puzzlePath) {
+                                return false;
+                            }
+                            const pathParts = pathname.split("/");
+                            let pathToCheck = "";
+                            for (let i = 0; i < pathParts.length; ++i) {
+                                pathToCheck += `/${pathParts[i]}`;
+                                if (pathToCheck.startsWith(puzzlePath)) {
+                                    foundPuzzle(p, "puzzle");
+                                    return true; // stop forEach iteration
+                                }
                             }
                         });
                         if (!didFindPuzzle) {
