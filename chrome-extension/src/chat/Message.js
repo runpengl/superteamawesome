@@ -68,10 +68,10 @@ function renderTime(ts) {
     const date = new Date(timestampInSeconds * 1000);
 
     const minutes = "0" + date.getMinutes();
-    const hours = date.getHours() % 12;
+    const hours = date.getHours();
     const ampm = hours >= 12 ? "pm" : "am";
 
-    return `${hours ? hours : 12}:${minutes.substr(-2, 2)} ${ampm}`;
+    return `${hours % 12 ? hours % 12 : 12}:${minutes.substr(-2, 2)} ${ampm}`;
 }
 
 // https://api.slack.com/docs/message-formatting#how_to_display_formatted_messages
