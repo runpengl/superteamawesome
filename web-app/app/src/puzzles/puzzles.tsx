@@ -165,18 +165,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         this.setState({ newPuzzleLink });
     }
 
-    private translateHierarchyToText(hierarchy: IPuzzleHierarchy) {
-        let text: string[] = [];
-        Object.keys(hierarchy).forEach((groupKey) => {
-            const group = hierarchy[groupKey];
-            text.push(`META ${group.parent.index}`);
-            group.children.forEach((puzzle) => {
-                text.push(puzzle.index.toString());
-            });
-        });
-        return text;
-    }
-
     private getGoogleSheetUrl(sheetId: string) {
         return `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
     }
