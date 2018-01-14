@@ -94,7 +94,6 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             this.setState({
                 hierarchy,
                 isHierarchyLoaded: true,
-                textHierarchy: this.translateHierarchyToText(hierarchy),
                 unsortedPuzzles: puzzles.value.filter((puzzle) => puzzle.parent === undefined),
             });
         }
