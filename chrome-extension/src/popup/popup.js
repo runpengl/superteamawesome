@@ -329,6 +329,12 @@ class AllPuzzles extends React.Component {
         };
     }
 
+    componentDidMount() {
+        if (this.searchInputNode) {
+            this.searchInputNode.focus();
+        }
+    }
+
     render() {
         return r.div({ className: "AllPuzzles" },
             this.props.puzzles.length === 0
@@ -349,6 +355,7 @@ class AllPuzzles extends React.Component {
     renderSearchInput() {
         return r.div({ className: "AllPuzzles-search" },
             r.input({
+                ref: n => this.searchInputNode = n, // autofocus
                 className: "AllPuzzles-searchInput",
                 placeholder: "Search Puzzles",
                 value: this.state.searchInputValue,

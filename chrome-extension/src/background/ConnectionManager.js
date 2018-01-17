@@ -78,7 +78,7 @@ function initializeHuntToolbar(port, toolbarInfo) {
                 locationType: "puzzle",
                 huntKey: toolbarInfo.huntKey,
                 puzzleKey: p.key,
-                slackChannel: p.val().slackChannel
+                slackChannelId: p.val().slackChannelId
             };
             chrome.tabs.sendMessage(tabId, { msg: "refreshConnection" });
         }

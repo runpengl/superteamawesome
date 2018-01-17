@@ -200,9 +200,9 @@ a:hover {
   font-size: 11px;
   padding: 0 10px;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  height: 16px;
-  line-height: 16px;
+  border-radius: 10px;
+  height: 20px;
+  line-height: 20px;
 }
 .AllPuzzles-searchInput:focus {
   border-color: #aaa;

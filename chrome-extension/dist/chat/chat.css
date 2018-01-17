@@ -201,6 +201,7 @@ body {
   text-align: center;
   top: 0;
   width: 100%;
+  z-index: 10;
 }
 
 .MessageList-clearUnreadLink {
