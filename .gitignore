@@ -13,6 +13,7 @@ chrome-extension/dist/*.bundle.js
 web-app/server/public
 web-app/app/build
 web-app/server/**/*.js
+web-app/server/**/*.js.map
 
 # Editor cruft
 .vscode/
