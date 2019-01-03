@@ -1,7 +1,4 @@
 @import "fonts";
-
-@import "components/button";
-
 @import "login";
 
 body,
@@ -180,7 +177,7 @@ html {
   }
 }
 
-@triangle-size: 6px;
+$triangle-size: 6px;
 .collapsed,
 .uncollapsed {
   display: inline-block;
@@ -190,15 +187,15 @@ html {
 }
 
 .collapsed { 
-  border-top: @triangle-size solid transparent;
-  border-bottom: @triangle-size solid transparent;
-  border-left: @triangle-size solid black;
+  border-top: $triangle-size solid transparent;
+  border-bottom: $triangle-size solid transparent;
+  border-left: $triangle-size solid black;
 }
 
 .uncollapsed {
-  border-left: @triangle-size solid transparent;
-  border-right: @triangle-size solid transparent;
-  border-top: @triangle-size solid black;
+  border-left: $triangle-size solid transparent;
+  border-right: $triangle-size solid transparent;
+  border-top: $triangle-size solid black;
 }
 
 .hierarchy {
@@ -245,9 +242,5 @@ html {
     font-size: 18px;
     font-weight: 600;
     display: inline-block;
-  }
-
-  h1 {
-
   }
 }

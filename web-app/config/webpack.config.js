@@ -11,7 +11,7 @@ module.exports = {
     entry: {
         app: [
             path.join(__dirname, "../app/src/app.tsx"),
-            path.join(__dirname, "../app/src/app.less"),
+            path.join(__dirname, "../app/src/app.scss"),
         ],
     },
     output: {
@@ -20,7 +20,7 @@ module.exports = {
     },
     devtool: "cheap-module-inline-source-map",
     resolve: {
-        extensions: [".js", ".jsx", ".ts", ".tsx", ".less"]
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".scss"]
     },
     module: {
         loaders: [
@@ -33,12 +33,13 @@ module.exports = {
                 },
             },
 
+            // All files with a '.scss' extension will be handled by 'sass-loader'
             {
-                test: /\.less$/,
+                test: /\.scss$/,
                 loader: ExtractTextPlugin.extract({
                     fallback: "style-loader",
-                    use: "css-loader!less-loader",
-                })
+                    use: "css-loader!sass-loader",
+                }),
             },
 
             // All font files will be handled by 'file-loader'

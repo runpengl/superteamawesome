@@ -27,26 +27,22 @@
       width: 300px;
     }
 
-    .image-loop(@i) when (@i < 7) {
-        @c: @i * -300px;
+    @for $i from 0 through 6 {
+      $c: $i * -300px;
 
-        .login-image.person-@{i} {
-          background-position: @c 0px;
-        }
-
-        .image-loop(@i + 1);
+      .login-image.person-#{$i} {
+        background-position: $c 0px;
+      }
     }
-
-    .image-loop(0);
 
     button {
       // override google login button :(
       background: transparent !important;
-      border: 2px solid @grey3 !important;
-      font-family: @open-sans-family !important;
+      border: 2px solid $grey3 !important;
+      font-family: $open-sans-family !important;
       font-weight: 400 !important;
       font-size: 14px !important;
-      color: @grey3 !important;
+      color: $grey3 !important;
       cursor: pointer;
       border-radius: 0 5px 5px 0 !important;
       height: 42px;
@@ -69,7 +65,7 @@
       }
 
       &::before {
-        border: 2px solid @grey3;
+        border: 2px solid $grey3;
         border-right: 0;
         border-radius: 5px 0 0 5px;
         content: "\e004";
@@ -87,7 +83,7 @@
     }
 
     .login-title {
-      color: @grey4;
+      color: $grey4;
       display: block;
       font-size: 1.5em;
       font-weight: 300;
@@ -95,12 +91,12 @@
     }
 
     .login-subtitle {
-      color: @grey4;
+      color: $grey4;
       font-size: 1.2em;
       font-weight: 100;
       margin-bottom: 30px;
       opacity: 0.6;
-      font-family: @muli-family;
+      font-family: $muli-family;
     }
   }
 }
