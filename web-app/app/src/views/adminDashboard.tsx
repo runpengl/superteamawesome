@@ -20,7 +20,7 @@ import {
 } from "../actions";
 import { firebaseAuth } from "../auth";
 import { DiscoveredPages, Puzzles } from "../puzzles";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "../state";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "../store/state";
 import { getSlackAuthUrl } from "../services";
 
 interface IAdminDashboardState {

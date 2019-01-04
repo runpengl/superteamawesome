@@ -2,7 +2,7 @@ import { Dispatch } from "redux";
 
 import { firebaseDatabase } from "../auth";
 import { slack } from "../services";
-import { IAppState, IAuthState, IHuntState } from "../state";
+import { IAppState, IAuthState, IHuntState } from "../store/state";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
 

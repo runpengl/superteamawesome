@@ -11,7 +11,7 @@ import {
     isAsyncLoaded,
     saveDiscoveredPageChangesAction,
 } from "../actions";
-import { IAppState, IAppLifecycle, IHuntState, IDiscoveredPage } from "../state";
+import { IAppState, IAppLifecycle, IHuntState, IDiscoveredPage } from "../store/state";
 
 interface IOwnProps {
     hunt: IHuntState;

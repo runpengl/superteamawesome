@@ -9,7 +9,7 @@ import {
     LOGIN_ACTION,
     LOGOUT_ACTION,
 } from "../actions";
-import { IAppLifecycle, LoginStatus } from "../state";
+import { IAppLifecycle, LoginStatus } from "../store/state";
 
 const initialState: IAppLifecycle = {
     createPuzzleFailure: undefined,

@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
 import { loadSlackTokenAction } from "../actions";
-import { IAppState } from "../state";
+import { IAppState } from "../store/state";
 
 interface IStateProps {
     slackToken: string;

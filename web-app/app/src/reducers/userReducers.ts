@@ -9,7 +9,7 @@ import {
     TOGGLE_ADMIN_ACCESS_ACTION,
     TOGGLE_USER_APPROVAL_ACTION,
 } from "../actions";
-import { IUser } from "../state";
+import { IUser } from "../store/state";
 
 const initialState: IAsyncLoaded<IUser[]> = {
     status: AsyncActionStatus.NONE,

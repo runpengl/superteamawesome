@@ -3,7 +3,7 @@ import { Dispatch } from "redux";
 import { firebaseDatabase } from "../auth";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadHuntAndUserInfo, ILoadHuntActionPayload, LOAD_HUNT_ACTION } from "./huntActions";
-import { IAppState, IAuthState, IUser } from "../state";
+import { IAppState, IAuthState, IUser } from "../store/state";
 import { getDrivePermissions } from "../services";
 import {
     asyncActionFailedPayload,

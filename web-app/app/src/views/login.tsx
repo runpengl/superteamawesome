@@ -7,7 +7,7 @@ import GoogleLogin from "react-google-login";
 import { config } from "../config";
 import { loginAction } from "../actions";
 import { firebaseAuth, scopes } from "../auth";
-import { IAppState } from "../state";
+import { IAppState } from "../store/state";
 
 // props from redux state
 interface IStateProps {

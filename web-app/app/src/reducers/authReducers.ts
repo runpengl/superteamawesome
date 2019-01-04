@@ -5,7 +5,7 @@ import {
     LOGOUT_ACTION,
     LOAD_SLACK_TOKEN_ACTION,
 } from "../actions";
-import { IAuthState } from "../state";
+import { IAuthState } from "../store/state";
 
 const initialState: IAuthState = {
     googleToken: undefined,

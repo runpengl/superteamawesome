@@ -14,7 +14,7 @@ import {
     saveHierarchyAction,
     assignToMetaAction,
 } from "../actions";
-import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../state";
+import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../store/state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
 import { toggleMetaAction } from '../actions/puzzleActions';
 

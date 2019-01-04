@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
 
 import { slack } from "../services";
-import { IAppState } from "../state";
+import { IAppState } from "../store/state";
 import { firebaseAuth, firebaseDatabase } from "../auth";
 import {
     asyncActionFailedPayload,

@@ -2,7 +2,7 @@ import * as classnames from "classnames";
 import * as React from "react";
 
 import { IPuzzleInfoChanges } from "../actions";
-import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../state";
+import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;

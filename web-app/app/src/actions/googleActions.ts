@@ -4,7 +4,7 @@ import { Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
 
 import { getFolder } from "../services";
-import { IAppState } from "../state";
+import { IAppState } from "../store/state";
 import {
     asyncActionInProgressPayload,
     asyncActionSucceededPayload,

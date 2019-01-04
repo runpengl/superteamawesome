@@ -14,7 +14,7 @@ import {
     ICreatePuzzleActionPayload,
     ASSIGN_TO_META,
 } from "../actions";
-import { IDiscoveredPage, IPuzzle } from "../state";
+import { IDiscoveredPage, IPuzzle } from "../store/state";
 import { TOGGLE_META_ACTION } from '../actions/puzzleActions';
 
 const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {

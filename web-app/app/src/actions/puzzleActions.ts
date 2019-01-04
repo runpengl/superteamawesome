@@ -14,7 +14,7 @@ import {
     setSheetPuzzleLink,
     slack,
 } from "../services";
-import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
+import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,

@@ -10,7 +10,7 @@ import {
     SAVE_HUNT_ACTION,
     SET_HUNT_DRIVE_FOLDER_ACTION,
 } from "../actions";
-import { IHuntState } from "../state";
+import { IHuntState } from "../store/state";
 
 const initialState: IAsyncLoaded<IHuntState> = {
     status: AsyncActionStatus.NONE,

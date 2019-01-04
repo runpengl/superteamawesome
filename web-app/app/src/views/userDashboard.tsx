@@ -15,7 +15,7 @@ import {
     toggleUserApprovalAction,
 } from "../actions";
 import { firebaseAuth } from "../auth";
-import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../state";
+import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../store/state";
 
 interface IOwnProps {}
 interface IStateProps {

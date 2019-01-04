@@ -1,9 +1,9 @@
-/// <reference path="../typings/custom/gapi.d.ts" />
+/// <reference path="../../typings/custom/gapi.d.ts" />
 
 import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
-import { IAsyncLoaded } from "./actions";
+import { IAsyncLoaded } from "../actions";
 
 export interface IAuthState {
     googleToken?: string;
