@@ -1,11 +1,7 @@
-import {
-    IAsyncAction,
-    isAsyncSucceeded,
-    LOGIN_ACTION,
-    LOGOUT_ACTION,
-    LOAD_SLACK_TOKEN_ACTION,
-} from "../actions";
-import { IAuthState } from "../store/state";
+import { IAuthState } from "../state";
+import { LOGIN_ACTION, LOGOUT_ACTION } from '../actions/authActions';
+import { isAsyncSucceeded, IAsyncAction } from '../actions/loading';
+import { LOAD_SLACK_TOKEN_ACTION } from '../actions/slackActions';
 
 const initialState: IAuthState = {
     googleToken: undefined,

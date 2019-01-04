@@ -3,7 +3,7 @@
 import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
-import { IAsyncLoaded } from "../actions";
+import { IAsyncLoaded } from "./actions/loading";
 
 export interface IAuthState {
     googleToken?: string;

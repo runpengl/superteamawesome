@@ -1,21 +1,7 @@
-import {
-    AsyncActionStatus,
-    CREATE_PUZZLE_ACTION,
-    IGNORE_DISCOVERED_PAGE_ACTION,
-    getAsyncLoadedValue,
-    IAsyncAction,
-    IAsyncLoaded,
-    isAsyncSucceeded,
-    LOGOUT_ACTION,
-    LOAD_DISCOVERED_PUZZLES_ACTION,
-    LOAD_IGNORED_PAGES_ACTION,
-    LOAD_PUZZLES_ACTION,
-    SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
-    ICreatePuzzleActionPayload,
-    ASSIGN_TO_META,
-} from "../actions";
-import { IDiscoveredPage, IPuzzle } from "../store/state";
-import { TOGGLE_META_ACTION } from '../actions/puzzleActions';
+import { IDiscoveredPage, IPuzzle } from "../state";
+import { TOGGLE_META_ACTION, LOAD_PUZZLES_ACTION, ASSIGN_TO_META, LOAD_DISCOVERED_PUZZLES_ACTION, LOAD_IGNORED_PAGES_ACTION, IGNORE_DISCOVERED_PAGE_ACTION, CREATE_PUZZLE_ACTION, ICreatePuzzleActionPayload, SAVE_DISCOVERED_PAGE_CHANGES_ACTION } from '../actions/puzzleActions';
+import { IAsyncLoaded, AsyncActionStatus, IAsyncAction, getAsyncLoadedValue, isAsyncSucceeded } from '../actions/loading';
+import { LOGOUT_ACTION } from '../actions/authActions';
 
 const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
     status: AsyncActionStatus.NONE,

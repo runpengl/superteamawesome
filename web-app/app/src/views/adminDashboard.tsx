@@ -6,22 +6,15 @@ import { Redirect } from "react-router";
 import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
-
-import {
-    IAsyncLoaded,
-    isAsyncFailed,
-    isAsyncInProgress,
-    isAsyncLoaded,
-    loadHuntAndUserInfoAction,
-    logoutAction,
-    saveHuntInfoAction,
-    loadIgnoredPagesAction,
-    loadDiscoveredPagesAction,
-} from "../actions";
 import { firebaseAuth } from "../auth";
-import { DiscoveredPages, Puzzles } from "../puzzles";
 import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "../store/state";
-import { getSlackAuthUrl } from "../services";
+import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress, isAsyncFailed } from '../store/actions/loading';
+import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from '../store/actions/puzzleActions';
+import { loadHuntAndUserInfoAction, saveHuntInfoAction } from '../store/actions/huntActions';
+import { logoutAction } from '../store/actions/authActions';
+import { DiscoveredPages } from '../puzzles/discoveredPages';
+import { Puzzles } from '../puzzles/puzzles';
+import { getSlackAuthUrl } from '../services/slackService';
 
 interface IAdminDashboardState {
     hasChanges?: boolean;

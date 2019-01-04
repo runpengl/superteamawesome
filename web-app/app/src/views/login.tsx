@@ -5,9 +5,9 @@ import { bindActionCreators, Dispatch } from "redux";
 import GoogleLogin from "react-google-login";
 
 import { config } from "../config";
-import { loginAction } from "../actions";
 import { firebaseAuth, scopes } from "../auth";
 import { IAppState } from "../store/state";
+import { loginAction } from '../store/actions/authActions';
 
 // props from redux state
 interface IStateProps {

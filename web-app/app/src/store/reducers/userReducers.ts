@@ -1,15 +1,6 @@
-import {
-    AsyncActionStatus,
-    IAsyncAction,
-    IAsyncLoaded,
-    isAsyncSucceeded,
-    getAsyncLoadedValue,
-    LOAD_USERS_ACTION,
-    LOAD_ADMIN_USERS_ACTION,
-    TOGGLE_ADMIN_ACCESS_ACTION,
-    TOGGLE_USER_APPROVAL_ACTION,
-} from "../actions";
-import { IUser } from "../store/state";
+import { IUser } from "../state";
+import { IAsyncLoaded, AsyncActionStatus, IAsyncAction, getAsyncLoadedValue, isAsyncSucceeded } from '../actions/loading';
+import { LOAD_ADMIN_USERS_ACTION, TOGGLE_ADMIN_ACCESS_ACTION, LOAD_USERS_ACTION, TOGGLE_USER_APPROVAL_ACTION } from '../actions/userActions';
 
 const initialState: IAsyncLoaded<IUser[]> = {
     status: AsyncActionStatus.NONE,

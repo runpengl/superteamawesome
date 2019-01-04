@@ -1,15 +1,7 @@
-import {
-    IAsyncAction,
-    isAsyncInProgress,
-    isAsyncSucceeded,
-    isAsyncFailed,
-    CREATE_MANUAL_PUZZLE_ACTION,
-    CREATE_PUZZLE_ACTION,
-    DELETE_PUZZLE_ACTION,
-    LOGIN_ACTION,
-    LOGOUT_ACTION,
-} from "../actions";
-import { IAppLifecycle, LoginStatus } from "../store/state";
+import { IAppLifecycle, LoginStatus } from "../state";
+import { IAsyncAction, isAsyncFailed, isAsyncSucceeded, isAsyncInProgress } from '../actions/loading';
+import { CREATE_PUZZLE_ACTION, CREATE_MANUAL_PUZZLE_ACTION, DELETE_PUZZLE_ACTION } from '../actions/puzzleActions';
+import { LOGIN_ACTION, LOGOUT_ACTION } from '../actions/authActions';
 
 const initialState: IAppLifecycle = {
     createPuzzleFailure: undefined,

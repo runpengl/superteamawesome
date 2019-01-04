@@ -1,10 +1,10 @@
 import { Dispatch } from "redux";
 
-import { firebaseDatabase } from "../auth";
-import { slack } from "../services";
-import { IAppState, IAuthState, IHuntState } from "../store/state";
+import { firebaseDatabase } from "../../auth";
+import { IAppState, IAuthState, IHuntState } from "../state";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
+import { slack } from '../../services/slackService';
 
 import {
     asyncActionFailedPayload,

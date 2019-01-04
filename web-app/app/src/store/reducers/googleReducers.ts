@@ -1,14 +1,8 @@
-/// <reference path="../../typings/custom/gapi.d.ts" />
+/// <reference path="../../../typings/custom/gapi.d.ts" />
 
 import { IGoogleDriveFile } from "gapi";
-
-import {
-    AsyncActionStatus,
-    getAsyncLoadedValue,
-    IAsyncAction,
-    IAsyncLoaded,
-    LOAD_DRIVE_FOLDER_ACTION,
-} from "../actions";
+import { IAsyncLoaded, AsyncActionStatus, getAsyncLoadedValue, IAsyncAction } from '../actions/loading';
+import { LOAD_DRIVE_FOLDER_ACTION } from '../actions/googleActions';
 
 const driveFolderInitialState: IAsyncLoaded<IGoogleDriveFile> = {
     status: AsyncActionStatus.NONE,

@@ -1,20 +1,13 @@
-/// <reference path="../../typings/custom/gapi.d.ts" />
+/// <reference path="../../../typings/custom/gapi.d.ts" />
 
 import { Dispatch } from "redux";
 import * as firebase from "firebase";
 import { IGoogleDriveFile, IGoogleShortUrl } from "gapi";
 
-import { firebaseDatabase } from '../auth';
-import {
-    createSheet,
-    deleteSheet,
-    getShortUrl,
-    ISlackChannel,
-    setSheetLinks,
-    setSheetPuzzleLink,
-    slack,
-} from "../services";
-import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
+import { firebaseDatabase } from '../../auth';
+import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
+import { deleteSheet, createSheet, setSheetLinks, getShortUrl, setSheetPuzzleLink } from '../../services/googleService';
+import { slack, ISlackChannel } from '../../services/slackService';
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,

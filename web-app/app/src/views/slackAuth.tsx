@@ -3,8 +3,8 @@ import { Redirect } from "react-router";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import { loadSlackTokenAction } from "../actions";
 import { IAppState } from "../store/state";
+import { loadSlackTokenAction } from '../store/actions/slackActions';
 
 interface IStateProps {
     slackToken: string;

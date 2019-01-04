@@ -1,16 +1,8 @@
-import {
-    AsyncActionStatus,
-    getAsyncLoadedValue,
-    IAsyncAction,
-    IAsyncLoaded,
-    isAsyncSucceeded,
-    LOGOUT_ACTION,
-    LOAD_HUNT_ACTION,
-    LOAD_SLACK_TEAM_ID_ACTION,
-    SAVE_HUNT_ACTION,
-    SET_HUNT_DRIVE_FOLDER_ACTION,
-} from "../actions";
-import { IHuntState } from "../store/state";
+import { IHuntState } from "../state";
+import { IAsyncLoaded, AsyncActionStatus, IAsyncAction, getAsyncLoadedValue, isAsyncSucceeded } from '../actions/loading';
+import { LOAD_HUNT_ACTION, SAVE_HUNT_ACTION, SET_HUNT_DRIVE_FOLDER_ACTION } from '../actions/huntActions';
+import { LOAD_SLACK_TEAM_ID_ACTION } from '../actions/slackActions';
+import { LOGOUT_ACTION } from '../actions/authActions';
 
 const initialState: IAsyncLoaded<IHuntState> = {
     status: AsyncActionStatus.NONE,

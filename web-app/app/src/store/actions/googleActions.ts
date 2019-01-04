@@ -1,10 +1,10 @@
-/// <reference path="../../typings/custom/gapi.d.ts" />
+/// <reference path="../../../typings/custom/gapi.d.ts" />
 
 import { Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
 
-import { getFolder } from "../services";
-import { IAppState } from "../store/state";
+import { IAppState } from "../state";
+import { getFolder } from '../../services/googleService';
 import {
     asyncActionInProgressPayload,
     asyncActionSucceededPayload,

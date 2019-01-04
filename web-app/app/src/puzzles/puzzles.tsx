@@ -4,19 +4,10 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 import { isEqual } from "lodash";
 
-import {
-    createManualPuzzleAction,
-    deletePuzzleAction,
-    isAsyncLoaded,
-    IAsyncLoaded,
-    IPuzzleInfoChanges,
-    loadPuzzlesAction,
-    saveHierarchyAction,
-    assignToMetaAction,
-} from "../actions";
 import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../store/state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
-import { toggleMetaAction } from '../actions/puzzleActions';
+import { toggleMetaAction, IPuzzleInfoChanges, createManualPuzzleAction, deletePuzzleAction, loadPuzzlesAction, saveHierarchyAction, assignToMetaAction } from '../store/actions/puzzleActions';
+import { IAsyncLoaded, isAsyncLoaded } from '../store/actions/loading';
 
 interface IOwnProps {
     huntKey: string;

@@ -7,7 +7,7 @@ import { applyMiddleware, compose, createStore } from "redux";
 import thunk from "redux-thunk";
 import { createLogger } from "redux-logger";
 
-import { reducers } from "./reducers";
+import { reducers } from "./store/reducers";
 import { AdminDashboard } from './views/adminDashboard';
 import { UserDashboard } from "./views/userDashboard";
 import { Login } from "./views/login";

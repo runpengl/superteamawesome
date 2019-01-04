@@ -4,18 +4,11 @@ import { bindActionCreators } from "redux";
 import { Redirect } from 'react-router';
 import { Link } from "react-router-dom";
 
-import {
-    IAsyncLoaded,
-    isAsyncLoaded,
-    isAsyncInProgress,
-    bootstrapUsersAction,
-    loadUsersAndAuthInfoAction,
-    logoutAction,
-    toggleAdminAccessAction,
-    toggleUserApprovalAction,
-} from "../actions";
 import { firebaseAuth } from "../auth";
 import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../store/state";
+import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress } from '../store/actions/loading';
+import { loadUsersAndAuthInfoAction, bootstrapUsersAction, toggleAdminAccessAction, toggleUserApprovalAction } from '../store/actions/userActions';
+import { logoutAction } from '../store/actions/authActions';
 
 interface IOwnProps {}
 interface IStateProps {

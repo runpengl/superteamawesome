@@ -3,15 +3,9 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import {
-    createPuzzleAction,
-    IAsyncLoaded,
-    IPuzzleInfoChanges,
-    ignoreDiscoveredPageAction,
-    isAsyncLoaded,
-    saveDiscoveredPageChangesAction,
-} from "../actions";
 import { IAppState, IAppLifecycle, IHuntState, IDiscoveredPage } from "../store/state";
+import { IAsyncLoaded, isAsyncLoaded } from '../store/actions/loading';
+import { IPuzzleInfoChanges, createPuzzleAction, ignoreDiscoveredPageAction, saveDiscoveredPageChangesAction } from '../store/actions/puzzleActions';
 
 interface IOwnProps {
     hunt: IHuntState;

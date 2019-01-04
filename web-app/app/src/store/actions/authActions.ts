@@ -1,9 +1,9 @@
 import { Dispatch } from "redux";
 import * as firebase from "firebase";
 
-import { firebaseAuth, firebaseDatabase } from "../auth";
-import { IAppLifecycle, IAppState, IAuthState, LoginStatus } from "../store/state";
-import { loadGoogleApi, reloadGoogleAuth } from "../services";
+import { firebaseAuth, firebaseDatabase } from "../../auth";
+import { IAppLifecycle, IAppState, IAuthState, LoginStatus } from "../state";
+import { reloadGoogleAuth, loadGoogleApi } from '../../services/googleService';
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload, 
