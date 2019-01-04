@@ -1,14 +1,11 @@
 import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
-import { Redirect } from 'react-router';
-import { Link } from "react-router-dom";
 
-import { firebaseAuth } from "../auth";
 import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../store/state";
 import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress } from '../store/actions/loading';
 import { loadUsersAndAuthInfoAction, bootstrapUsersAction, toggleAdminAccessAction, toggleUserApprovalAction } from '../store/actions/userActions';
-import { logoutAction } from '../store/actions/authActions';
+import { ViewContainer } from './common/viewContainer';
 
 interface IOwnProps {}
 interface IStateProps {
@@ -22,78 +19,32 @@ interface IStateProps {
 interface IDispatchProps {
     bootstrapUsers: (driveFolderId: string) => void;
     loadUsersAndAuthInfo: () => void;
-    logout: () => void;
     toggleAdminAccess: (user: IUser, makeAdmin: boolean) => void;
     toggleUserApproval: (user: IUser, grantAccess: boolean) => void;
 }
 
 export interface IUserDashboardProps extends IOwnProps, IStateProps, IDispatchProps {}
 
-interface IUserDashboardState {
-    isFirebaseLoggedIn?: boolean;
-    loggedIn?: boolean;
-    isFirebaseLoaded: boolean;
-}
-
-class UnconnectedUserDashboard extends React.Component<IUserDashboardProps, IUserDashboardState> {
-    public state: IUserDashboardState = {
-        isFirebaseLoaded: false,
-        isFirebaseLoggedIn: false,
-        loggedIn: false,
-    };
-
-    public componentDidMount() {
-        firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            this.setState({ isFirebaseLoaded: true, isFirebaseLoggedIn: user != null });    
-        });
-    }
-
+class UnconnectedUserDashboard extends React.Component<IUserDashboardProps> {
     public componentDidUpdate(oldProps: IUserDashboardProps) {
-        const { bootstrapUsers, hunt, loadUsersAndAuthInfo, lifecycle, users } = this.props;
+        const { bootstrapUsers, hunt } = this.props;
         if (isAsyncLoaded(hunt) && isAsyncInProgress(oldProps.hunt)) {
             bootstrapUsers(hunt.value.driveFolderId);
-        }
-
-        if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
-            this.setState({ loggedIn: true });
-
-            if (lifecycle.loginStatus !== LoginStatus.LOGGED_IN || !isAsyncLoaded(users)) {
-                loadUsersAndAuthInfo();
-            }
         }
     }
 
     public render() {
-        if (this.state.isFirebaseLoaded && !this.state.isFirebaseLoggedIn) {
-            return <Redirect to="/login" />;
-        }
-        if (this.state.loggedIn) {
-            return this.renderDashboard();
-        } else {
-            // shouldn't get here
-            return <div>Please <a href="/login">login</a></div>;
-        }
-    }
-
-    private handleLogout = () => {
-        const { logout } = this.props;
-        logout();
-    }
-
-    private renderDashboard() {
         return (
-            <div className="dashboard">
-                <div className="header">
-                    <div className="header-container">
-                        <h1>STAPH [ADMIN]</h1>
-                        <div className="sub-header">Super Team Awesome Puzzle Helper</div>
-                    </div>
-                    <Link to="/admin"><button className="user-button">Manage Puzzles</button></Link>
-                    <button className="logout-button" onClick={this.handleLogout}>Logout</button>
-                </div>
+            <ViewContainer onLoggedIn={this.handleLogIn}>
                 {this.maybeRenderUserInfo()}
-            </div>
+            </ViewContainer>
         );
+    }
+
+    private handleLogIn = () => {
+        if (this.props.lifecycle.loginStatus !== LoginStatus.LOGGED_IN || !isAsyncLoaded(this.props.users)) {
+            this.props.loadUsersAndAuthInfo();
+        }
     }
 
     private maybeRenderUserInfo() {
@@ -230,7 +181,6 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         loadUsersAndAuthInfo: loadUsersAndAuthInfoAction,
-        logout: logoutAction,
         bootstrapUsers: bootstrapUsersAction,
         toggleAdminAccess: toggleAdminAccessAction,
         toggleUserApproval: toggleUserApprovalAction,
