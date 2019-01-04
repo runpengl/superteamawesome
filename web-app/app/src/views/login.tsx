@@ -4,10 +4,10 @@ import { Redirect } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
 import GoogleLogin from "react-google-login";
 
-import { config } from "./config";
-import { loginAction } from "./actions";
-import { firebaseAuth, scopes } from "./auth";
-import { IAppState } from "./state";
+import { config } from "../config";
+import { loginAction } from "../actions";
+import { firebaseAuth, scopes } from "../auth";
+import { IAppState } from "../state";
 
 // props from redux state
 interface IStateProps {

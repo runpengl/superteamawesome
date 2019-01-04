@@ -13,9 +13,9 @@ import {
     logoutAction,
     toggleAdminAccessAction,
     toggleUserApprovalAction,
-} from "./actions";
-import { firebaseAuth } from "./auth";
-import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "./state";
+} from "../actions";
+import { firebaseAuth } from "../auth";
+import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../state";
 
 interface IOwnProps {}
 interface IStateProps {

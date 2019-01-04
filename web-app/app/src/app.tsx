@@ -8,10 +8,10 @@ import thunk from "redux-thunk";
 import { createLogger } from "redux-logger";
 
 import { reducers } from "./reducers";
-import { AdminDashboard } from './adminDashboard';
-import { UserDashboard } from "./userDashboard";
-import { Login } from "./login";
-import { SlackAuth } from "./slackAuth";
+import { AdminDashboard } from './views/adminDashboard';
+import { UserDashboard } from "./views/userDashboard";
+import { Login } from "./views/login";
+import { SlackAuth } from "./views/slackAuth";
 
 let middleware = process.env.NODE_ENV !== 'production' ? applyMiddleware(thunk, createLogger()) : applyMiddleware(thunk);
 // todo: move reducers to reducers folder
