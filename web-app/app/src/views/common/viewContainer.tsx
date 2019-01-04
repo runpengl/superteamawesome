@@ -1,3 +1,4 @@
+import * as classnames from "classnames";
 import * as React from "react";
 import { connect } from "react-redux";
 import { Redirect } from "react-router";
@@ -20,6 +21,7 @@ interface IOwnProps {
 interface IStateProps {
     loginStatus: LoginStatus;
     slackToken: string;
+    location: string;
 }
 
 export interface IViewContainerState {
@@ -86,16 +88,24 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
-                    <Link to="/admin">
-                        <button className="user-button">Manage Puzzles</button>
+                    <Link
+                        to="/admin"
+                        className={classnames("route-link", { active: this.props.location === "/admin" })}
+                    >
+                        Manage Puzzles
                     </Link>
-                    <Link to="/admin/users">
-                        <button className="user-button">Manage Users</button>
+                    <Link
+                        to="/admin/users"
+                        className={classnames("route-link", {
+                            active: this.props.location === "/admin/users",
+                        })}
+                    >
+                        Manage Users
                     </Link>
                     {this.state.loggedIn && (
-                        <button className="logout-button" onClick={this.handleLogout}>
+                        <a className="logout-button route-link" onClick={this.handleLogout}>
                             Logout
-                        </button>
+                        </a>
                     )}
                 </div>
                 {this.props.children}
@@ -112,6 +122,7 @@ function mapStateToProps(state: IAppState): IStateProps {
     return {
         loginStatus: state.lifecycle.loginStatus,
         slackToken: state.auth.slackToken,
+        location: state.router.location.pathname,
     };
 }
 

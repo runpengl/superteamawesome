@@ -1,8 +1,9 @@
+import { ConnectedRouter, connectRouter, routerMiddleware } from "connected-react-router";
 import createHistory from "history/createBrowserHistory";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { Redirect, Route, Router, Switch } from "react-router";
+import { Redirect, Route, Switch } from "react-router";
 import { applyMiddleware, compose, createStore } from "redux";
 import { createLogger } from "redux-logger";
 import thunk from "redux-thunk";
@@ -13,14 +14,21 @@ import { Login } from "./views/login";
 import { SlackAuth } from "./views/slackAuth";
 import { UserDashboard } from "./views/userDashboard";
 
-const middleware =
-    process.env.NODE_ENV !== "production" ? applyMiddleware(thunk, createLogger()) : applyMiddleware(thunk);
-// todo: move reducers to reducers folder
-const store = compose(middleware)(createStore)(reducers);
 const history = createHistory();
+const middleware =
+    process.env.NODE_ENV !== "production"
+        ? applyMiddleware(routerMiddleware(history), thunk, createLogger())
+        : applyMiddleware(routerMiddleware(history), thunk);
+
+const store = createStore(
+    connectRouter(history)(reducers), // root reducer with router state
+    {},
+    compose(middleware),
+);
+
 ReactDOM.render(
     <Provider store={store}>
-        <Router history={history}>
+        <ConnectedRouter history={history}>
             <Switch>
                 <Route exact={true} path="/" render={() => <Redirect to="/admin" />} />
                 <Route path="/admin/users" component={UserDashboard} />
@@ -28,7 +36,7 @@ ReactDOM.render(
                 <Route path="/login" component={Login} />
                 <Route path="/slack/auth" component={SlackAuth} />
             </Switch>
-        </Router>
+        </ConnectedRouter>
     </Provider>,
     document.querySelector("#app"),
 );

@@ -3,6 +3,7 @@
 import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
+import { RouterState } from "connected-react-router";
 import { IAsyncLoaded } from "./actions/loading";
 
 export interface IAuthState {
@@ -90,6 +91,7 @@ export enum LoginStatus {
 
 export interface IAppState {
     adminUsers?: IAsyncLoaded<IUser[]>;
+    router?: RouterState;
     auth?: IAuthState;
     discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     hunt?: IAsyncLoaded<IHuntState>;
