@@ -2,12 +2,9 @@
 
 import * as React from "react";
 import { connect } from "react-redux";
-import { Redirect } from "react-router";
-import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
-import { firebaseAuth } from "../auth";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState, LoginStatus } from "../store/state";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from '../store/state';
 import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress, isAsyncFailed } from '../store/actions/loading';
 import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from '../store/actions/puzzleActions';
 import { loadHuntAndUserInfoAction, saveHuntInfoAction } from '../store/actions/huntActions';
@@ -15,18 +12,15 @@ import { logoutAction } from '../store/actions/authActions';
 import { DiscoveredPages } from '../puzzles/discoveredPages';
 import { Puzzles } from '../puzzles/puzzles';
 import { getSlackAuthUrl } from '../services/slackService';
+import { ViewContainer } from "./common/viewContainer";
 
 interface IAdminDashboardState {
     hasChanges?: boolean;
     hunt?: IHuntState;
     huntDriveFolder?: IGoogleDriveFile;
     isCurrentDriveFolderRoot?: boolean;
-    isFirebaseLoggedIn?: boolean;
     isFolderDialogShown?: boolean;
-    isLoading?: boolean;
-    loggedIn?: boolean;
     loginError?: Error;
-    isFirebaseLoaded: boolean;
 }
 
 interface IOwnProps {}
@@ -52,98 +46,53 @@ interface IStateProps {
 interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
 
 class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IAdminDashboardState> {
-    public state: IAdminDashboardState = {
-        isFirebaseLoggedIn: false,
-        isFirebaseLoaded: false,
-        isLoading: true,
-        loggedIn: false,
-    };
+    public state: IAdminDashboardState = {};
 
-    public componentDidMount() {
-        firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            this.setState({ isFirebaseLoggedIn: user != null, isFirebaseLoaded: true });
-        });
-    }
+    public componentWillReceiveProps(nextProps: IAdminDashboardProps) {
+        const { hunt, huntDriveFolder, loadIgnoredPages, loadDiscoveredPages } = nextProps;
 
-    public componentDidUpdate(oldProps: IAdminDashboardProps) {
-        const { hunt, huntDriveFolder, lifecycle, loadHuntAndUserInfo, loadIgnoredPages, loadDiscoveredPages, slackToken } = this.props;
-
-        if (slackToken === undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN) {
-            (window as any).location = getSlackAuthUrl();
-        } else if (slackToken !== undefined && lifecycle.loginStatus === LoginStatus.LOGGED_IN && !isAsyncLoaded(hunt) && !isAsyncInProgress(hunt)) {
-            this.setState({
-                loggedIn: true,
-            });
-            loadHuntAndUserInfo();
-        }
-
-        if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
-            this.setState({
-                loggedIn: true,
-            });
-            loadHuntAndUserInfo();
-        }
-        
-        if (lifecycle.loginStatus === LoginStatus.LOGGED_IN && oldProps.lifecycle.loginStatus !== LoginStatus.LOGGED_IN) {
-            this.setState({
-                loggedIn: true,
-            });
-        }
-
-        if (isAsyncInProgress(oldProps.hunt) && isAsyncLoaded(hunt)) {
-            const hunt = this.props.hunt.value;
+        if (!isAsyncLoaded(this.props.hunt) && isAsyncLoaded(hunt)) {
+            const hunt = nextProps.hunt.value;
             loadIgnoredPages(hunt.year);
             loadDiscoveredPages(hunt.year);
             this.setState({
                 hunt,
-                isLoading: false,
                 isCurrentDriveFolderRoot: hunt.driveFolderId === undefined,
             });
-        } else if (isAsyncFailed(hunt) && isAsyncInProgress(oldProps.hunt)) {
-            this.setState({ isLoading: false });
         }
 
-        if (isAsyncInProgress(oldProps.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
+        if (isAsyncInProgress(this.props.huntDriveFolder) && isAsyncLoaded(huntDriveFolder)) {
             this.setState({
                 huntDriveFolder: huntDriveFolder.value,
             });
         }
 
-        if (oldProps.lifecycle.deletingPuzzleFailure === undefined && this.props.lifecycle.deletingPuzzleFailure !== undefined) {
+        if (this.props.lifecycle.deletingPuzzleFailure === undefined && nextProps.lifecycle.deletingPuzzleFailure !== undefined) {
             alert(this.props.lifecycle.deletingPuzzleFailure.message);
         }
     }
 
     public render() {
-        const { hunt, lifecycle } = this.props;
-        if (this.state.isFirebaseLoaded && !this.state.isFirebaseLoggedIn) {
-            return <Redirect to="/login" />;
-        }
+        return (
+            <ViewContainer onLoggedIn={this.handleLogIn} isContentReady={isAsyncLoaded(this.props.hunt) || isAsyncInProgress(this.props.hunt)}>
+                {this.maybeRenderHunt()}
+            </ViewContainer>
+        )
+    }
 
-        if (this.state.isLoading || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
-            return (
-                <div className="dashboard">
-                    <div className="header">
-                        <div className="header-container">
-                            <h1>STAPH [ADMIN]</h1>
-                            <div className="sub-header">Super Team Awesome Puzzle Helper</div>
-                        </div>
-                        {lifecycle.loginError === undefined ? <Link to="/admin/users"><button className="user-button">Manage Users</button></Link> : undefined}
-                        <button className="logout-button" onClick={this.handleLogout}>Logout</button>
-                    </div>
-                    <span>{ lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..." }</span>
-                </div>
-            );
+    private maybeRenderHunt() {
+        const { hunt, lifecycle } = this.props;
+        if (!isAsyncLoaded(hunt) || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
+            return <span>{ lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..." }</span>;
+        } else if (isAsyncFailed(hunt)) {
+            return <span>Error: {hunt.error.message}</span>;
         } else {
-            if (isAsyncFailed(hunt)) {
-                return <span>Error: {hunt.error.message}</span>;
-            } else if (this.state.loggedIn) {
-                return this.renderDashboard();
-            } else {
-                // shouldn't get here
-                return <span>Please login</span>;
-            }
+            return this.renderDashboard();
         }
+    }
+
+    private handleLogIn = () => {
+        this.props.loadHuntAndUserInfo();
     }
 
     private handleHuntDomainChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -195,7 +144,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         if (matches.length > 1 && matches[1] !== this.props.hunt.value.templateSheetId) {
             this.setState({
                 hasChanges: true,
-                hunt: Object.assign({}, this.state.hunt, { templateSheetId: matches[1] }),
+                hunt: {
+                    ...this.state.hunt, 
+                    templateSheetId: matches[1],
+                },
             });
         }
     }
@@ -205,24 +157,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         this.setState({ hasChanges: false });
     }
 
-    private handleLogout = () => {
-        const { logout } = this.props;
-        this.setState({ loggedIn: false, isLoading: true });
-        logout();
-    }
-
     private renderDashboard() {
         const hunt = this.props.hunt.value;
         return (
-            <div className="dashboard">
-                <div className="header">
-                    <div className="header-container">
-                        <h1>STAPH [ADMIN]</h1>
-                        <div className="sub-header">Super Team Awesome Puzzle Helper</div>
-                    </div>
-                    <Link to="/admin/users"><button className="user-button">Manage Users</button></Link>
-                    <button className="logout-button" onClick={this.handleLogout}>Logout</button>
-                </div>
+            <>
                 <div className="hunt-edit-container">
                     <div className="hunt-information">
                         <div className="edit-info-line">
@@ -255,13 +193,13 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                     </button>
                 </div>
                 {this.maybeRenderPuzzles()}
-            </div>
+            </>
         )
     }
 
     private getTemplateSheetLink() {
         const { hunt } = this.state;
-        if (hunt.templateSheetId === undefined) {
+        if (!isAsyncLoaded(this.props.hunt) || hunt === undefined || hunt.templateSheetId === undefined) {
             return undefined;
         } else {
             return `https://docs.google.com/spreadsheets/d/${hunt.templateSheetId}/edit`;
@@ -270,7 +208,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     private getHuntFolderLink() {
         const { hunt } = this.state;
-        if (hunt.driveFolderId === undefined) {
+        if (!isAsyncLoaded(this.props.hunt) || hunt === undefined || hunt.driveFolderId === undefined) {
             return undefined;
         } else {
             return `https://drive.google.com/drive/u/0/folders/${hunt.driveFolderId}`;

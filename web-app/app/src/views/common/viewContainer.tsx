@@ -1,18 +1,25 @@
 import * as React from "react";
 import { Link } from 'react-router-dom';
 import { bindActionCreators, Dispatch } from 'redux';
-import { IAppState } from '../../store/state';
+import { IAppState, LoginStatus } from '../../store/state';
 import { logoutAction } from '../../store/actions/authActions';
 import { connect } from 'react-redux';
 import { firebaseAuth } from '../../auth';
 import { Redirect } from 'react-router';
+import { getSlackAuthUrl } from '../../services/slackService';
 
 interface IDispatchProps {
     logout: () => void;
 }
 
 interface IOwnProps {
+    isContentReady: boolean;
     onLoggedIn: () => void;
+}
+
+interface IStateProps {
+    loginStatus: LoginStatus;
+    slackToken: string;
 }
 
 export interface IViewContainerState {
@@ -21,7 +28,7 @@ export interface IViewContainerState {
     isFirebaseLoaded: boolean;
 }
 
-export type IViewContainerProps = IDispatchProps & IOwnProps;
+export type IViewContainerProps = IDispatchProps & IOwnProps & IStateProps;
 
 class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, IViewContainerState> {
     public state: IViewContainerState = {
@@ -42,6 +49,23 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
         if (this.state.isFirebaseLoggedIn && !this.state.loggedIn) {
             this.setState({ loggedIn: true });
             onLoggedIn();
+        }
+    }
+
+    public componentWillReceiveProps(nextProps: IViewContainerProps) {
+        if (nextProps.slackToken === undefined && nextProps.loginStatus === LoginStatus.LOGGED_IN) {
+            (window as any).location = getSlackAuthUrl();
+        } else if (nextProps.slackToken !== undefined && this.props.slackToken === undefined && nextProps.loginStatus === LoginStatus.LOGGED_IN && !nextProps.isContentReady) {
+            this.setState({
+                loggedIn: true,
+            });
+            nextProps.onLoggedIn();
+        }
+
+        if (nextProps.loginStatus === LoginStatus.LOGGED_IN && this.props.loginStatus !== LoginStatus.LOGGED_IN) {
+            this.setState({
+                loggedIn: true,
+            });
         }
     }
 
@@ -71,10 +95,17 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
     }
 }
 
+function mapStateToProps(state: IAppState): IStateProps {
+    return {
+        loginStatus: state.lifecycle.loginStatus,
+        slackToken: state.auth.slackToken,
+    };
+}
+
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
     return bindActionCreators({
         logout: logoutAction,
     }, dispatch);
 }
 
-export const ViewContainer = connect(undefined, mapDispatchToProps)(UnconnectedViewContainer);
+export const ViewContainer = connect(mapStateToProps, mapDispatchToProps)(UnconnectedViewContainer);

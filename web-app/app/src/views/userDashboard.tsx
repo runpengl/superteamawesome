@@ -2,7 +2,7 @@ import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
 
-import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser, LoginStatus } from "../store/state";
+import { IAppLifecycle, IAppState, IAuthState, IHuntState, IUser } from "../store/state";
 import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress } from '../store/actions/loading';
 import { loadUsersAndAuthInfoAction, bootstrapUsersAction, toggleAdminAccessAction, toggleUserApprovalAction } from '../store/actions/userActions';
 import { ViewContainer } from './common/viewContainer';
@@ -35,16 +35,14 @@ class UnconnectedUserDashboard extends React.Component<IUserDashboardProps> {
 
     public render() {
         return (
-            <ViewContainer onLoggedIn={this.handleLogIn}>
+            <ViewContainer onLoggedIn={this.handleLogIn} isContentReady={isAsyncLoaded(this.props.hunt)}>
                 {this.maybeRenderUserInfo()}
             </ViewContainer>
         );
     }
 
     private handleLogIn = () => {
-        if (this.props.lifecycle.loginStatus !== LoginStatus.LOGGED_IN || !isAsyncLoaded(this.props.users)) {
-            this.props.loadUsersAndAuthInfo();
-        }
+        this.props.loadUsersAndAuthInfo();
     }
 
     private maybeRenderUserInfo() {
