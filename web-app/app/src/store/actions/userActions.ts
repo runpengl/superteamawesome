@@ -143,7 +143,7 @@ export function loadUsers() {
 
 export function loadUsersAndAuthInfoAction() {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
-        if (!isAsyncLoaded(getState().hunt)) {
+        if (!isAsyncLoaded(getState().activeHunt)) {
             loadHuntAndUserInfo(dispatch, getState)
                 .then(() => {
                     loadUsers()(dispatch);

@@ -176,7 +176,7 @@ function mapStateToProps(state: IAppState): IStateProps {
     return {
         adminUsers: state.adminUsers,
         auth: state.auth,
-        hunt: state.hunt,
+        hunt: state.activeHunt,
         lifecycle: state.lifecycle,
         users: state.users,
     };

@@ -254,7 +254,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 }
 
 function mapStateToProps(state: IAppState): IStateProps {
-    const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages, lifecycle } = state;
+    const { auth, discoveredPages, huntDriveFolder, activeHunt: hunt, ignoredPages, lifecycle } = state;
     return {
         discoveredPages,
         hunt,

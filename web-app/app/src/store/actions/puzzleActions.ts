@@ -99,7 +99,7 @@ export interface IPuzzleInfoChanges {
 export function saveDiscoveredPageChangesAction(changes: { [key: string]: IPuzzleInfoChanges }) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(SAVE_DISCOVERED_PAGE_CHANGES_ACTION));
-        const huntKey = getState().hunt.value.year;
+        const huntKey = getState().activeHunt.value.year;
         const changePromises: Array<Promise<IDiscoveredPage>> = [];
         Object.keys(changes).forEach(key => {
             const updates: { [key: string]: string } = {};
@@ -146,7 +146,7 @@ export function saveDiscoveredPageChangesAction(changes: { [key: string]: IPuzzl
 export const IGNORE_DISCOVERED_PAGE_ACTION = "IGNORE_PAGE";
 export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
-        const hunt = getState().hunt.value;
+        const hunt = getState().activeHunt.value;
         dispatch(asyncActionInProgressPayload<IDiscoveredPage[]>(IGNORE_DISCOVERED_PAGE_ACTION));
         firebaseDatabase
             .ref(`discoveredPages/${hunt.year}/${discoveredPage.key}/ignored`)
@@ -261,7 +261,7 @@ export interface ICreatePuzzleActionPayload {
 export function createManualPuzzleAction(puzzleName: string, puzzleLink: string) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<void>(CREATE_MANUAL_PUZZLE_ACTION));
-        const { auth, hunt: asyncHunt } = getState();
+        const { auth, activeHunt: asyncHunt } = getState();
         const hunt = asyncHunt.value;
 
         const tempElement = document.createElement("a") as HTMLAnchorElement;
@@ -419,7 +419,7 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
 
 export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
-        const { auth, hunt: asyncHunt } = getState();
+        const { auth, activeHunt: asyncHunt } = getState();
         const hunt = asyncHunt.value;
         const lowerCasePuzzleName = puzzleName.replace(/\ /g, "").toLowerCase();
         const puzzleKey = lowerCasePuzzleName + "-" + hunt.year;
@@ -639,7 +639,7 @@ export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: 
         Promise.all(promises)
             .then(() => {
                 dispatch(asyncActionSucceededPayload<void>(SAVE_HIERARCHY_ACTION));
-                loadPuzzlesAction(getState().hunt.value.year)(dispatch);
+                loadPuzzlesAction(getState().activeHunt.value.year)(dispatch);
             })
             .catch(error => {
                 dispatch(asyncActionFailedPayload<void>(SAVE_HIERARCHY_ACTION, error));

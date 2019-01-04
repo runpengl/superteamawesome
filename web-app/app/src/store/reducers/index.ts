@@ -11,7 +11,7 @@ export const reducers = combineReducers({
     adminUsers: adminUserReducer,
     auth: authReducer,
     discoveredPages: discoveredPageReducer,
-    hunt: huntReducer,
+    activeHunt: huntReducer,
     huntDriveFolder: huntDriveFolderReducer,
     ignoredPages: ignoredPagesReducer,
     lifecycle: lifecycleReducer,

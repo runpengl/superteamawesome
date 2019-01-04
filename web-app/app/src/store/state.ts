@@ -94,7 +94,7 @@ export interface IAppState {
     router?: RouterState;
     auth?: IAuthState;
     discoveredPages?: IAsyncLoaded<IDiscoveredPage[]>;
-    hunt?: IAsyncLoaded<IHuntState>;
+    activeHunt?: IAsyncLoaded<IHuntState>;
     huntDriveFolder?: IAsyncLoaded<IGoogleDriveFile>;
     ignoredPages?: IAsyncLoaded<IDiscoveredPage[]>;
     lifecycle?: IAppLifecycle;
