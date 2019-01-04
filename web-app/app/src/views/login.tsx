@@ -1,13 +1,13 @@
 import * as React from "react";
+import GoogleLogin from "react-google-login";
 import { connect } from "react-redux";
 import { Redirect } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
-import GoogleLogin from "react-google-login";
 
-import { config } from "../config";
 import { firebaseAuth, scopes } from "../auth";
+import { config } from "../config";
+import { loginAction } from "../store/actions/authActions";
 import { IAppState } from "../store/state";
-import { loginAction } from '../store/actions/authActions';
 
 // props from redux state
 interface IStateProps {
@@ -15,15 +15,12 @@ interface IStateProps {
     slackToken?: string;
 }
 
-// props given to component
-interface IOwnProps {}
-
 // dispatch functions
 interface IDispatchProps {
     login: (accessToken: string) => void;
 }
 
-export interface ILoginProps extends IStateProps, IOwnProps, IDispatchProps {}
+export interface ILoginProps extends IStateProps, IDispatchProps {}
 
 interface ILoginState {
     loginErrors?: string;
@@ -47,69 +44,79 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
     public componentDidUpdate(_oldProps: ILoginProps, oldState: ILoginState) {
         if (this.state.showLogin && !oldState.showLogin) {
             const canvas = document.getElementById("poofytoo") as HTMLCanvasElement;
-            let context = canvas.getContext("2d");
-            let elapsedTime = 0, w = 0, h = 0, cx = 0, cy = 0;
-            let d = Date.now()
+            const context = canvas.getContext("2d");
+            let elapsedTime = 0;
+            let w = 0;
+            let h = 0;
+            let cx = 0;
+            let cy = 0;
+            const d = Date.now();
 
-            const drawDiamond = function(ox: number, oy: number, w: number, h: number, c: string) {
-                w = w || 100;
-                h = h || 200;
+            const drawDiamond = (ox: number, oy: number, width: number, height: number, c: string) => {
+                w = width || 100;
+                h = height || 200;
                 context.beginPath();
                 context.moveTo(ox, oy);
-                context.lineTo(ox+w/2, oy+h/2);
-                context.lineTo(ox, oy+h);
-                context.lineTo(ox-w/2, oy+h/2);
+                context.lineTo(ox + w / 2, oy + h / 2);
+                context.lineTo(ox, oy + h);
+                context.lineTo(ox - w / 2, oy + h / 2);
                 context.closePath();
                 context.lineWidth = 0;
                 context.fillStyle = c;
                 context.fill();
-            }
+            };
 
-            const drawBackground = function() {
-                var DIA_WIDTH = 100
-                var DIA_HEIGHT = 190
-                var rA = 254, rB = 210
-                var gA = 255, gB = 220
-                var bA = 255, bB = 205
+            const drawBackground = () => {
+                const DIA_WIDTH = 100;
+                const DIA_HEIGHT = 190;
+                const rA = 254;
+                const rB = 210;
+                const gA = 255;
+                const gB = 220;
+                const bA = 255;
+                const bB = 205;
 
                 w = canvas.width;
                 h = canvas.height;
-                cx = Math.ceil(w/DIA_WIDTH)+1
-                cy = Math.ceil(h/(DIA_HEIGHT/2))+1
-                var rOffset = 0, gOffset = 0, bOffset = 0;
+                cx = Math.ceil(w / DIA_WIDTH) + 1;
+                cy = Math.ceil(h / (DIA_HEIGHT / 2)) + 1;
+                let rOffset = 0;
+                let gOffset = 0;
+                let bOffset = 0;
 
                 for (let j = 0; j < cy; ++j) {
                     for (let i = 0; i < cx; ++i) {
-                    rOffset = Math.round(((rB - rA) / cx) * i) + Math.floor(Math.sin(elapsedTime-i*0.8)*20)
-                    gOffset = Math.round(((gB - gA) / cy) * j) 
-                    bOffset = Math.round(((bB - bA) / cx) * j)
-                    drawDiamond(
-                        i*DIA_WIDTH+(j%2)*(DIA_WIDTH/2), 
-                        j*(DIA_HEIGHT/2)-DIA_HEIGHT/2,
-                        DIA_WIDTH+1,
-                        DIA_HEIGHT+1,
-                        "rgb(" + (rA + rOffset) + ", " + (gA + gOffset) + ", " + (bA + bOffset) + ")")
+                        rOffset = Math.round(((rB - rA) / cx) * i) + Math.floor(Math.sin(elapsedTime - i * 0.8) * 20);
+                        gOffset = Math.round(((gB - gA) / cy) * j);
+                        bOffset = Math.round(((bB - bA) / cx) * j);
+                        drawDiamond(
+                            i * DIA_WIDTH + (j % 2) * (DIA_WIDTH / 2),
+                            j * (DIA_HEIGHT / 2) - DIA_HEIGHT / 2,
+                            DIA_WIDTH + 1,
+                            DIA_HEIGHT + 1,
+                            "rgb(" + (rA + rOffset) + ", " + (gA + gOffset) + ", " + (bA + bOffset) + ")",
+                        );
                     }
                 }
-            }
+            };
 
-            const animateBackground = function() {
+            const animateBackground = () => {
                 elapsedTime = (Date.now() - d) / 1000;
                 drawBackground();
-            }
+            };
 
-            const resizeCanvas = function() {
+            const resizeCanvas = () => {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
-                
-                drawBackground(); 
-            }
+
+                drawBackground();
+            };
 
             window.addEventListener("resize", resizeCanvas, false);
 
             resizeCanvas();
 
-            window.setInterval(animateBackground,80);
+            window.setInterval(animateBackground, 80);
         }
     }
 
@@ -124,12 +131,8 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                 <div className="login">
                     <div className="login-container">
                         <div className={`login-image person-${random}`} />
-                        <div className="login-title">
-                            super team awesomeboard
-                        </div>
-                        <div className="login-subtitle">
-                            let's have some mystery hunt fun
-                        </div>
+                        <div className="login-title">super team awesomeboard</div>
+                        <div className="login-subtitle">let's have some mystery hunt fun</div>
                         <GoogleLogin
                             clientId={config.google.clientId}
                             onSuccess={this.handleLogin}
@@ -137,7 +140,7 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
                             scope={scopes.join(" ")}
                         />
                     </div>
-                    <canvas id="poofytoo"></canvas>
+                    <canvas id="poofytoo" />
                 </div>
             );
         } else {
@@ -148,14 +151,14 @@ class UnconnectedLogin extends React.Component<ILoginProps, ILoginState> {
     private handleLogin = (response: any) => {
         const { login } = this.props;
         login(response.getAuthResponse().access_token);
-    }
+    };
 
     private handleLoginFailure = (error: Error) => {
         this.setState({ loginErrors: error.message });
-    }
+    };
 }
 
-function mapStateToProps(state: IAppState, _props: IOwnProps): IStateProps {
+function mapStateToProps(state: IAppState): IStateProps {
     const { auth } = state;
     return {
         googleToken: auth.googleToken,
@@ -164,9 +167,15 @@ function mapStateToProps(state: IAppState, _props: IOwnProps): IStateProps {
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
-    return bindActionCreators({
-        login: loginAction,
-    }, dispatch);
+    return bindActionCreators(
+        {
+            login: loginAction,
+        },
+        dispatch,
+    );
 }
 
-export const Login = connect(mapStateToProps, mapDispatchToProps)(UnconnectedLogin);
+export const Login = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UnconnectedLogin);

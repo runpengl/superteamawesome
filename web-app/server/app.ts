@@ -1,7 +1,7 @@
+import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
 import * as express from "express";
 import * as path from "path";
-import * as cookieParser from "cookie-parser";
-import * as bodyParser from "body-parser";
 
 import { router } from "./routes/index";
 
@@ -20,22 +20,21 @@ app.use("/", router);
 
 // catch 404 and forward to error handler
 app.use((_req: express.Request, _res: express.Response, next: express.NextFunction) => {
-  const err: any = new Error("Not Found");
-  err.status = 404;
-  next(err);
+    const err: any = new Error("Not Found");
+    err.status = 404;
+    next(err);
 });
 
 // error handler
 app.use((err: any, req: express.Request, res: express.Response) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+    // render the error page
+    res.status(err.status || 500);
+    res.render("error");
 });
-
 
 const port = normalizePort(process.env.PORT || "3000");
 app.listen(port);
@@ -45,17 +44,17 @@ app.listen(port);
  */
 
 function normalizePort(val: string) {
-  const port = parseInt(val, 10);
+    const normalizedPort = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+    if (isNaN(normalizedPort)) {
+        // named pipe
+        return val;
+    }
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+    if (normalizedPort >= 0) {
+        // port number
+        return normalizedPort;
+    }
 
-  return false;
+    return false;
 }

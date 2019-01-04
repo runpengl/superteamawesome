@@ -35,7 +35,7 @@ export const PuzzleStatus = {
     NEW: "new" as PuzzleStatus,
     SOLVED: "solved" as PuzzleStatus,
     STUCK: "stuck" as PuzzleStatus,
-}
+};
 
 export interface IPuzzleGroup {
     parent: IPuzzle;

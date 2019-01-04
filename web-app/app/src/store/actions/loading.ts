@@ -4,7 +4,7 @@ export const AsyncActionStatus = {
     IN_PROGRESS: "IN_PROGRESS" as AsyncActionStatus,
     NONE: "NONE" as AsyncActionStatus,
     SUCCEEDED: "SUCCEEDED" as AsyncActionStatus,
-}
+};
 
 export interface IAsyncAction<T> {
     error?: Error;
@@ -41,7 +41,7 @@ export function getAsyncLoadedValue<T>(action: IAsyncAction<T>): IAsyncLoaded<T>
         error: action.error,
         status: action.status,
         value: action.value,
-    }
+    };
 }
 
 export function asyncActionInProgressPayload<T>(type: string, payload?: any): IAsyncAction<T> {

@@ -1,17 +1,17 @@
 /// <reference path="../../typings/custom/gapi.d.ts" />
 
+import { IGoogleDriveFile } from "gapi";
 import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { IGoogleDriveFile } from "gapi";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from '../store/state';
-import { IAsyncLoaded, isAsyncLoaded, isAsyncInProgress, isAsyncFailed } from '../store/actions/loading';
-import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from '../store/actions/puzzleActions';
-import { loadHuntAndUserInfoAction, saveHuntInfoAction } from '../store/actions/huntActions';
-import { logoutAction } from '../store/actions/authActions';
-import { DiscoveredPages } from '../puzzles/discoveredPages';
-import { Puzzles } from '../puzzles/puzzles';
-import { getSlackAuthUrl } from '../services/slackService';
+import { DiscoveredPages } from "../puzzles/discoveredPages";
+import { Puzzles } from "../puzzles/puzzles";
+import { getSlackAuthUrl } from "../services/slackService";
+import { logoutAction } from "../store/actions/authActions";
+import { loadHuntAndUserInfoAction, saveHuntInfoAction } from "../store/actions/huntActions";
+import { IAsyncLoaded, isAsyncFailed, isAsyncInProgress, isAsyncLoaded } from "../store/actions/loading";
+import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from "../store/actions/puzzleActions";
+import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "../store/state";
 import { ViewContainer } from "./common/viewContainer";
 
 interface IAdminDashboardState {
@@ -22,8 +22,6 @@ interface IAdminDashboardState {
     isFolderDialogShown?: boolean;
     loginError?: Error;
 }
-
-interface IOwnProps {}
 
 interface IDispatchProps {
     loadHuntAndUserInfo: () => void;
@@ -43,15 +41,15 @@ interface IStateProps {
     user: firebase.UserInfo;
 }
 
-interface IAdminDashboardProps extends IOwnProps, IDispatchProps, IStateProps {}
+interface IAdminDashboardProps extends IDispatchProps, IStateProps {}
 
 class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IAdminDashboardState> {
     public state: IAdminDashboardState = {};
 
     public componentWillReceiveProps(nextProps: IAdminDashboardProps) {
-        const { hunt, huntDriveFolder, loadIgnoredPages, loadDiscoveredPages } = nextProps;
+        const { huntDriveFolder, loadIgnoredPages, loadDiscoveredPages } = nextProps;
 
-        if (!isAsyncLoaded(this.props.hunt) && isAsyncLoaded(hunt)) {
+        if (!isAsyncLoaded(this.props.hunt) && isAsyncLoaded(nextProps.hunt)) {
             const hunt = nextProps.hunt.value;
             loadIgnoredPages(hunt.year);
             loadDiscoveredPages(hunt.year);
@@ -67,23 +65,29 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             });
         }
 
-        if (this.props.lifecycle.deletingPuzzleFailure === undefined && nextProps.lifecycle.deletingPuzzleFailure !== undefined) {
+        if (
+            this.props.lifecycle.deletingPuzzleFailure === undefined &&
+            nextProps.lifecycle.deletingPuzzleFailure !== undefined
+        ) {
             alert(this.props.lifecycle.deletingPuzzleFailure.message);
         }
     }
 
     public render() {
         return (
-            <ViewContainer onLoggedIn={this.handleLogIn} isContentReady={isAsyncLoaded(this.props.hunt) || isAsyncInProgress(this.props.hunt)}>
+            <ViewContainer
+                onLoggedIn={this.handleLogIn}
+                isContentReady={isAsyncLoaded(this.props.hunt) || isAsyncInProgress(this.props.hunt)}
+            >
                 {this.maybeRenderHunt()}
             </ViewContainer>
-        )
+        );
     }
 
     private maybeRenderHunt() {
         const { hunt, lifecycle } = this.props;
         if (!isAsyncLoaded(hunt) || (isAsyncFailed(hunt) && lifecycle.loginError !== undefined)) {
-            return <span>{ lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..." }</span>;
+            return <span>{lifecycle.loginError !== undefined ? lifecycle.loginError.message : "Loading..."}</span>;
         } else if (isAsyncFailed(hunt)) {
             return <span>Error: {hunt.error.message}</span>;
         } else {
@@ -93,37 +97,37 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
 
     private handleLogIn = () => {
         this.props.loadHuntAndUserInfo();
-    }
+    };
 
     private handleHuntDomainChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.domain) {
             this.setState({
                 hasChanges: true,
-                hunt: Object.assign({}, this.state.hunt, { domain: newValue }),
+                hunt: { ...this.state.hunt, domain: newValue },
             });
         }
-    }
+    };
 
     private handleHuntNameChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.name) {
             this.setState({
                 hasChanges: true,
-                hunt: Object.assign({}, this.state.hunt, { name: newValue }),
+                hunt: { ...this.state.hunt, name: newValue },
             });
         }
-    }
+    };
 
     private handleHuntTitleRegexChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
         if (newValue !== this.props.hunt.value.titleRegex) {
             this.setState({
                 hasChanges: true,
-                hunt: Object.assign({}, this.state.hunt, { titleRegex: newValue }),
+                hunt: { ...this.state.hunt, titleRegex: newValue },
             });
         }
-    }
+    };
 
     private handleHuntDriveFolderChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
@@ -132,10 +136,10 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         if (matches != null && matches.length > 1 && matches[1] !== this.props.hunt.value.driveFolderId) {
             this.setState({
                 hasChanges: true,
-                hunt: Object.assign({}, this.state.hunt, { driveFolderId: matches[1] }),
+                hunt: { ...this.state.hunt, driveFolderId: matches[1] },
             });
-        } 
-    }
+        }
+    };
 
     private handleTemplateSheetChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newValue = (event.target as HTMLInputElement).value;
@@ -145,17 +149,17 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
             this.setState({
                 hasChanges: true,
                 hunt: {
-                    ...this.state.hunt, 
+                    ...this.state.hunt,
                     templateSheetId: matches[1],
                 },
             });
         }
-    }
+    };
 
     private handleSave = () => {
         this.props.saveHuntInfo(this.state.hunt);
         this.setState({ hasChanges: false });
-    }
+    };
 
     private renderDashboard() {
         const hunt = this.props.hunt.value;
@@ -173,28 +177,36 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
                         </div>
                         <div className="edit-info-line">
                             <label>match title</label>
-                            <input type="text" defaultValue={hunt.titleRegex} onChange={this.handleHuntTitleRegexChange} />
+                            <input
+                                type="text"
+                                defaultValue={hunt.titleRegex}
+                                onChange={this.handleHuntTitleRegexChange}
+                            />
                         </div>
                         <div className="edit-info-line">
                             <label>google drive folder</label>
-                            <input type="text" defaultValue={this.getHuntFolderLink()} onChange={this.handleHuntDriveFolderChange} />
+                            <input
+                                type="text"
+                                defaultValue={this.getHuntFolderLink()}
+                                onChange={this.handleHuntDriveFolderChange}
+                            />
                         </div>
                         <div className="edit-info-line">
                             <label>spreadsheet template</label>
-                            <input type="text" defaultValue={this.getTemplateSheetLink()} onChange={this.handleTemplateSheetChange} />
+                            <input
+                                type="text"
+                                defaultValue={this.getTemplateSheetLink()}
+                                onChange={this.handleTemplateSheetChange}
+                            />
                         </div>
                     </div>
-                    <button
-                        className="hunt-save-button"
-                        disabled={!this.state.hasChanges}
-                        onClick={this.handleSave}
-                    >
-                        { this.state.hasChanges ? "Save" : "Saved" }
+                    <button className="hunt-save-button" disabled={!this.state.hasChanges} onClick={this.handleSave}>
+                        {this.state.hasChanges ? "Save" : "Saved"}
                     </button>
                 </div>
                 {this.maybeRenderPuzzles()}
             </>
-        )
+        );
     }
 
     private getTemplateSheetLink() {
@@ -220,7 +232,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         if (slackToken !== undefined) {
             return (
                 <div className="tables-container">
-                    <DiscoveredPages hunt={hunt.value} discoveredPages={discoveredPages} title="discovered"/>
+                    <DiscoveredPages hunt={hunt.value} discoveredPages={discoveredPages} title="discovered" />
                     <Puzzles huntKey={hunt.value.year} slackTeamId={hunt.value.slackTeamId} />
                     <DiscoveredPages
                         hunt={hunt.value}
@@ -241,7 +253,7 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
     }
 }
 
-function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
+function mapStateToProps(state: IAppState): IStateProps {
     const { auth, discoveredPages, huntDriveFolder, hunt, ignoredPages, lifecycle } = state;
     return {
         discoveredPages,
@@ -255,13 +267,19 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
-    return bindActionCreators({
-        loadDiscoveredPages: loadDiscoveredPagesAction,
-        loadHuntAndUserInfo: loadHuntAndUserInfoAction,
-        loadIgnoredPages: loadIgnoredPagesAction,
-        logout: logoutAction,
-        saveHuntInfo: saveHuntInfoAction,
-    }, dispatch);
+    return bindActionCreators(
+        {
+            loadDiscoveredPages: loadDiscoveredPagesAction,
+            loadHuntAndUserInfo: loadHuntAndUserInfoAction,
+            loadIgnoredPages: loadIgnoredPagesAction,
+            logout: logoutAction,
+            saveHuntInfo: saveHuntInfoAction,
+        },
+        dispatch,
+    );
 }
 
-export const AdminDashboard = connect(mapStateToProps, mapDispatchToProps)(UnconnectedAdminDashboard);
+export const AdminDashboard = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UnconnectedAdminDashboard);

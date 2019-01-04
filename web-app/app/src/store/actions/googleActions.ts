@@ -1,14 +1,11 @@
 /// <reference path="../../../typings/custom/gapi.d.ts" />
 
-import { Dispatch } from "redux";
 import { IGoogleDriveFile } from "gapi";
+import { Dispatch } from "redux";
 
+import { getFolder } from "../../services/googleService";
 import { IAppState } from "../state";
-import { getFolder } from '../../services/googleService';
-import {
-    asyncActionInProgressPayload,
-    asyncActionSucceededPayload,
-} from "./loading";
+import { asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
 export const LOAD_DRIVE_FOLDER_ACTION = "LOAD_DRIVE_FOLDER";
 export function loadFolderAction(fileId: string) {
@@ -19,8 +16,8 @@ export function loadFolderAction(fileId: string) {
 
 export function loadFolder(dispatch: Dispatch<IAppState>, fileId: string): Promise<void> {
     dispatch(asyncActionInProgressPayload<IGoogleDriveFile>(LOAD_DRIVE_FOLDER_ACTION));
-    return new Promise<void>((resolve) => {
-        getFolder(fileId).then((file) => {
+    return new Promise<void>(resolve => {
+        getFolder(fileId).then(file => {
             dispatch(asyncActionSucceededPayload<IGoogleDriveFile>(LOAD_DRIVE_FOLDER_ACTION, file));
             resolve();
         });

@@ -1,10 +1,10 @@
 import * as React from "react";
-import { Redirect } from "react-router";
 import { connect } from "react-redux";
+import { Redirect } from "react-router";
 import { bindActionCreators, Dispatch } from "redux";
 
+import { loadSlackTokenAction } from "../store/actions/slackActions";
 import { IAppState } from "../store/state";
-import { loadSlackTokenAction } from '../store/actions/slackActions';
 
 interface IStateProps {
     slackToken: string;
@@ -20,9 +20,7 @@ interface IDispatchProps {
 
 export interface ISlackAuthProps extends IDispatchProps, IOwnProps, IStateProps {}
 
-
 class UnconnectedSlackAuth extends React.Component<ISlackAuthProps, {}> {
-
     public componentDidMount() {
         this.props.loadSlackToken(this.props.location.query.code);
     }
@@ -42,9 +40,15 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
-    return bindActionCreators({
-        loadSlackToken: loadSlackTokenAction,
-    }, dispatch);
+    return bindActionCreators(
+        {
+            loadSlackToken: loadSlackTokenAction,
+        },
+        dispatch,
+    );
 }
 
-export const SlackAuth = connect(mapStateToProps, mapDispatchToProps)(UnconnectedSlackAuth);
+export const SlackAuth = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UnconnectedSlackAuth);

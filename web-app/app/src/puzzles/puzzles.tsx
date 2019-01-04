@@ -1,13 +1,21 @@
+import { isEqual } from "lodash";
 import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
-import { isEqual } from "lodash";
 
-import { IAppState, IAppLifecycle, IPuzzle, IPuzzleHierarchy } from "../store/state";
+import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
+import {
+    assignToMetaAction,
+    createManualPuzzleAction,
+    deletePuzzleAction,
+    IPuzzleInfoChanges,
+    loadPuzzlesAction,
+    saveHierarchyAction,
+    toggleMetaAction,
+} from "../store/actions/puzzleActions";
+import { IAppLifecycle, IAppState, IPuzzle, IPuzzleHierarchy } from "../store/state";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
-import { toggleMetaAction, IPuzzleInfoChanges, createManualPuzzleAction, deletePuzzleAction, loadPuzzlesAction, saveHierarchyAction, assignToMetaAction } from '../store/actions/puzzleActions';
-import { IAsyncLoaded, isAsyncLoaded } from '../store/actions/loading';
 
 interface IOwnProps {
     huntKey: string;
@@ -18,7 +26,7 @@ interface IDispatchProps {
     createManualPuzzle?: (puzzleName: string, puzzleLink: string) => void;
     deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
-    saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges}) => void;
+    saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges }) => void;
     toggleMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
     assignToMeta?: (puzzle: IPuzzle, metaParentKey: string) => void;
 }
@@ -61,20 +69,24 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     public componentDidUpdate(oldProps: IPuzzlesProps) {
         const { puzzles, lifecycle } = this.props;
-        if (!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles)
-            || (isAsyncLoaded(oldProps.puzzles)
-                && isAsyncLoaded(puzzles)
-                && oldProps.puzzles.value.length !== puzzles.value.length)
-            || (isAsyncLoaded(puzzles) && !this.state.isHierarchyLoaded)
-            || (isAsyncLoaded(puzzles) && isAsyncLoaded(oldProps.puzzles) && !isEqual(puzzles.value, oldProps.puzzles.value))) {
+        if (
+            (!isAsyncLoaded(oldProps.puzzles) && isAsyncLoaded(puzzles)) ||
+            (isAsyncLoaded(oldProps.puzzles) &&
+                isAsyncLoaded(puzzles) &&
+                oldProps.puzzles.value.length !== puzzles.value.length) ||
+            (isAsyncLoaded(puzzles) && !this.state.isHierarchyLoaded) ||
+            (isAsyncLoaded(puzzles) &&
+                isAsyncLoaded(oldProps.puzzles) &&
+                !isEqual(puzzles.value, oldProps.puzzles.value))
+        ) {
             // puzzles have changed, reevaluate hierarchy
-            let hierarchy: IPuzzleHierarchy = {};
-            let sortedPuzzles = puzzles.value.filter((puzzle) => puzzle.parent !== undefined);
-            sortedPuzzles.forEach((puzzle) => {
+            const hierarchy: IPuzzleHierarchy = {};
+            const sortedPuzzles = puzzles.value.filter(puzzle => puzzle.parent !== undefined);
+            sortedPuzzles.forEach(puzzle => {
                 const parentKey = puzzle.parent;
                 if (hierarchy[parentKey] === undefined) {
                     hierarchy[parentKey] = {
-                        parent: puzzles.value.find((puzzle) => puzzle.key === parentKey),
+                        parent: puzzles.value.find(parentPuzzle => parentPuzzle.key === parentKey),
                         children: [],
                     };
                 }
@@ -85,7 +97,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             this.setState({
                 hierarchy,
                 isHierarchyLoaded: true,
-                unsortedPuzzles: puzzles.value.filter((puzzle) => puzzle.parent === undefined),
+                unsortedPuzzles: puzzles.value.filter(puzzle => puzzle.parent === undefined),
             });
         }
 
@@ -107,7 +119,9 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <h5>Manually add puzzle</h5>
                     <div className="add-puzzle-form">
                         <div className="error">
-                            {lifecycle.createManualPuzzleFailure !== undefined ? lifecycle.createManualPuzzleFailure.message : undefined}
+                            {lifecycle.createManualPuzzleFailure !== undefined
+                                ? lifecycle.createManualPuzzleFailure.message
+                                : undefined}
                         </div>
                         <div className="add-puzzle-form-line">
                             <label>Name</label>
@@ -118,7 +132,14 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                             <input type="text" value={newPuzzleLink} onChange={this.handlenewPuzzleLinkChange} />
                             <div className="help-text">Links that already exist will be ignored by the extension</div>
                         </div>
-                        <button disabled={lifecycle.creatingManualPuzzle || newPuzzleName.length === 0 || newPuzzleLink.length === 0} onClick={this.handleCreateManualPuzzle}>
+                        <button
+                            disabled={
+                                lifecycle.creatingManualPuzzle ||
+                                newPuzzleName.length === 0 ||
+                                newPuzzleLink.length === 0
+                            }
+                            onClick={this.handleCreateManualPuzzle}
+                        >
                             {lifecycle.creatingManualPuzzle ? "Creating..." : "Create"}
                         </button>
                     </div>
@@ -137,24 +158,24 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     />
                 </div>
             </div>
-        )
+        );
     }
 
     private handleCreateManualPuzzle = () => {
         const { createManualPuzzle } = this.props;
         const { newPuzzleLink, newPuzzleName } = this.state;
         createManualPuzzle(newPuzzleName, newPuzzleLink);
-    }
+    };
 
     private handleNewPuzzleNameChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newPuzzleName = (event.target as HTMLInputElement).value;
         this.setState({ newPuzzleName });
-    }
+    };
 
     private handlenewPuzzleLinkChange = (event: React.FormEvent<HTMLInputElement>) => {
         const newPuzzleLink = (event.target as HTMLInputElement).value;
         this.setState({ newPuzzleLink });
-    }
+    };
 
     private getGoogleSheetUrl(sheetId: string) {
         return `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
@@ -173,10 +194,10 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             const value = (event.target as HTMLInputElement).value;
             this.onPuzzleNameChange(puzzle, value);
         };
-    }
+    };
 
     private onPuzzleNameChange = (puzzle: IPuzzle, newName: string) => {
-        const changes = Object.assign({}, this.state.puzzleChanges);
+        const changes = { ...this.state.puzzleChanges };
         if (changes[puzzle.key] === undefined) {
             changes[puzzle.key] = {};
         }
@@ -185,55 +206,70 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             hasChanges: true,
             puzzleChanges: changes,
         });
-    }
+    };
 
     private onPuzzleDelete = (puzzle: IPuzzle) => {
         const { deletePuzzle } = this.props;
-        if (window.confirm("This will delete the associated Google Spreadsheet and archive the Slack channel, are you sure you want to proceed?")) {
+        if (
+            window.confirm(
+                "This will delete the associated Google Spreadsheet and archive the Slack channel, are you sure you want to proceed?",
+            )
+        ) {
             deletePuzzle(puzzle);
         }
-    }
+    };
 
     private handleDeletePuzzle = (puzzle: IPuzzle) => {
         return () => {
             this.onPuzzleDelete(puzzle);
         };
-    }
+    };
 
     private toggleMeta = (puzzle: IPuzzle) => {
         return () => {
             this.props.toggleMeta(puzzle, !puzzle.isMeta);
-        }
-    }
+        };
+    };
 
     private handleAssignment(puzzle: IPuzzle) {
         return (event: React.ChangeEvent<HTMLSelectElement>) => {
             if (event.target.value !== puzzle.key) {
                 this.props.assignToMeta(puzzle, event.target.value);
             }
-        }
+        };
     }
 
     private renderUnsortedPuzzles() {
         const { lifecycle, slackTeamId, puzzles } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
-        const puzzleRows = unsortedPuzzles.map((puzzle) => {
-            const puzzleName = puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined ? puzzleChanges[puzzle.key].title : puzzle.name;
+        const puzzleRows = unsortedPuzzles.map(puzzle => {
+            const puzzleName =
+                puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined
+                    ? puzzleChanges[puzzle.key].title
+                    : puzzle.name;
             const date = moment(puzzle.createdAt).format("MMM DD, YYYY hh:mm A");
             const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
             return (
                 <tr key={puzzle.key}>
-                    <td>{puzzle.index} <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} /></td>
+                    <td>
+                        {puzzle.index}{" "}
+                        <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
+                    </td>
                     <td>{puzzle.status.toUpperCase()}</td>
                     <td>{date}</td>
-                    <td><a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a></td>
-                    <td><a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">DOC</a></td>
-                    <td><input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} /></td>
                     <td>
-                        <button
-                            disabled={isDeleting}
-                            onClick={this.handleDeletePuzzle(puzzle)}
-                        >
+                        <a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a>
+                    </td>
+                    <td>
+                        <a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">
+                            DOC
+                        </a>
+                    </td>
+                    <td>
+                        <input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} />
+                    </td>
+                    <td>
+                        <button disabled={isDeleting} onClick={this.handleDeletePuzzle(puzzle)}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                         <button onClick={this.toggleMeta(puzzle)}>
@@ -241,9 +277,13 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         </button>
                         <select onChange={this.handleAssignment(puzzle)}>
                             <option>Assign to meta...</option>
-                            {puzzles.value.filter(puzzle => puzzle.isMeta).map(metaPuzzle => (
-                                <option value={metaPuzzle.key} key={metaPuzzle.key}>{metaPuzzle.name}</option>
-                            ))}
+                            {puzzles.value
+                                .filter(metaPuzzle => metaPuzzle.isMeta)
+                                .map(metaPuzzle => (
+                                    <option value={metaPuzzle.key} key={metaPuzzle.key}>
+                                        {metaPuzzle.name}
+                                    </option>
+                                ))}
                         </select>
                     </td>
                 </tr>
@@ -260,9 +300,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <th colSpan={3}>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {puzzleRows}
-                </tbody>
+                <tbody>{puzzleRows}</tbody>
             </table>
         );
     }
@@ -276,14 +314,20 @@ function mapStateToProps(state: IAppState, _ownProps: IOwnProps): IStateProps {
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
-    return bindActionCreators({
-        createManualPuzzle: createManualPuzzleAction,
-        deletePuzzle: deletePuzzleAction,
-        loadPuzzles: loadPuzzlesAction,
-        saveHierarchy: saveHierarchyAction,
-        toggleMeta: toggleMetaAction,
-        assignToMeta: assignToMetaAction,
-    }, dispatch);
+    return bindActionCreators(
+        {
+            createManualPuzzle: createManualPuzzleAction,
+            deletePuzzle: deletePuzzleAction,
+            loadPuzzles: loadPuzzlesAction,
+            saveHierarchy: saveHierarchyAction,
+            toggleMeta: toggleMetaAction,
+            assignToMeta: assignToMetaAction,
+        },
+        dispatch,
+    );
 }
 
-export const Puzzles = connect(mapStateToProps, mapDispatchToProps)(UnconnectedPuzzles);
+export const Puzzles = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UnconnectedPuzzles);

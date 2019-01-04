@@ -1,12 +1,12 @@
 import * as React from "react";
-import { Link } from 'react-router-dom';
-import { bindActionCreators, Dispatch } from 'redux';
-import { IAppState, LoginStatus } from '../../store/state';
-import { logoutAction } from '../../store/actions/authActions';
-import { connect } from 'react-redux';
-import { firebaseAuth } from '../../auth';
-import { Redirect } from 'react-router';
-import { getSlackAuthUrl } from '../../services/slackService';
+import { connect } from "react-redux";
+import { Redirect } from "react-router";
+import { Link } from "react-router-dom";
+import { bindActionCreators, Dispatch } from "redux";
+import { firebaseAuth } from "../../auth";
+import { getSlackAuthUrl } from "../../services/slackService";
+import { logoutAction } from "../../store/actions/authActions";
+import { IAppState, LoginStatus } from "../../store/state";
 
 interface IDispatchProps {
     logout: () => void;
@@ -39,7 +39,7 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
 
     public componentDidMount() {
         firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => {
-            this.setState({ isFirebaseLoaded: true, isFirebaseLoggedIn: user != null });    
+            this.setState({ isFirebaseLoaded: true, isFirebaseLoggedIn: user != null });
         });
     }
 
@@ -55,7 +55,12 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
     public componentWillReceiveProps(nextProps: IViewContainerProps) {
         if (nextProps.slackToken === undefined && nextProps.loginStatus === LoginStatus.LOGGED_IN) {
             (window as any).location = getSlackAuthUrl();
-        } else if (nextProps.slackToken !== undefined && this.props.slackToken === undefined && nextProps.loginStatus === LoginStatus.LOGGED_IN && !nextProps.isContentReady) {
+        } else if (
+            nextProps.slackToken !== undefined &&
+            this.props.slackToken === undefined &&
+            nextProps.loginStatus === LoginStatus.LOGGED_IN &&
+            !nextProps.isContentReady
+        ) {
             this.setState({
                 loggedIn: true,
             });
@@ -81,9 +86,17 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
                         <h1>STAPH [ADMIN]</h1>
                         <div className="sub-header">Super Team Awesome Puzzle Helper</div>
                     </div>
-                    <Link to="/admin"><button className="user-button">Manage Puzzles</button></Link>
-                    <Link to="/admin/users"><button className="user-button">Manage Users</button></Link>
-                    {this.state.loggedIn && <button className="logout-button" onClick={this.handleLogout}>Logout</button>}
+                    <Link to="/admin">
+                        <button className="user-button">Manage Puzzles</button>
+                    </Link>
+                    <Link to="/admin/users">
+                        <button className="user-button">Manage Users</button>
+                    </Link>
+                    {this.state.loggedIn && (
+                        <button className="logout-button" onClick={this.handleLogout}>
+                            Logout
+                        </button>
+                    )}
                 </div>
                 {this.props.children}
             </div>
@@ -92,7 +105,7 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
 
     private handleLogout = () => {
         this.props.logout();
-    }
+    };
 }
 
 function mapStateToProps(state: IAppState): IStateProps {
@@ -103,9 +116,15 @@ function mapStateToProps(state: IAppState): IStateProps {
 }
 
 function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
-    return bindActionCreators({
-        logout: logoutAction,
-    }, dispatch);
+    return bindActionCreators(
+        {
+            logout: logoutAction,
+        },
+        dispatch,
+    );
 }
 
-export const ViewContainer = connect(mapStateToProps, mapDispatchToProps)(UnconnectedViewContainer);
+export const ViewContainer = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UnconnectedViewContainer);

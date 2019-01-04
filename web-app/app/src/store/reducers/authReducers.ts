@@ -1,7 +1,7 @@
+import { LOGIN_ACTION, LOGOUT_ACTION } from "../actions/authActions";
+import { IAsyncAction, isAsyncSucceeded } from "../actions/loading";
+import { LOAD_SLACK_TOKEN_ACTION } from "../actions/slackActions";
 import { IAuthState } from "../state";
-import { LOGIN_ACTION, LOGOUT_ACTION } from '../actions/authActions';
-import { isAsyncSucceeded, IAsyncAction } from '../actions/loading';
-import { LOAD_SLACK_TOKEN_ACTION } from '../actions/slackActions';
 
 const initialState: IAuthState = {
     googleToken: undefined,
@@ -12,7 +12,7 @@ export function authReducer(state: IAuthState = initialState, action: IAsyncActi
     switch (action.type) {
         case LOGIN_ACTION:
             if (isAsyncSucceeded(action)) {
-                return Object.assign({}, state, action.value);
+                return { ...state, ...action.value };
             }
         case LOGOUT_ACTION:
             if (isAsyncSucceeded(action)) {
@@ -20,7 +20,7 @@ export function authReducer(state: IAuthState = initialState, action: IAsyncActi
             }
         case LOAD_SLACK_TOKEN_ACTION:
             if (isAsyncSucceeded(action)) {
-                return Object.assign({}, state, { slackToken: action.value });
+                return { ...state, slackToken: action.value };
             }
         default:
             return state;

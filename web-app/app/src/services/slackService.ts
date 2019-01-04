@@ -4,12 +4,13 @@ import { makeRequest } from "./fetch";
 const { slack: slackConfig } = config;
 
 export function getSlackAuthUrl() {
-    const { slack: slackConfig } = config;
     const scope = "channels:write team:read client";
-    return `https://slack.com/oauth/authorize?client_id=${slackConfig.clientId}`
-        + `&redirect_uri=${slackConfig.redirectURL}`
-        + `&team=${slackConfig.team}`
-        + `&scope=${scope}`;
+    return (
+        `https://slack.com/oauth/authorize?client_id=${slackConfig.clientId}` +
+        `&redirect_uri=${slackConfig.redirectURL}` +
+        `&team=${slackConfig.team}` +
+        `&scope=${scope}`
+    );
 }
 
 const slackApi = "https://slack.com/api";
@@ -20,15 +21,15 @@ export interface ISlackAuthToken {
 }
 
 function oauthAccess(code: string) {
-    const oauthAccessUrl = `${slackApi}/oauth.access`
-        + `?client_id=${slackConfig.clientId}`
-        + `&client_secret=${slackConfig.clientSecret}`
-        + `&code=${code}`
-        + `&redirect_uri=${slackConfig.redirectURL}`;
-    return makeRequest<ISlackAuthToken>(oauthAccessUrl, "GET")
-        .then((token: ISlackAuthToken) => {
-            return token.access_token;
-        });
+    const oauthAccessUrl =
+        `${slackApi}/oauth.access` +
+        `?client_id=${slackConfig.clientId}` +
+        `&client_secret=${slackConfig.clientSecret}` +
+        `&code=${code}` +
+        `&redirect_uri=${slackConfig.redirectURL}`;
+    return makeRequest<ISlackAuthToken>(oauthAccessUrl, "GET").then((token: ISlackAuthToken) => {
+        return token.access_token;
+    });
 }
 
 const oauth = {
@@ -54,25 +55,32 @@ export interface ISlackChannelResponse extends ISlackResponse {
 }
 
 function createChannel(token: string, name: string): Promise<ISlackChannel> {
-    return makeRequest<ISlackChannelResponse>(`${slackApi}/channels.create?token=${token}&name=${name}`, "GET").then((response) => {
-        if (response.ok) {
-            return response.channel;
-        } else {
-            throw new Error(response.error);
-        }
-    });
+    return makeRequest<ISlackChannelResponse>(`${slackApi}/channels.create?token=${token}&name=${name}`, "GET").then(
+        response => {
+            if (response.ok) {
+                return response.channel;
+            } else {
+                throw new Error(response.error);
+            }
+        },
+    );
 }
 
 function archiveChannel(token: string, id: string): Promise<void> {
-    return makeRequest<ISlackResponse>(`${slackApi}/channels.archive?token=${token}&channel=${id}`, "GET").then((response) => {
-        if (!response.ok) {
-            throw new Error(response.error);
-        }
-    })
+    return makeRequest<ISlackResponse>(`${slackApi}/channels.archive?token=${token}&channel=${id}`, "GET").then(
+        response => {
+            if (!response.ok) {
+                throw new Error(response.error);
+            }
+        },
+    );
 }
 
 function setChannelTopic(token: string, id: string, topic: string): Promise<void> {
-    return makeRequest<ISlackResponse>(`${slackApi}/channels.setTopic?token=${token}&channel=${id}&topic=${topic}`, "GET").then((responses) => {
+    return makeRequest<ISlackResponse>(
+        `${slackApi}/channels.setTopic?token=${token}&channel=${id}&topic=${topic}`,
+        "GET",
+    ).then(responses => {
         if (!responses.ok) {
             throw new Error(responses.error);
         }
@@ -80,11 +88,13 @@ function setChannelTopic(token: string, id: string, topic: string): Promise<void
 }
 
 function leaveChannel(token: string, id: string): Promise<void> {
-    return makeRequest<ISlackResponse>(`${slackApi}/channels.leave?token=${token}&channel=${id}`, "GET").then((response) => {
-        if (!response.ok) {
-            throw new Error(response.error);
-        }
-    })
+    return makeRequest<ISlackResponse>(`${slackApi}/channels.leave?token=${token}&channel=${id}`, "GET").then(
+        response => {
+            if (!response.ok) {
+                throw new Error(response.error);
+            }
+        },
+    );
 }
 
 const channels = {
@@ -104,7 +114,7 @@ export interface ISlackTeamInfoResponse extends ISlackResponse {
 }
 
 function getTeamInfo(token: string): Promise<ISlackTeamInfo> {
-    return makeRequest<ISlackTeamInfoResponse>(`${slackApi}/team.info?token=${token}`, "GET").then((response) => {
+    return makeRequest<ISlackTeamInfoResponse>(`${slackApi}/team.info?token=${token}`, "GET").then(response => {
         if (response.ok) {
             return response.team;
         } else {

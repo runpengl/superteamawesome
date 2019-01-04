@@ -1,16 +1,12 @@
 import { Dispatch } from "redux";
 
 import { firebaseDatabase } from "../../auth";
+import { slack } from "../../services/slackService";
 import { IAppState, IAuthState, IHuntState } from "../state";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
-import { slack } from '../../services/slackService';
 
-import {
-    asyncActionFailedPayload,
-    asyncActionInProgressPayload, 
-    asyncActionSucceededPayload,
-} from "./loading";
+import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
 export const LOAD_HUNT_ACTION = "LOAD_HUNT";
 export interface IHunt {
@@ -22,39 +18,53 @@ export interface IHunt {
 
 export interface ILoadHuntActionPayload extends IHunt {
     year: string;
+    slackTeamId?: string;
 }
 
 export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () => IAppState) {
     dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
     return loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
         return new Promise((resolve, reject) => {
-            firebaseDatabase.ref("currentHunt").once("value", (snapshot) => {
-                const huntRef = snapshot.val();
-                firebaseDatabase.ref(`hunts/${huntRef}`).once("value", (huntSnapshot) => {
-                    const hunt = huntSnapshot.val() as IHunt;
-                    if (slackAccessToken !== undefined) {
-                        slack.team.info(slackAccessToken).then((teamInfo) => {
-                            dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                                LOAD_HUNT_ACTION,
-                                Object.assign({}, hunt, { year: huntSnapshot.key, slackTeamId: teamInfo.id }),
-                            ));
-                        });
-                    } else {
-                        dispatch(asyncActionSucceededPayload<ILoadHuntActionPayload>(
-                            LOAD_HUNT_ACTION,
-                            Object.assign({}, hunt, { year: huntSnapshot.key }),
-                        ));
-                    }
-                    resolve();
-                }, (error: Error) => {
+            firebaseDatabase.ref("currentHunt").once(
+                "value",
+                snapshot => {
+                    const huntRef = snapshot.val();
+                    firebaseDatabase.ref(`hunts/${huntRef}`).once(
+                        "value",
+                        huntSnapshot => {
+                            const hunt = huntSnapshot.val() as IHunt;
+                            if (slackAccessToken !== undefined) {
+                                slack.team.info(slackAccessToken).then(teamInfo => {
+                                    dispatch(
+                                        asyncActionSucceededPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, {
+                                            ...hunt,
+                                            year: huntSnapshot.key,
+                                            slackTeamId: teamInfo.id,
+                                        }),
+                                    );
+                                });
+                            } else {
+                                dispatch(
+                                    asyncActionSucceededPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, {
+                                        ...hunt,
+                                        year: huntSnapshot.key,
+                                    }),
+                                );
+                            }
+                            resolve();
+                        },
+                        (error: Error) => {
+                            dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+                            reject(error);
+                        },
+                    );
+                },
+                (error: Error) => {
                     dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
                     reject(error);
-                });
-            }, (error: Error) => {
-                dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
-                reject(error);
-            });
-        })
+                },
+            );
+        });
     });
 }
 
@@ -64,30 +74,35 @@ export function loadHuntAndUserInfoAction() {
         loadHuntAndUserInfo(dispatch, getState).catch((error: Error) => {
             let huntLoadError = error;
             if ((error as any).code === "PERMISSION_DENIED") {
-                huntLoadError = new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                huntLoadError = new Error(
+                    "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                );
                 dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, huntLoadError));
             }
             dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, huntLoadError));
         });
-    }
+    };
 }
 
 export const SAVE_HUNT_ACTION = "SAVE_HUNT_INFO";
-export interface ISaveHuntActionPayload extends IHuntState { }
+export type ISaveHuntActionPayload = IHuntState;
 
 export function saveHuntInfoAction(hunt: IHuntState) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION));
-        let huntInfo = Object.assign({}, hunt) as ISaveHuntActionPayload;
-        delete huntInfo["year"];
+        const huntInfo: ISaveHuntActionPayload = { ...hunt };
+        delete huntInfo.year;
         firebaseDatabase
             .ref(`hunts/${hunt.year}`)
             .set(huntInfo)
-            .then(() => {
-                dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, huntInfo));
-            }, (error: Error) => {
-                dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
-            })
+            .then(
+                () => {
+                    dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, huntInfo));
+                },
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
+                },
+            );
     };
 }
 
@@ -99,13 +114,16 @@ export function setHuntDriveFolderAction(folderId: string, huntKey: string) {
         firebaseDatabase
             .ref(`hunts/${huntKey}/driveFolderId`)
             .set(folderId)
-            .then(() => {
-                return loadFolder(dispatch, folderId);
-            }, (error: Error) => {
-                dispatch(asyncActionFailedPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION, error));
-            })
+            .then(
+                () => {
+                    return loadFolder(dispatch, folderId);
+                },
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION, error));
+                },
+            )
             .then(() => {
                 dispatch(asyncActionSucceededPayload<string>(SET_HUNT_DRIVE_FOLDER_ACTION, folderId));
             });
-    }
+    };
 }

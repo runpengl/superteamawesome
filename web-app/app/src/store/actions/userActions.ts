@@ -1,13 +1,13 @@
 import { Dispatch } from "redux";
 
 import { firebaseDatabase } from "../../auth";
-import { loadUserInfo, LOGIN_ACTION } from "./authActions";
-import { loadHuntAndUserInfo, ILoadHuntActionPayload, LOAD_HUNT_ACTION } from "./huntActions";
+import { getDrivePermissions } from "../../services/googleService";
 import { IAppState, IAuthState, IUser } from "../state";
-import { getDrivePermissions } from '../../services/googleService';
+import { loadUserInfo, LOGIN_ACTION } from "./authActions";
+import { ILoadHuntActionPayload, LOAD_HUNT_ACTION, loadHuntAndUserInfo } from "./huntActions";
 import {
     asyncActionFailedPayload,
-    asyncActionInProgressPayload, 
+    asyncActionInProgressPayload,
     asyncActionSucceededPayload,
     isAsyncLoaded,
 } from "./loading";
@@ -16,17 +16,20 @@ export const TOGGLE_USER_APPROVAL_ACTION = "TOGGLE_USER_APPROVAL";
 export function toggleUserApprovalAction(user: IUser, grantAccess: boolean) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION));
-        let access = grantAccess ? true : null;
+        const access = grantAccess ? true : null;
         firebaseDatabase
             .ref(`/userGroups/approved/${user.escapedEmail}`)
             .set(access)
-            .then(() => {
-                let toggledUser = Object.assign({}, user, { hasAccess: !user.hasAccess });
-                dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, toggledUser));
-            }, (error: Error) => {
-                dispatch(asyncActionFailedPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, error));
-            });
-    }
+            .then(
+                () => {
+                    const toggledUser = { ...user, hasAccess: !user.hasAccess };
+                    dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, toggledUser));
+                },
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<IUser>(TOGGLE_USER_APPROVAL_ACTION, error));
+                },
+            );
+    };
 }
 
 export const TOGGLE_ADMIN_ACCESS_ACTION = "TOGGLE_ADMIN";
@@ -37,13 +40,16 @@ export function toggleAdminAccessAction(user: IUser, makeAdmin: boolean) {
         firebaseDatabase
             .ref(`/userGroups/admin/${user.escapedEmail}`)
             .set(access)
-            .then(() => {
-                let toggledUser = Object.assign({}, user, { hasAccess: makeAdmin });
-                dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, toggledUser));
-            }, (error: Error) => {
-                dispatch(asyncActionFailedPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, error));
-            });
-    }
+            .then(
+                () => {
+                    const toggledUser = { ...user, hasAccess: makeAdmin };
+                    dispatch(asyncActionSucceededPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, toggledUser));
+                },
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<IUser>(TOGGLE_ADMIN_ACCESS_ACTION, error));
+                },
+            );
+    };
 }
 
 export const LOAD_USERS_ACTION = "LOAD_USERS";
@@ -53,65 +59,86 @@ export function loadUsers() {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<IUser[]>(LOAD_USERS_ACTION));
         dispatch(asyncActionInProgressPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION));
-        firebaseDatabase.ref("/users").on("value", (usersSnapshot) => {
-            let allUsers: IUser[] = [];
-            usersSnapshot.forEach((userSnapshot) => {
-                let user = userSnapshot.val() as IUser;
-                let escapedEmail = user.email.toLowerCase().replace(/\./g, "%2E");
-                allUsers.push(Object.assign({}, user, { escapedEmail }));
+        firebaseDatabase.ref("/users").on("value", usersSnapshot => {
+            const allUsers: IUser[] = [];
+            usersSnapshot.forEach(userSnapshot => {
+                const user = userSnapshot.val() as IUser;
+                const escapedEmail = user.email.toLowerCase().replace(/\./g, "%2E");
+                allUsers.push({ ...user, escapedEmail });
                 return false;
             });
             let users: IUser[] = [];
-            let adminUsers: IUser[] = [];
-            
-            firebaseDatabase.ref("/userGroups/admin").once("value")
-                .then((adminUsersSnapshot: firebase.database.DataSnapshot) => {
-                    adminUsersSnapshot.forEach((adminUserSnapshot) => {
-                        let adminIndex = allUsers.findIndex((admin) => admin.escapedEmail === adminUserSnapshot.key);
-                        let adminUser: IUser;
-                        if (adminIndex < 0) {
-                            adminUser = {
-                                email: adminUserSnapshot.key.replace(/\%2E/g, "."),
-                                escapedEmail: adminUserSnapshot.key,
-                            };
-                        } else {
-                            adminUser = allUsers[adminIndex];
-                        }
-                        adminUser.hasAccess = adminUserSnapshot.val();
-                        adminUsers.push(adminUser);
-                        return false;
-                    });
-                    dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, adminUsers));
+            const adminUsers: IUser[] = [];
 
-                    firebaseDatabase.ref("/userGroups/approved").once("value")
-                        .then((approvedUsersSnapshot: firebase.database.DataSnapshot) => {
-                            users = allUsers.filter((firebaseUser) => {
-                                return adminUsers.findIndex((adminUser) => adminUser.email === firebaseUser.email) < 0;
-                            });
-                            approvedUsersSnapshot.forEach((approvedUser) => {
-                                let userIndex = users.findIndex((user) => user.escapedEmail === approvedUser.key);
-                                if (adminUsers.findIndex((adminUser) => adminUser.escapedEmail === approvedUser.key) < 0) {
-                                    if (userIndex < 0) {
-                                        users.push({
-                                            hasAccess: approvedUser.val(),
-                                            email: approvedUser.key.replace(/\%2E/g, "."),
-                                            escapedEmail: approvedUser.key,
-                                        });
-                                    } else {
-                                        users[userIndex].hasAccess = approvedUser.val();
-                                    }
-                                }
-                                return false;
-                            });
-                            dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_USERS_ACTION, users));
-                        }, (error: Error) => {
-                            dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, error));
+            firebaseDatabase
+                .ref("/userGroups/admin")
+                .once("value")
+                .then(
+                    (adminUsersSnapshot: firebase.database.DataSnapshot) => {
+                        adminUsersSnapshot.forEach(adminUserSnapshot => {
+                            const adminIndex = allUsers.findIndex(
+                                admin => admin.escapedEmail === adminUserSnapshot.key,
+                            );
+                            let adminUser: IUser;
+                            if (adminIndex < 0) {
+                                adminUser = {
+                                    email: adminUserSnapshot.key.replace(/\%2E/g, "."),
+                                    escapedEmail: adminUserSnapshot.key,
+                                };
+                            } else {
+                                adminUser = allUsers[adminIndex];
+                            }
+                            adminUser.hasAccess = adminUserSnapshot.val();
+                            adminUsers.push(adminUser);
+                            return false;
                         });
-                }, (error: Error) => {
-                    dispatch(asyncActionFailedPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, error));
-                });
+                        dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, adminUsers));
+
+                        firebaseDatabase
+                            .ref("/userGroups/approved")
+                            .once("value")
+                            .then(
+                                (approvedUsersSnapshot: firebase.database.DataSnapshot) => {
+                                    users = allUsers.filter(firebaseUser => {
+                                        return (
+                                            adminUsers.findIndex(adminUser => adminUser.email === firebaseUser.email) <
+                                            0
+                                        );
+                                    });
+                                    approvedUsersSnapshot.forEach(approvedUser => {
+                                        const userIndex = users.findIndex(
+                                            user => user.escapedEmail === approvedUser.key,
+                                        );
+                                        if (
+                                            adminUsers.findIndex(
+                                                adminUser => adminUser.escapedEmail === approvedUser.key,
+                                            ) < 0
+                                        ) {
+                                            if (userIndex < 0) {
+                                                users.push({
+                                                    hasAccess: approvedUser.val(),
+                                                    email: approvedUser.key.replace(/\%2E/g, "."),
+                                                    escapedEmail: approvedUser.key,
+                                                });
+                                            } else {
+                                                users[userIndex].hasAccess = approvedUser.val();
+                                            }
+                                        }
+                                        return false;
+                                    });
+                                    dispatch(asyncActionSucceededPayload<IUser[]>(LOAD_USERS_ACTION, users));
+                                },
+                                (error: Error) => {
+                                    dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, error));
+                                },
+                            );
+                    },
+                    (error: Error) => {
+                        dispatch(asyncActionFailedPayload<IUser[]>(LOAD_ADMIN_USERS_ACTION, error));
+                    },
+                );
         });
-    }
+    };
 }
 
 export function loadUsersAndAuthInfoAction() {
@@ -124,7 +151,9 @@ export function loadUsersAndAuthInfoAction() {
                 .catch((error: Error) => {
                     let huntLoadError = error;
                     if ((error as any).code === "PERMISSION_DENIED") {
-                        huntLoadError = new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                        huntLoadError = new Error(
+                            "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                        );
                         dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, huntLoadError));
                     }
                     dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, huntLoadError));
@@ -139,7 +168,9 @@ export function loadUsersAndAuthInfoAction() {
                 .catch((error: Error) => {
                     let huntLoadError = error;
                     if ((error as any).code === "PERMISSION_DENIED") {
-                        huntLoadError = new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
+                        huntLoadError = new Error(
+                            "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                        );
                         dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, huntLoadError));
                     }
                     dispatch(asyncActionFailedPayload<IUser[]>(LOAD_USERS_ACTION, huntLoadError));
@@ -154,28 +185,42 @@ export function bootstrapUsersAction(driveFolderId: string) {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<void>(BOOTSTRAP_USERS_ACTION));
         getDrivePermissions(driveFolderId)
-            .then((permissions) => {
-                let promises: Promise<void>[] = [];
-                permissions.forEach((permission) => {
+            .then(permissions => {
+                const promises: Array<Promise<void>> = [];
+                permissions.forEach(permission => {
                     // if the user has write permissions to the drive add them if they're not there already
-                    if ((permission.type === "user" || permission.type === "admin") 
-                        && (permission.role === "owner" || permission.role === "writer")) {
-                        let escapedEmail = permission.emailAddress.toLowerCase().replace(/\./g, "%2E");
-                        promises.push(new Promise<void>((resolve, reject) => {
-                            firebaseDatabase.ref(`/userGroups/approved/${escapedEmail}`).once("value", (snapshot) => {
-                                if (snapshot.val() == null) {
-                                    firebaseDatabase.ref(`/userGroups/approved/${escapedEmail}`).set(true).then(() => {
-                                        resolve();
-                                    }, (error) => {
+                    if (
+                        (permission.type === "user" || permission.type === "admin") &&
+                        (permission.role === "owner" || permission.role === "writer")
+                    ) {
+                        const escapedEmail = permission.emailAddress.toLowerCase().replace(/\./g, "%2E");
+                        promises.push(
+                            new Promise<void>((resolve, reject) => {
+                                firebaseDatabase.ref(`/userGroups/approved/${escapedEmail}`).once(
+                                    "value",
+                                    snapshot => {
+                                        if (snapshot.val() == null) {
+                                            firebaseDatabase
+                                                .ref(`/userGroups/approved/${escapedEmail}`)
+                                                .set(true)
+                                                .then(
+                                                    () => {
+                                                        resolve();
+                                                    },
+                                                    error => {
+                                                        reject(error);
+                                                    },
+                                                );
+                                        } else {
+                                            resolve();
+                                        }
+                                    },
+                                    (error: Error) => {
                                         reject(error);
-                                    });
-                                } else {
-                                    resolve();
-                                }
-                            }, (error: Error) => {
-                                reject(error);
-                            })
-                        }));
+                                    },
+                                );
+                            }),
+                        );
                     }
                 });
                 return Promise.all(promises);
@@ -184,8 +229,8 @@ export function bootstrapUsersAction(driveFolderId: string) {
                 // users have been added, hooray
                 dispatch(asyncActionSucceededPayload<void>(BOOTSTRAP_USERS_ACTION));
             })
-            .catch((error) => {
+            .catch(error => {
                 dispatch(asyncActionFailedPayload<void>(BOOTSTRAP_USERS_ACTION, error));
             });
-    }
+    };
 }

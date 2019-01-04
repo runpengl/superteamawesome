@@ -4,6 +4,6 @@ export const config = {
         authDomain: "replace-this-domain",
         databaseURL: "replace-this-url",
         storageBucket: "replace-this-bucket",
-        messagingSenderId: "replace-this-id"
+        messagingSenderId: "replace-this-id",
     },
 };

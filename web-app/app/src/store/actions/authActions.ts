@@ -1,18 +1,14 @@
-import { Dispatch } from "redux";
 import * as firebase from "firebase";
+import { Dispatch } from "redux";
 
 import { firebaseAuth, firebaseDatabase } from "../../auth";
+import { loadGoogleApi, reloadGoogleAuth } from "../../services/googleService";
 import { IAppLifecycle, IAppState, IAuthState, LoginStatus } from "../state";
-import { reloadGoogleAuth, loadGoogleApi } from '../../services/googleService';
-import {
-    asyncActionFailedPayload,
-    asyncActionInProgressPayload, 
-    asyncActionSucceededPayload,
-} from "./loading";
+import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
 export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthState, lifecycle: IAppLifecycle) {
-    let authPromise = new Promise((resolve) => {
-        firebaseAuth().onAuthStateChanged((user: firebase.UserInfo) => resolve(user));
+    const authPromise = new Promise(resolve => {
+        firebaseAuth().onAuthStateChanged((firebaseUser: firebase.UserInfo) => resolve(firebaseUser));
     });
 
     let googleToken: string;
@@ -25,21 +21,28 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
 
                 const escapedEmail = user.email.replace(/\./g, "%2E");
                 return new Promise<void>((resolve, reject) => {
-                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once("value", (snapshot) => {
-                        if (snapshot.val()) {
-                            resolve();
-                        } else {
-                            throw new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
-                        }
-                    }, (error: Error) => {
-                        reject(error);
-                    });
-                })
-            }).then(() => {
+                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once(
+                        "value",
+                        snapshot => {
+                            if (snapshot.val()) {
+                                resolve();
+                            } else {
+                                throw new Error(
+                                    "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                                );
+                            }
+                        },
+                        (error: Error) => {
+                            reject(error);
+                        },
+                    );
+                });
+            })
+            .then(() => {
                 if (lifecycle.loginStatus === LoginStatus.NONE) {
                     return reloadGoogleAuth();
                 } else {
-                    return new Promise((resolve) => resolve());
+                    return new Promise(resolve => resolve());
                 }
             })
             .then((googleAccessToken: string) => {
@@ -54,18 +57,17 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
                 return loadGoogleApi(googleToken);
             })
             .then(() => {
-                dispatch(asyncActionSucceededPayload<IAuthState>(
-                    LOGIN_ACTION,
-                    {
+                dispatch(
+                    asyncActionSucceededPayload<IAuthState>(LOGIN_ACTION, {
                         googleToken,
                         slackToken: userPrivateInfo.slackAccessToken,
                         user,
-                    }
-                ));
-                return new Promise((resolve) => resolve(userPrivateInfo.slackAccessToken));
+                    }),
+                );
+                return new Promise(resolve => resolve(userPrivateInfo.slackAccessToken));
             });
     } else {
-        return getAccessTokens(authState.user.uid).then((privateInfo) => privateInfo.slackAccessToken);
+        return getAccessTokens(authState.user.uid).then(privateInfo => privateInfo.slackAccessToken);
     }
 }
 
@@ -76,28 +78,40 @@ export function loginAction(accessToken: string) {
 
         let user: firebase.UserInfo;
         const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
-        firebaseAuth().signInWithCredential(credential)
-            .then((result) => {
+        firebaseAuth()
+            .signInWithCredential(credential)
+            .then(result => {
                 // The signed-in user info.
                 user = result;
 
                 const escapedEmail = user.email.replace(/\./g, "%2E");
                 return new Promise<void>((resolve, reject) => {
-                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once("value", (snapshot) => {
-                        if (snapshot.val()) {
-                            resolve();
-                        } else {
-                            throw new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access");
-                        }
-                    }, (error: Error) => {
-                        if ((error as any).code === "PERMISSION_DENIED") {
-                            reject(new Error("You aren't authorized to view this page. Please ask a superteamawesome admin to request access"));
-                        } else {
-                            reject(error);
-                        }
-                    });
+                    firebaseDatabase.ref(`userGroups/admin/${escapedEmail}`).once(
+                        "value",
+                        snapshot => {
+                            if (snapshot.val()) {
+                                resolve();
+                            } else {
+                                throw new Error(
+                                    "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                                );
+                            }
+                        },
+                        (error: Error) => {
+                            if ((error as any).code === "PERMISSION_DENIED") {
+                                reject(
+                                    new Error(
+                                        "You aren't authorized to view this page. Please ask a superteamawesome admin to request access",
+                                    ),
+                                );
+                            } else {
+                                reject(error);
+                            }
+                        },
+                    );
                 });
-            }).then(() => {
+            })
+            .then(() => {
                 return loadGoogleApi(accessToken);
             })
             .then(() => {
@@ -111,35 +125,36 @@ export function loginAction(accessToken: string) {
                     email: user.email,
                 });
 
-                dispatch(asyncActionSucceededPayload<IAuthState>(
-                    LOGIN_ACTION,
-                    {
+                dispatch(
+                    asyncActionSucceededPayload<IAuthState>(LOGIN_ACTION, {
                         googleToken: accessToken,
                         slackToken: userPrivateInfo != null ? userPrivateInfo.slackAccessToken : undefined,
                         user,
-                    }
-                ));
+                    }),
+                );
             })
-            .catch((error) => {
+            .catch(error => {
                 dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, error));
             });
-    }
+    };
 }
 
 export const LOGOUT_ACTION = "LOGOUT";
+// tslint:disable-next-line:no-empty-interface
 export interface ILogoutActionPayload {}
 
 export function logoutAction() {
     return (dispatch: Dispatch<IAppState>) => {
         dispatch(asyncActionInProgressPayload<ILogoutActionPayload>(LOGOUT_ACTION));
-        firebaseAuth().signOut()
+        firebaseAuth()
+            .signOut()
             .then(() => {
                 dispatch(asyncActionSucceededPayload<ILogoutActionPayload>(LOGOUT_ACTION, {}));
             })
-            .catch((error) => {
+            .catch(error => {
                 dispatch(asyncActionFailedPayload<ILogoutActionPayload>(LOGOUT_ACTION, error));
             });
-    }
+    };
 }
 
 export interface IUserPrivateData {
@@ -148,12 +163,10 @@ export interface IUserPrivateData {
 }
 
 export function getAccessTokens(userUid: string): Promise<IUserPrivateData> {
-    return new Promise((resolve) => {
-        firebaseDatabase
-            .ref(`userPrivateData/${userUid}`)
-            .once("value", (snapshot: firebase.database.DataSnapshot) => {
-                const userInfo = snapshot.val() as IUserPrivateData;
-                resolve(userInfo);
-            });
+    return new Promise(resolve => {
+        firebaseDatabase.ref(`userPrivateData/${userUid}`).once("value", (snapshot: firebase.database.DataSnapshot) => {
+            const userInfo = snapshot.val() as IUserPrivateData;
+            resolve(userInfo);
+        });
     });
 }
