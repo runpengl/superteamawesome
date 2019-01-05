@@ -1,5 +1,13 @@
 import { LOGIN_ACTION, LOGOUT_ACTION } from "../actions/authActions";
-import { IAsyncAction, isAsyncFailed, isAsyncInProgress, isAsyncSucceeded } from "../actions/loading";
+import { ADD_NEW_HUNT_ACTION } from "../actions/huntActions";
+import {
+    asyncNotStarted,
+    getAsyncLoadedValue,
+    IAsyncAction,
+    isAsyncFailed,
+    isAsyncInProgress,
+    isAsyncSucceeded,
+} from "../actions/loading";
 import { CREATE_MANUAL_PUZZLE_ACTION, CREATE_PUZZLE_ACTION, DELETE_PUZZLE_ACTION } from "../actions/puzzleActions";
 import { IAppLifecycle, LoginStatus } from "../state";
 
@@ -9,10 +17,16 @@ const initialState: IAppLifecycle = {
     createManualPuzzleFailure: undefined,
     deletingPuzzleIds: [],
     loginStatus: LoginStatus.NONE,
+    addingNewHunt: asyncNotStarted(),
 };
 
 export function lifecycleReducer(state: IAppLifecycle = initialState, action: IAsyncAction<any>) {
     switch (action.type) {
+        case ADD_NEW_HUNT_ACTION:
+            return {
+                ...state,
+                addingNewHunt: getAsyncLoadedValue({ ...action, value: undefined }),
+            };
         case CREATE_PUZZLE_ACTION:
             if (isAsyncFailed(action)) {
                 return { ...state, createPuzzleFailure: action.error };

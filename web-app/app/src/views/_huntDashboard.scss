@@ -1,0 +1,96 @@
+@import "../variables";
+
+.hunt-dashboard-navigation {
+    display: flex;
+    flex-direction: column;
+    width: 150px;
+    margin-right: 20px;
+
+    .hunt {
+        font-size: 14px;
+        cursor: pointer;
+        height: 18px;
+        border-radius: 3px;
+        margin: 2px 0;
+        padding: 5px 7px;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            background: #dedede;
+        }
+
+        &:first-child {
+            margin-top: 0;
+        }
+
+        &.active {
+            background: fade-out(#0f6cab, 0.8);
+            font-weight: 600;
+        }
+    }
+
+    .add-new-hunt {
+        font-size: 14px;
+        margin-top: 10px;
+        padding-left: 7px;
+        cursor: pointer;
+
+        &:hover {
+            color: #0f6cab;
+        }
+    }
+}
+
+.hunt-dashboard {
+    display: flex;
+}
+
+.hunt-editor {
+    margin-top: 7px;
+
+    .hunt-editor-row {
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+        margin-bottom: 15px;
+
+        &.checkbox-row label {
+            font-weight: 400;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: $grey5;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            font-size: 14px;
+            padding: 3px;
+            border-radius: 3px;
+            height: 20px;
+            width: 350px;
+            border: 1px solid #ccc;
+
+            &:focus {
+                outline: 0;
+                box-shadow: 0 0 0 1px #0f6cab, 0 0 0 3px rgba(19,124,189,.3), inset 0 1px 1px rgba(16,22,26,.2);
+            }
+        }
+    }
+
+    .save-button {
+        cursor: pointer;
+        border: 0;
+        background: green;
+        color: white;
+        border-radius: 3px;
+        padding: 5px 10px;
+        font-size: 14px;
+
+        &:hover {
+            background: fade-out(green, 0.2);
+        }
+    }
+}

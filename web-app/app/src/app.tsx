@@ -10,6 +10,7 @@ import thunk from "redux-thunk";
 
 import { reducers } from "./store/reducers";
 import { AdminDashboard } from "./views/adminDashboard";
+import { AllHuntsDashboard } from "./views/huntDashboard";
 import { Login } from "./views/login";
 import { SlackAuth } from "./views/slackAuth";
 import { UserDashboard } from "./views/userDashboard";
@@ -32,6 +33,7 @@ ReactDOM.render(
             <Switch>
                 <Route exact={true} path="/" render={() => <Redirect to="/admin" />} />
                 <Route path="/admin/users" component={UserDashboard} />
+                <Route path="/admin/hunts" component={AllHuntsDashboard} />
                 <Route path="/admin" component={AdminDashboard} />
                 <Route path="/login" component={Login} />
                 <Route path="/slack/auth" component={SlackAuth} />

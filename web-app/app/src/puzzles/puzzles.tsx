@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import { isEqual } from "lodash-es";
 import * as moment from "moment";
 import * as React from "react";
 import { connect } from "react-redux";

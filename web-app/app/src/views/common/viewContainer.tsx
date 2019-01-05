@@ -92,7 +92,7 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
                         to="/admin"
                         className={classnames("route-link", { active: this.props.location === "/admin" })}
                     >
-                        Manage Puzzles
+                        Puzzles
                     </Link>
                     <Link
                         to="/admin/users"
@@ -100,7 +100,15 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
                             active: this.props.location === "/admin/users",
                         })}
                     >
-                        Manage Users
+                        Users
+                    </Link>
+                    <Link
+                        to="/admin/hunts"
+                        className={classnames("route-link", {
+                            active: this.props.location === "/admin/hunts",
+                        })}
+                    >
+                        Hunts
                     </Link>
                     {this.state.loggedIn && (
                         <a className="logout-button route-link" onClick={this.handleLogout}>

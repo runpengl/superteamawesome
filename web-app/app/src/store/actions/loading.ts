@@ -44,6 +44,12 @@ export function getAsyncLoadedValue<T>(action: IAsyncAction<T>): IAsyncLoaded<T>
     };
 }
 
+export function asyncNotStarted<T>(): IAsyncLoaded<T> {
+    return {
+        status: AsyncActionStatus.NONE,
+    };
+}
+
 export function asyncActionInProgressPayload<T>(type: string, payload?: any): IAsyncAction<T> {
     return {
         payload,

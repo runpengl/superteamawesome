@@ -6,7 +6,11 @@ import { loadGoogleApi, reloadGoogleAuth } from "../../services/googleService";
 import { IAppLifecycle, IAppState, IAuthState, LoginStatus } from "../state";
 import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
-export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthState, lifecycle: IAppLifecycle) {
+export function loadUserInfo(
+    dispatch: Dispatch<IAppState>,
+    authState: IAuthState,
+    lifecycle: IAppLifecycle,
+): Promise<string> {
     const authPromise = new Promise(resolve => {
         firebaseAuth().onAuthStateChanged((firebaseUser: firebase.UserInfo) => resolve(firebaseUser));
     });
@@ -64,7 +68,7 @@ export function loadUserInfo(dispatch: Dispatch<IAppState>, authState: IAuthStat
                         user,
                     }),
                 );
-                return new Promise(resolve => resolve(userPrivateInfo.slackAccessToken));
+                return new Promise<string>(resolve => resolve(userPrivateInfo.slackAccessToken));
             });
     } else {
         return getAccessTokens(authState.user.uid).then(privateInfo => privateInfo.slackAccessToken);

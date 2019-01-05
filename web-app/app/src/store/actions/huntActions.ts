@@ -68,6 +68,31 @@ export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () 
     });
 }
 
+export const LOAD_ALL_HUNTS_ACTION = "LOAD_ALL_HUNTS";
+export interface ILoadAllHuntsPayload {
+    [key: string]: IHuntState;
+}
+
+export function loadAllHuntsAndUserInfo() {
+    return async (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
+        dispatch(asyncActionInProgressPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION));
+        await loadUserInfo(dispatch, getState().auth, getState().lifecycle);
+        const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
+            firebaseDatabase.ref("hunts").once(
+                "value",
+                allHuntsSnapshot => {
+                    resolve(allHuntsSnapshot.val());
+                },
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
+                    reject(error);
+                },
+            );
+        });
+        dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
+    };
+}
+
 // should only be called once
 export function loadHuntAndUserInfoAction() {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
@@ -103,6 +128,84 @@ export function saveHuntInfoAction(hunt: IHuntState) {
                     dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
                 },
             );
+    };
+}
+
+export const ADD_NEW_HUNT_ACTION = "ADD_NEW_HUNT";
+export interface IAddNewHuntActionPayload extends IHuntState {
+    huntId: string;
+}
+
+export function addNewHuntAction(hunt: IAddNewHuntActionPayload) {
+    return async (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<IAddNewHuntActionPayload>(ADD_NEW_HUNT_ACTION));
+        const currentHunts: { [key: string]: IHuntState } = await new Promise((resolve, reject) => {
+            firebaseDatabase.ref("hunts").once(
+                "value",
+                snapshot => resolve(snapshot.val()),
+                (error: Error) => {
+                    dispatch(asyncActionFailedPayload<IAddNewHuntActionPayload>(ADD_NEW_HUNT_ACTION, error));
+                    reject(error);
+                },
+            );
+        });
+
+        if (currentHunts[hunt.huntId] !== undefined) {
+            dispatch(
+                asyncActionFailedPayload<IAddNewHuntActionPayload>(
+                    ADD_NEW_HUNT_ACTION,
+                    new Error("A hunt with that ID already exists."),
+                ),
+            );
+        } else {
+            const newHunt: IHuntState = { ...hunt };
+            delete (newHunt as any).huntId;
+            const firebaseUpdates: { [key: string]: any } = {};
+            for (const huntDetail in newHunt) {
+                if (newHunt[huntDetail as keyof IHuntState] != null) {
+                    firebaseUpdates[`hunts/${hunt.huntId}/${huntDetail}`] = newHunt[huntDetail as keyof IHuntState];
+                }
+            }
+            const key = hunt.year + hunt.domain.replace(/[\.|\/]/gi, "");
+            firebaseUpdates[`huntHostNames/${key}/hostName`] = hunt.domain;
+            firebaseUpdates[`huntHostNames/${key}/hunt`] = hunt.huntId;
+
+            if (newHunt.isCurrent) {
+                for (const huntId in currentHunts) {
+                    if (currentHunts[huntId] != null) {
+                        firebaseUpdates[`hunts/${huntId}/isCurrent`] = false;
+                    }
+                }
+                firebaseUpdates.currentHunt = hunt.huntId;
+            }
+
+            const succeeded = await new Promise(resolve => {
+                firebaseDatabase.ref().update(firebaseUpdates, (error: Error | null) => {
+                    if (error == null) {
+                        dispatch(asyncActionSucceededPayload<IAddNewHuntActionPayload>(ADD_NEW_HUNT_ACTION, hunt));
+                    } else {
+                        dispatch(asyncActionFailedPayload<IAddNewHuntActionPayload>(ADD_NEW_HUNT_ACTION, error));
+                    }
+                    resolve(error == null);
+                });
+            });
+
+            if (succeeded) {
+                const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
+                    firebaseDatabase.ref("hunts").once(
+                        "value",
+                        allHuntsSnapshot => {
+                            resolve(allHuntsSnapshot.val());
+                        },
+                        (error: Error) => {
+                            dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
+                            reject(error);
+                        },
+                    );
+                });
+                dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
+            }
+        }
     };
 }
 

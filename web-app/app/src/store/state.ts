@@ -20,6 +20,7 @@ export interface IHuntState {
     templateSheetId?: string;
     titleRegex?: string;
     year: string;
+    isCurrent: boolean;
 }
 
 export interface IDiscoveredPage {
@@ -81,6 +82,7 @@ export interface IAppLifecycle {
     deletingPuzzleFailure?: Error;
     loginError?: Error;
     loginStatus?: LoginStatus;
+    addingNewHunt: IAsyncLoaded<void>;
 }
 
 export enum LoginStatus {
@@ -100,4 +102,5 @@ export interface IAppState {
     lifecycle?: IAppLifecycle;
     puzzles?: IAsyncLoaded<IPuzzle[]>;
     users?: IAsyncLoaded<IUser[]>;
+    hunts: IAsyncLoaded<{ [key: string]: IHuntState }>;
 }
