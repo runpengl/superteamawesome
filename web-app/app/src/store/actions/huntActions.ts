@@ -6,7 +6,12 @@ import { IAppState, IAuthState, IHuntState } from "../state";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
 
-import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
+import {
+    asyncActionFailedPayload,
+    asyncActionInProgressPayload,
+    asyncActionSucceededPayload,
+    isAsyncLoaded,
+} from "./loading";
 
 export const LOAD_HUNT_ACTION = "LOAD_HUNT";
 export interface IHunt {
@@ -112,22 +117,61 @@ export function loadHuntAndUserInfoAction() {
 export const SAVE_HUNT_ACTION = "SAVE_HUNT_INFO";
 export type ISaveHuntActionPayload = IHuntState;
 
-export function saveHuntInfoAction(hunt: IHuntState) {
-    return (dispatch: Dispatch<IAppState>) => {
+export function saveHuntInfoAction(hunt: IHuntState, huntId: string) {
+    return async (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION));
-        const huntInfo: ISaveHuntActionPayload = { ...hunt };
-        delete huntInfo.year;
-        firebaseDatabase
-            .ref(`hunts/${hunt.year}`)
-            .set(huntInfo)
-            .then(
-                () => {
-                    dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, huntInfo));
-                },
-                (error: Error) => {
+        const firebaseUpdates: { [key: string]: any } = {};
+        for (const huntDetail in hunt) {
+            if (hunt[huntDetail as keyof IHuntState] != null) {
+                firebaseUpdates[`hunts/${huntId}/${huntDetail}`] = hunt[huntDetail as keyof IHuntState];
+            }
+        }
+        const hostNameKey = await new Promise(resolve => {
+            firebaseDatabase
+                .ref("huntHostNames")
+                .orderByChild("hunt")
+                .equalTo(huntId)
+                .limitToFirst(1)
+                .once("value", snapshot => {
+                    if (snapshot.numChildren()) {
+                        snapshot.forEach(hostName => {
+                            resolve(hostName.key);
+                            return true;
+                        });
+                    } else {
+                        resolve(undefined);
+                    }
+                });
+        });
+        // if the domain changes, need to change this so the extension works
+        firebaseUpdates[`huntHostNames/${hostNameKey}/hostName`] = hunt.domain;
+        const hunts: { [key: string]: IHuntState } = isAsyncLoaded(getState().hunts)
+            ? getState().hunts.value
+            : await new Promise(resolve =>
+                  firebaseDatabase.ref("hunts").once("value", snapshot => resolve(snapshot.val())),
+              );
+        if (hunt.isCurrent) {
+            for (const existingHuntId in hunts) {
+                if (hunts[existingHuntId] != null && existingHuntId !== huntId) {
+                    firebaseUpdates[`hunts/${existingHuntId}/isCurrent`] = false;
+                }
+            }
+            firebaseUpdates.currentHunt = huntId;
+        }
+        const succeeded = await new Promise(resolve => {
+            firebaseDatabase.ref().update(firebaseUpdates, (error: Error | null) => {
+                if (error == null) {
+                    dispatch(asyncActionSucceededPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, hunt));
+                } else {
                     dispatch(asyncActionFailedPayload<ISaveHuntActionPayload>(SAVE_HUNT_ACTION, error));
-                },
-            );
+                }
+                resolve(error == null);
+            });
+        });
+
+        if (succeeded) {
+            reloadAllHunts(dispatch);
+        }
     };
 }
 
@@ -191,22 +235,26 @@ export function addNewHuntAction(hunt: IAddNewHuntActionPayload) {
             });
 
             if (succeeded) {
-                const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
-                    firebaseDatabase.ref("hunts").once(
-                        "value",
-                        allHuntsSnapshot => {
-                            resolve(allHuntsSnapshot.val());
-                        },
-                        (error: Error) => {
-                            dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
-                            reject(error);
-                        },
-                    );
-                });
-                dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
+                reloadAllHunts(dispatch);
             }
         }
     };
+}
+
+export async function reloadAllHunts(dispatch: Dispatch<IAppState>) {
+    const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
+        firebaseDatabase.ref("hunts").once(
+            "value",
+            allHuntsSnapshot => {
+                resolve(allHuntsSnapshot.val());
+            },
+            (error: Error) => {
+                dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
+                reject(error);
+            },
+        );
+    });
+    dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
 }
 
 export const SET_HUNT_DRIVE_FOLDER_ACTION = "SET_HUNT_DRIVE_FOLDER";

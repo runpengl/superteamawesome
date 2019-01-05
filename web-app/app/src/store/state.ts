@@ -83,6 +83,7 @@ export interface IAppLifecycle {
     loginError?: Error;
     loginStatus?: LoginStatus;
     addingNewHunt: IAsyncLoaded<void>;
+    savingHuntInfo: IAsyncLoaded<void>;
 }
 
 export enum LoginStatus {

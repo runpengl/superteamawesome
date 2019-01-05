@@ -3,19 +3,26 @@ import { isEqual } from "lodash-es";
 import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { bindActionCreators } from "redux";
-import { addNewHuntAction, IAddNewHuntActionPayload, loadAllHuntsAndUserInfo } from "../store/actions/huntActions";
+import {
+    addNewHuntAction,
+    IAddNewHuntActionPayload,
+    loadAllHuntsAndUserInfo,
+    saveHuntInfoAction,
+} from "../store/actions/huntActions";
 import { IAsyncLoaded, isAsyncInProgress, isAsyncLoaded } from "../store/actions/loading";
 import { IAppState, IHuntState } from "../store/state";
 import { ViewContainer } from "./common/viewContainer";
 
 interface IStateProps {
     addingNewHunt: IAsyncLoaded<void>;
+    savingHuntInfo: IAsyncLoaded<void>;
     hunts: IAsyncLoaded<{ [key: string]: IHuntState }>;
 }
 
 interface IDispatchProps {
     loadHuntsAndAuthInfo: () => void;
     addNewHunt: (newHunt: IAddNewHuntActionPayload) => void;
+    saveHunt: (hunt: IHuntState, huntId: string) => void;
 }
 
 interface IAllHuntsDashboardState {
@@ -97,7 +104,14 @@ class UnconnectedAllHuntsDashboard extends React.PureComponent<IAllHuntsDashboar
                 <div className="hunt-editor">
                     <div className="hunt-editor-row">
                         <label>ID</label>
-                        <input type="text" value={activeHuntId} onChange={this.handleHuntIdChange} />
+                        <input
+                            disabled={
+                                !isAsyncLoaded(this.props.hunts) || this.props.hunts.value[activeHuntId] !== undefined
+                            }
+                            type="text"
+                            value={activeHuntId}
+                            onChange={this.handleHuntIdChange}
+                        />
                     </div>
                     <div className="hunt-editor-row">
                         <label>Hunt name</label>
@@ -166,10 +180,12 @@ class UnconnectedAllHuntsDashboard extends React.PureComponent<IAllHuntsDashboar
         if (this.props.hunts.value[this.state.activeHuntId] === undefined) {
             if (isAsyncInProgress(this.props.addingNewHunt)) {
                 return "Adding new hunt...";
-            } else {
-                return "Add new hunt";
             }
+            return "Add new hunt";
         } else {
+            if (isAsyncInProgress(this.props.savingHuntInfo)) {
+                return "Saving changes...";
+            }
             return "Save changes";
         }
     }
@@ -237,8 +253,11 @@ class UnconnectedAllHuntsDashboard extends React.PureComponent<IAllHuntsDashboar
         });
     };
 
-    private handleHuntIdChange = (event: React.ChangeEvent<HTMLInputElement>) =>
-        this.setState({ activeHuntId: event.target.value });
+    private handleHuntIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!isAsyncLoaded(this.props.hunts) || this.props.hunts.value[event.target.value] === undefined) {
+            this.setState({ activeHuntId: event.target.value });
+        }
+    };
 
     private handleHuntDetailChange = (event: React.ChangeEvent<HTMLInputElement>) =>
         this.setState({
@@ -254,6 +273,8 @@ class UnconnectedAllHuntsDashboard extends React.PureComponent<IAllHuntsDashboar
                 ...this.state.activeHunt,
                 huntId: this.state.activeHuntId,
             });
+        } else {
+            this.props.saveHunt(this.state.activeHunt, this.state.activeHuntId);
         }
     };
 }
@@ -261,6 +282,7 @@ class UnconnectedAllHuntsDashboard extends React.PureComponent<IAllHuntsDashboar
 function mapStateToProps(state: IAppState): IStateProps {
     return {
         addingNewHunt: state.lifecycle.addingNewHunt,
+        savingHuntInfo: state.lifecycle.savingHuntInfo,
         hunts: state.hunts,
     };
 }
@@ -270,6 +292,7 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
         {
             loadHuntsAndAuthInfo: loadAllHuntsAndUserInfo,
             addNewHunt: addNewHuntAction,
+            saveHunt: saveHuntInfoAction,
         },
         dispatch,
     );

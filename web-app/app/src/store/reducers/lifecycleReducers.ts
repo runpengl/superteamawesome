@@ -1,5 +1,5 @@
 import { LOGIN_ACTION, LOGOUT_ACTION } from "../actions/authActions";
-import { ADD_NEW_HUNT_ACTION } from "../actions/huntActions";
+import { ADD_NEW_HUNT_ACTION, SAVE_HUNT_ACTION } from "../actions/huntActions";
 import {
     asyncNotStarted,
     getAsyncLoadedValue,
@@ -18,6 +18,7 @@ const initialState: IAppLifecycle = {
     deletingPuzzleIds: [],
     loginStatus: LoginStatus.NONE,
     addingNewHunt: asyncNotStarted(),
+    savingHuntInfo: asyncNotStarted(),
 };
 
 export function lifecycleReducer(state: IAppLifecycle = initialState, action: IAsyncAction<any>) {
@@ -26,6 +27,11 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
             return {
                 ...state,
                 addingNewHunt: getAsyncLoadedValue({ ...action, value: undefined }),
+            };
+        case SAVE_HUNT_ACTION:
+            return {
+                ...state,
+                savingHuntInfo: getAsyncLoadedValue({ ...action, value: undefined }),
             };
         case CREATE_PUZZLE_ACTION:
             if (isAsyncFailed(action)) {

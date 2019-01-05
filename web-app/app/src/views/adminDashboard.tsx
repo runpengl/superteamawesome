@@ -3,12 +3,13 @@
 import { IGoogleDriveFile } from "gapi";
 import * as React from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
 import { DiscoveredPages } from "../puzzles/discoveredPages";
 import { Puzzles } from "../puzzles/puzzles";
 import { getSlackAuthUrl } from "../services/slackService";
 import { logoutAction } from "../store/actions/authActions";
-import { loadHuntAndUserInfoAction, saveHuntInfoAction } from "../store/actions/huntActions";
+import { loadHuntAndUserInfoAction } from "../store/actions/huntActions";
 import { IAsyncLoaded, isAsyncFailed, isAsyncInProgress, isAsyncLoaded } from "../store/actions/loading";
 import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from "../store/actions/puzzleActions";
 import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "../store/state";
@@ -28,7 +29,6 @@ interface IDispatchProps {
     loadIgnoredPages: (huntKey: string) => void;
     loadDiscoveredPages: (huntKey: string) => void;
     logout: () => void;
-    saveHuntInfo: (hunt: IHuntState) => void;
 }
 
 interface IStateProps {
@@ -91,141 +91,21 @@ class UnconnectedAdminDashboard extends React.Component<IAdminDashboardProps, IA
         } else if (isAsyncFailed(hunt)) {
             return <span>Error: {hunt.error.message}</span>;
         } else {
-            return this.renderDashboard();
+            return (
+                <div>
+                    <div>
+                        <b className="hunt-label">Current hunt:</b>
+                        <Link to="/admin/hunts">{hunt.value.name}</Link>
+                    </div>
+                    {this.maybeRenderPuzzles()}
+                </div>
+            );
         }
     }
 
     private handleLogIn = () => {
         this.props.loadHuntAndUserInfo();
     };
-
-    private handleHuntDomainChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const newValue = (event.target as HTMLInputElement).value;
-        if (newValue !== this.props.hunt.value.domain) {
-            this.setState({
-                hasChanges: true,
-                hunt: { ...this.state.hunt, domain: newValue },
-            });
-        }
-    };
-
-    private handleHuntNameChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const newValue = (event.target as HTMLInputElement).value;
-        if (newValue !== this.props.hunt.value.name) {
-            this.setState({
-                hasChanges: true,
-                hunt: { ...this.state.hunt, name: newValue },
-            });
-        }
-    };
-
-    private handleHuntTitleRegexChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const newValue = (event.target as HTMLInputElement).value;
-        if (newValue !== this.props.hunt.value.titleRegex) {
-            this.setState({
-                hasChanges: true,
-                hunt: { ...this.state.hunt, titleRegex: newValue },
-            });
-        }
-    };
-
-    private handleHuntDriveFolderChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const newValue = (event.target as HTMLInputElement).value;
-        const folderIdRegex = new RegExp(/https:\/\/drive.google.com\/drive\/folders\/(.+)$/g);
-        const matches = folderIdRegex.exec(newValue);
-        if (matches != null && matches.length > 1 && matches[1] !== this.props.hunt.value.driveFolderId) {
-            this.setState({
-                hasChanges: true,
-                hunt: { ...this.state.hunt, driveFolderId: matches[1] },
-            });
-        }
-    };
-
-    private handleTemplateSheetChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const newValue = (event.target as HTMLInputElement).value;
-        const sheetIdRegex = new RegExp(/https:\/\/docs.google.com\/spreadsheets\/d\/(.+)\/.+/g);
-        const matches = sheetIdRegex.exec(newValue);
-        if (matches.length > 1 && matches[1] !== this.props.hunt.value.templateSheetId) {
-            this.setState({
-                hasChanges: true,
-                hunt: {
-                    ...this.state.hunt,
-                    templateSheetId: matches[1],
-                },
-            });
-        }
-    };
-
-    private handleSave = () => {
-        this.props.saveHuntInfo(this.state.hunt);
-        this.setState({ hasChanges: false });
-    };
-
-    private renderDashboard() {
-        const hunt = this.props.hunt.value;
-        return (
-            <>
-                <div className="hunt-edit-container">
-                    <div className="hunt-information">
-                        <div className="edit-info-line">
-                            <label>Hunt Name</label>
-                            <input type="text" defaultValue={hunt.name} onChange={this.handleHuntNameChange} />
-                        </div>
-                        <div className="edit-info-line">
-                            <label>url to match</label>
-                            <input type="text" defaultValue={hunt.domain} onChange={this.handleHuntDomainChange} />
-                        </div>
-                        <div className="edit-info-line">
-                            <label>match title</label>
-                            <input
-                                type="text"
-                                defaultValue={hunt.titleRegex}
-                                onChange={this.handleHuntTitleRegexChange}
-                            />
-                        </div>
-                        <div className="edit-info-line">
-                            <label>google drive folder</label>
-                            <input
-                                type="text"
-                                defaultValue={this.getHuntFolderLink()}
-                                onChange={this.handleHuntDriveFolderChange}
-                            />
-                        </div>
-                        <div className="edit-info-line">
-                            <label>spreadsheet template</label>
-                            <input
-                                type="text"
-                                defaultValue={this.getTemplateSheetLink()}
-                                onChange={this.handleTemplateSheetChange}
-                            />
-                        </div>
-                    </div>
-                    <button className="hunt-save-button" disabled={!this.state.hasChanges} onClick={this.handleSave}>
-                        {this.state.hasChanges ? "Save" : "Saved"}
-                    </button>
-                </div>
-                {this.maybeRenderPuzzles()}
-            </>
-        );
-    }
-
-    private getTemplateSheetLink() {
-        const { hunt } = this.state;
-        if (!isAsyncLoaded(this.props.hunt) || hunt === undefined || hunt.templateSheetId === undefined) {
-            return undefined;
-        } else {
-            return `https://docs.google.com/spreadsheets/d/${hunt.templateSheetId}/edit`;
-        }
-    }
-
-    private getHuntFolderLink() {
-        const { hunt } = this.state;
-        if (!isAsyncLoaded(this.props.hunt) || hunt === undefined || hunt.driveFolderId === undefined) {
-            return undefined;
-        } else {
-            return `https://drive.google.com/drive/u/0/folders/${hunt.driveFolderId}`;
-        }
-    }
 
     private maybeRenderPuzzles() {
         const { discoveredPages, hunt, ignoredPages, slackToken } = this.props;
@@ -273,7 +153,6 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
             loadHuntAndUserInfo: loadHuntAndUserInfoAction,
             loadIgnoredPages: loadIgnoredPagesAction,
             logout: logoutAction,
-            saveHuntInfo: saveHuntInfoAction,
         },
         dispatch,
     );
