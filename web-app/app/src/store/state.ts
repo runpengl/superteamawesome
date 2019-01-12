@@ -57,7 +57,11 @@ export interface IPuzzle {
     isMeta?: boolean;
     key?: string;
     name: string;
+    /**
+     * @deprecated use parents instead
+     */
     parent?: string;
+    parents?: string[];
     path: string;
     slackChannel: string;
     slackChannelId: string;

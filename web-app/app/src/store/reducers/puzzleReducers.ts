@@ -55,7 +55,8 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
                         ...state.value.slice(0, index),
                         {
                             ...state.value[index],
-                            parent: action.payload.parent,
+                            parents: action.payload.parents,
+                            parent: undefined,
                         },
                         ...state.value.slice(index + 1),
                     ],

@@ -5,9 +5,9 @@ import { IGoogleDriveFile, IGoogleShortUrl } from "gapi";
 import { Dispatch } from "redux";
 
 import { firebaseDatabase } from "../../auth";
-import { createSheet, deleteSheet, getShortUrl, setSheetLinks, setSheetPuzzleLink } from "../../services/googleService";
+import { createSheet, deleteSheet, getShortUrl, setSheetLinks } from "../../services/googleService";
 import { ISlackChannel, slack } from "../../services/slackService";
-import { IAppState, IDiscoveredPage, IPuzzle, IPuzzleHierarchy, PuzzleStatus } from "../state";
+import { IAppState, IDiscoveredPage, IPuzzle, PuzzleStatus } from "../state";
 import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
 export const LOAD_PUZZLES_ACTION = "LOAD_PUZZLES";
@@ -222,21 +222,25 @@ export function toggleMetaAction(puzzle: IPuzzle, isMeta: boolean) {
 }
 
 export const ASSIGN_TO_META = "ASSIGN_TO_META_PUZZLE";
-export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKey: string) {
+export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKeys: string[]) {
     return (dispatch: Dispatch<IAppState>) => {
-        dispatch(asyncActionInProgressPayload<void>(ASSIGN_TO_META, { key: puzzle.key, parent: metaPuzzleKey }));
+        dispatch(asyncActionInProgressPayload<void>(ASSIGN_TO_META, { key: puzzle.key, parent: metaPuzzleKeys }));
         firebaseDatabase
             .ref(`puzzles/${puzzle.key}`)
             .set({
                 ...puzzle,
-                parent: metaPuzzleKey,
+                parents: metaPuzzleKeys,
             })
             .then(
-                () => {
+                async () => {
+                    // Remove deprecate parent field
+                    await new Promise(resolve =>
+                        firebaseDatabase.ref(`puzzles/${puzzle.key}/parent`).remove(() => resolve()),
+                    );
                     dispatch(
                         asyncActionSucceededPayload<void>(ASSIGN_TO_META, undefined, {
                             key: puzzle.key,
-                            parent: metaPuzzleKey,
+                            parents: metaPuzzleKeys,
                         }),
                     );
                 },
@@ -244,7 +248,7 @@ export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKey: string) {
                     dispatch(
                         asyncActionFailedPayload<void>(ASSIGN_TO_META, error, {
                             key: puzzle.key,
-                            parent: metaPuzzleKey,
+                            parents: metaPuzzleKeys,
                         }),
                     );
                 },
@@ -534,115 +538,6 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
             })
             .catch(error => {
                 dispatch(asyncActionFailedPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, error));
-            });
-    };
-}
-
-export const SAVE_HIERARCHY_ACTION = "SAVE_HIERARCHY";
-export function saveHierarchyAction(hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges }) {
-    return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
-        let promises: Array<Promise<void>> = [];
-        dispatch(asyncActionInProgressPayload<void>(SAVE_HIERARCHY_ACTION));
-        const puzzleNamesWithUpdatedParents: string[] = [];
-        Object.keys(hierarchy).forEach(groupKey => {
-            const childPromises = hierarchy[groupKey].children.map(puzzle => {
-                const updates = {
-                    [`/puzzles/${puzzle.key}/parent`]: hierarchy[groupKey].parent.key,
-                    [`/puzzles/${puzzle.key}/isMeta`]: hierarchy[puzzle.key] !== undefined,
-                };
-                puzzleNamesWithUpdatedParents.push(puzzle.name);
-
-                // if the puzzle was null, then we rely on the parent for the puzzle link in the spreadsheet
-                if (puzzle.host == null) {
-                    promises.push(
-                        setSheetPuzzleLink(
-                            puzzle.spreadsheetId,
-                            `http://${hierarchy[groupKey].parent.host}${hierarchy[groupKey].parent.path}`,
-                        ),
-                    );
-                }
-
-                return new Promise<void>(resolve => {
-                    firebaseDatabase
-                        .ref()
-                        .update(updates)
-                        .then(
-                            () => {
-                                resolve();
-                            },
-                            error => {
-                                throw error;
-                            },
-                        );
-                });
-            });
-            promises = promises.concat(childPromises);
-            promises.push(
-                new Promise<void>(resolve => {
-                    firebaseDatabase
-                        .ref()
-                        .update({
-                            [`/puzzles/${groupKey}/isMeta`]: true,
-                        })
-                        .then(
-                            () => {
-                                resolve();
-                            },
-                            error => {
-                                throw error;
-                            },
-                        );
-                }),
-            );
-        });
-        const puzzlesWithNoParents = getState().puzzles.value.filter(puzzle => {
-            return puzzleNamesWithUpdatedParents.indexOf(puzzle.name) < 0;
-        });
-        puzzlesWithNoParents.forEach(puzzle => {
-            promises.push(
-                new Promise<void>(resolve => {
-                    firebaseDatabase
-                        .ref()
-                        .update({
-                            [`/puzzles/${puzzle.key}/parent`]: null,
-                        })
-                        .then(
-                            () => resolve(),
-                            error => {
-                                throw error;
-                            },
-                        );
-                }),
-            );
-            promises.push(setSheetPuzzleLink(puzzle.spreadsheetId));
-        });
-        Object.keys(puzzleChanges).forEach(puzzleKey => {
-            const updates = {
-                [`/puzzles/${puzzleKey}/name`]: puzzleChanges[puzzleKey].title,
-            };
-            promises.push(
-                new Promise<void>(resolve => {
-                    firebaseDatabase
-                        .ref()
-                        .update(updates)
-                        .then(
-                            () => {
-                                resolve();
-                            },
-                            error => {
-                                throw error;
-                            },
-                        );
-                }),
-            );
-        });
-        Promise.all(promises)
-            .then(() => {
-                dispatch(asyncActionSucceededPayload<void>(SAVE_HIERARCHY_ACTION));
-                loadPuzzlesAction(getState().activeHunt.value.year)(dispatch);
-            })
-            .catch(error => {
-                dispatch(asyncActionFailedPayload<void>(SAVE_HIERARCHY_ACTION, error));
             });
     };
 }

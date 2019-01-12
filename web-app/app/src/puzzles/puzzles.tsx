@@ -4,6 +4,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
+import * as ReactDOM from "react-dom";
 import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
 import {
     assignToMetaAction,
@@ -11,10 +12,10 @@ import {
     deletePuzzleAction,
     IPuzzleInfoChanges,
     loadPuzzlesAction,
-    saveHierarchyAction,
     toggleMetaAction,
 } from "../store/actions/puzzleActions";
 import { IAppLifecycle, IAppState, IPuzzle, IPuzzleHierarchy } from "../store/state";
+import { MetaSelector } from "./metaSelector";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
 
 interface IOwnProps {
@@ -26,9 +27,8 @@ interface IDispatchProps {
     createManualPuzzle?: (puzzleName: string, puzzleLink: string) => void;
     deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
-    saveHierarchy?: (hierarchy: IPuzzleHierarchy, puzzleChanges: { [key: string]: IPuzzleInfoChanges }) => void;
     toggleMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
-    assignToMeta?: (puzzle: IPuzzle, metaParentKey: string) => void;
+    assignToMeta?: (puzzle: IPuzzle, metaParentKeys: string[]) => void;
 }
 
 interface IStateProps {
@@ -48,6 +48,9 @@ export interface IPuzzlesState {
     puzzleChanges?: { [key: string]: IPuzzleInfoChanges };
     textHierarchy?: string[];
     unsortedPuzzles?: IPuzzle[];
+    portalElement?: Element;
+    isSelectingMeta: boolean;
+    currentlyEditingPuzzle?: IPuzzle;
 }
 
 class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
@@ -55,6 +58,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         hasChanges: false,
         hierarchy: {},
         isHierarchyLoaded: false,
+        isSelectingMeta: false,
         newPuzzleName: "",
         newPuzzleLink: "",
         puzzleChanges: {},
@@ -81,23 +85,41 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         ) {
             // puzzles have changed, reevaluate hierarchy
             const hierarchy: IPuzzleHierarchy = {};
-            const sortedPuzzles = puzzles.value.filter(puzzle => puzzle.parent !== undefined);
+            const sortedPuzzles = puzzles.value.filter(
+                puzzle => puzzle.parent !== undefined || (puzzle.parents !== undefined && puzzle.parents.length > 0),
+            );
             sortedPuzzles.forEach(puzzle => {
-                const parentKey = puzzle.parent;
-                if (hierarchy[parentKey] === undefined) {
-                    hierarchy[parentKey] = {
-                        parent: puzzles.value.find(parentPuzzle => parentPuzzle.key === parentKey),
-                        children: [],
-                    };
-                }
+                if (puzzle.parents !== undefined && puzzle.parents.length > 0) {
+                    for (const parentKey of puzzle.parents) {
+                        if (hierarchy[parentKey] === undefined) {
+                            hierarchy[parentKey] = {
+                                parent: puzzles.value.find(parentPuzzle => parentPuzzle.key === parentKey),
+                                children: [],
+                            };
+                        }
 
-                hierarchy[parentKey].children.push(puzzle);
+                        hierarchy[parentKey].children.push(puzzle);
+                    }
+                } else if (puzzle.parent !== undefined) {
+                    const parentKey = puzzle.parent;
+                    if (hierarchy[parentKey] === undefined) {
+                        hierarchy[parentKey] = {
+                            parent: puzzles.value.find(parentPuzzle => parentPuzzle.key === parentKey),
+                            children: [],
+                        };
+                    }
+
+                    hierarchy[parentKey].children.push(puzzle);
+                }
             });
 
             this.setState({
                 hierarchy,
                 isHierarchyLoaded: true,
-                unsortedPuzzles: puzzles.value.filter(puzzle => puzzle.parent === undefined),
+                unsortedPuzzles: puzzles.value.filter(
+                    puzzle =>
+                        puzzle.parent === undefined && (puzzle.parents === undefined || puzzle.parents.length === 0),
+                ),
             });
         }
 
@@ -139,6 +161,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                                 newPuzzleLink.length === 0
                             }
                             onClick={this.handleCreateManualPuzzle}
+                            className="create-button"
                         >
                             {lifecycle.creatingManualPuzzle ? "Creating..." : "Create"}
                         </button>
@@ -159,6 +182,54 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 </div>
             </div>
         );
+    }
+
+    private maybeRenderMetaSelector(puzzle: IPuzzle) {
+        const { isSelectingMeta, portalElement, currentlyEditingPuzzle } = this.state;
+        const { puzzles } = this.props;
+        if (
+            isSelectingMeta &&
+            portalElement !== undefined &&
+            currentlyEditingPuzzle !== undefined &&
+            currentlyEditingPuzzle.key === puzzle.key &&
+            isAsyncLoaded(puzzles)
+        ) {
+            return ReactDOM.createPortal(
+                <MetaSelector
+                    allPuzzles={puzzles.value}
+                    puzzle={currentlyEditingPuzzle}
+                    onClose={this.handleMetaSelectorClose}
+                    onSave={this.handleAssignToMeta}
+                />,
+                portalElement,
+            );
+        }
+        return undefined;
+    }
+
+    private handleAssignToMeta = (puzzle: IPuzzle, metas: string[]) => {
+        this.props.assignToMeta(puzzle, metas);
+        this.handleMetaSelectorClose();
+    };
+
+    private handleMetaSelectorClose = () => {
+        if (this.state.portalElement !== undefined) {
+            this.state.portalElement.remove();
+        }
+        this.setState({ isSelectingMeta: false, currentlyEditingPuzzle: undefined });
+    };
+
+    private getSelectorOpenHandler(puzzle: IPuzzle) {
+        return () => {
+            const portalElement = document.createElement("div");
+            portalElement.className = "dialog";
+            document.body.appendChild(portalElement);
+            this.setState({
+                isSelectingMeta: true,
+                portalElement,
+                currentlyEditingPuzzle: puzzle,
+            });
+        };
     }
 
     private handleCreateManualPuzzle = () => {
@@ -231,16 +302,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
         };
     };
 
-    private handleAssignment(puzzle: IPuzzle) {
-        return (event: React.ChangeEvent<HTMLSelectElement>) => {
-            if (event.target.value !== puzzle.key) {
-                this.props.assignToMeta(puzzle, event.target.value);
-            }
-        };
-    }
-
     private renderUnsortedPuzzles() {
-        const { lifecycle, slackTeamId, puzzles } = this.props;
+        const { lifecycle, slackTeamId } = this.props;
         const { unsortedPuzzles, puzzleChanges } = this.state;
         const puzzleRows = unsortedPuzzles.map(puzzle => {
             const puzzleName =
@@ -251,7 +314,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
             return (
                 <tr key={puzzle.key}>
-                    <td>
+                    <td className="puzzle-name">
                         {puzzle.index}{" "}
                         <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
                     </td>
@@ -268,23 +331,15 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <td>
                         <input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} />
                     </td>
-                    <td>
+                    <td className="puzzle-actions">
                         <button disabled={isDeleting} onClick={this.handleDeletePuzzle(puzzle)}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                         <button onClick={this.toggleMeta(puzzle)}>
                             {puzzle.isMeta ? "Remove meta" : "Mark as Meta"}
                         </button>
-                        <select onChange={this.handleAssignment(puzzle)}>
-                            <option>Assign to meta...</option>
-                            {puzzles.value
-                                .filter(metaPuzzle => metaPuzzle.isMeta)
-                                .map(metaPuzzle => (
-                                    <option value={metaPuzzle.key} key={metaPuzzle.key}>
-                                        {metaPuzzle.name}
-                                    </option>
-                                ))}
-                        </select>
+                        <button onClick={this.getSelectorOpenHandler(puzzle)}>Assign to meta</button>
+                        {this.maybeRenderMetaSelector(puzzle)}
                     </td>
                 </tr>
             );
@@ -319,7 +374,6 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
             createManualPuzzle: createManualPuzzleAction,
             deletePuzzle: deletePuzzleAction,
             loadPuzzles: loadPuzzlesAction,
-            saveHierarchy: saveHierarchyAction,
             toggleMeta: toggleMetaAction,
             assignToMeta: assignToMetaAction,
         },

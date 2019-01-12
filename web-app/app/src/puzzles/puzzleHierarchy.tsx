@@ -1,8 +1,10 @@
 import * as classnames from "classnames";
 import * as React from "react";
 
+import * as ReactDOM from "react-dom";
 import { IPuzzleInfoChanges } from "../store/actions/puzzleActions";
 import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
+import { MetaSelector } from "./metaSelector";
 
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
@@ -11,17 +13,21 @@ export interface IPuzzleHierarchyProps {
     onPuzzleDelete: (puzzle: IPuzzle) => void;
     puzzles: IPuzzle[];
     slackTeamId: string;
-    onAssignMeta: (puzzle: IPuzzle, metaPuzzleKey: string) => void;
+    onAssignMeta: (puzzle: IPuzzle, metaPuzzleKeys: string[]) => void;
 }
 
 interface IPuzzleHierarchyState {
-    puzzleChanges?: { [key: string]: IPuzzleInfoChanges };
-    groupUncollapsed?: { [key: string]: boolean };
+    portalElement?: Element;
+    isSelectingMeta: boolean;
+    currentlyEditingPuzzle?: IPuzzle;
+    puzzleChanges: { [key: string]: IPuzzleInfoChanges };
+    groupUncollapsed: { [key: string]: boolean };
 }
 
 export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuzzleHierarchyState> {
     public state: IPuzzleHierarchyState = {
         puzzleChanges: {},
+        isSelectingMeta: false,
         groupUncollapsed: {},
     };
 
@@ -101,7 +107,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
     };
 
     private renderPuzzles(puzzles: IPuzzle[], meta: IPuzzle) {
-        const { lifecycle, slackTeamId, puzzles: allPuzzles } = this.props;
+        const { lifecycle, slackTeamId } = this.props;
         const { puzzleChanges } = this.state;
         const puzzleRows = puzzles.map(puzzle => {
             const isDeleting = lifecycle.deletingPuzzleIds.indexOf(puzzle.key) >= 0;
@@ -111,7 +117,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                     : puzzle.name;
             return (
                 <tr key={puzzle.key}>
-                    <td>
+                    <td className="puzzle-name">
                         <span className="puzzle-index">{puzzle.index}</span>{" "}
                         <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
                     </td>
@@ -133,16 +139,8 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         </button>
                     </td>
                     <td>
-                        <select onChange={this.assignToMeta(puzzle)}>
-                            <option>Move to meta...</option>
-                            {allPuzzles
-                                .filter(allPuzzle => allPuzzle.isMeta)
-                                .map(allPuzzle => (
-                                    <option key={allPuzzle.key} value={allPuzzle.key}>
-                                        {allPuzzle.name}
-                                    </option>
-                                ))}
-                        </select>
+                        <button onClick={this.getSelectorOpenHandler(puzzle)}>Assign to meta</button>
+                        {this.maybeRenderMetaSelector(puzzle)}
                     </td>
                 </tr>
             );
@@ -179,11 +177,49 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
         );
     }
 
-    private assignToMeta(puzzle: IPuzzle) {
-        return (event: React.ChangeEvent<HTMLSelectElement>) => {
-            if (event.target.value !== puzzle.key) {
-                this.props.onAssignMeta(puzzle, event.target.value);
-            }
+    private maybeRenderMetaSelector(puzzle: IPuzzle) {
+        const { isSelectingMeta, portalElement, currentlyEditingPuzzle } = this.state;
+        if (
+            isSelectingMeta &&
+            portalElement !== undefined &&
+            currentlyEditingPuzzle !== undefined &&
+            currentlyEditingPuzzle.key === puzzle.key
+        ) {
+            return ReactDOM.createPortal(
+                <MetaSelector
+                    allPuzzles={this.props.puzzles}
+                    puzzle={currentlyEditingPuzzle}
+                    onClose={this.handleMetaSelectorClose}
+                    onSave={this.handleAssignToMeta}
+                />,
+                portalElement,
+            );
+        }
+        return undefined;
+    }
+
+    private handleAssignToMeta = (puzzle: IPuzzle, metas: string[]) => {
+        this.props.onAssignMeta(puzzle, metas);
+        this.handleMetaSelectorClose();
+    };
+
+    private handleMetaSelectorClose = () => {
+        if (this.state.portalElement !== undefined) {
+            this.state.portalElement.remove();
+        }
+        this.setState({ isSelectingMeta: false, currentlyEditingPuzzle: undefined });
+    };
+
+    private getSelectorOpenHandler(puzzle: IPuzzle) {
+        return () => {
+            const portalElement = document.createElement("div");
+            portalElement.className = "dialog";
+            document.body.appendChild(portalElement);
+            this.setState({
+                isSelectingMeta: true,
+                portalElement,
+                currentlyEditingPuzzle: puzzle,
+            });
         };
     }
 }

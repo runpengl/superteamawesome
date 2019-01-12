@@ -1,0 +1,33 @@
+.meta-selector {
+    background: white;
+    padding: 20px;
+    border-radius: 3px;
+
+    h3 {
+        margin-top: 0;
+        font-size: 18px;
+    }
+
+    .selected-meta {
+        margin-bottom: 10px;
+        font-size: 14px;
+
+        button {
+            margin-left: 10px;
+        }
+    }
+
+    .meta-selector-select {
+        width: 100%;
+    }
+
+    .meta-selector-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+
+        button:last-child {
+            margin-left: 10px;
+        }
+    }
+}
