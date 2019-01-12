@@ -119,9 +119,18 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                 puzzleChanges[puzzle.key] !== undefined && puzzleChanges[puzzle.key].title !== undefined
                     ? puzzleChanges[puzzle.key].title
                     : puzzle.name;
+            const puzzleMetaDepth = this.getNumMetas(puzzle, 0);
             return (
                 <tr key={puzzle.key}>
-                    <td />
+                    <td>
+                        <span className="puzzle-status meta">
+                            {puzzleMetaDepth > 0
+                                ? Array.apply(null, { length: puzzleMetaDepth })
+                                      .map(() => " META")
+                                      .join("")
+                                : undefined}
+                        </span>
+                    </td>
                     <td className="puzzle-name">
                         <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
                     </td>
@@ -156,13 +165,20 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
             puzzleChanges[meta.key] !== undefined && puzzleChanges[meta.key].title !== undefined
                 ? puzzleChanges[meta.key].title
                 : meta.name;
+        const maxMetaDepth = this.getNumMetas(meta, 0);
         return (
             <table cellPadding="0" cellSpacing="0">
                 <tbody>
                     {puzzleRows}
                     <tr>
                         <td>
-                            <span className="puzzle-status meta">META</span>
+                            <span className="puzzle-status meta">
+                                {maxMetaDepth > 0
+                                    ? Array.apply(null, { length: maxMetaDepth })
+                                          .map(() => " META")
+                                          .join("")
+                                    : undefined}
+                            </span>
                         </td>
                         <td>
                             <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} />
@@ -190,6 +206,15 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                 </tbody>
             </table>
         );
+    }
+
+    private getNumMetas(puzzle: IPuzzle, level: number): number {
+        if (this.props.hierarchy[puzzle.key] === undefined || this.props.hierarchy[puzzle.key].children.length === 0) {
+            return level;
+        }
+
+        const children = this.props.hierarchy[puzzle.key].children;
+        return Math.max(...children.map(childPuzzle => this.getNumMetas(childPuzzle, level + 1)));
     }
 
     private maybeRenderMetaSelector(puzzle: IPuzzle) {

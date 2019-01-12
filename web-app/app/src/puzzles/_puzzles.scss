@@ -4,6 +4,10 @@
     border-radius: 3px;
     padding: 3px 5px;
 
+    &:empty {
+        padding: 0;
+    }
+
     &.new {
         background: #6c6ec6;
     }
