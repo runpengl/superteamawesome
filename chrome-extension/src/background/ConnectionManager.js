@@ -133,7 +133,11 @@ function initializePuzzleToolbar(port, toolbarInfo) {
                 puzzleHierarchy.unshift(Object.assign({}, puzzle.val(), {
                     key: puzzle.key
                 }));
-                if (puzzle.val().parent) {
+                if (puzzle.val().parents != null && puzzle.val().parents.length > 0) {
+                    puzzle.val().parents.forEach(function(parentKey) {
+                        traverseParents(parentKey);
+                    });
+                } else if (puzzle.val().parent) {
                     traverseParents(puzzle.val().parent);
                 } else {
                     port.postMessage({

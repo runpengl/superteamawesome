@@ -61,7 +61,14 @@ function initApp() {
                     metaIndexByKey[pg[0].key] = i;
                 });
                 event.puzzles.forEach(function(p) {
-                    if (p.parent) {
+                    if (p.parents != null && p.parents.length > 0) {
+                        p.parents.forEach(function(metaKey) {
+                            if (metaIndexByKey.hasOwnProperty(metaKey)) {
+                                puzzleGroups[metaIndexByKey[metaKey]].push(p);
+                            }
+                        });
+                        return;
+                    } else if (p.parent) {
                         if (metaIndexByKey.hasOwnProperty(p.parent)) {
                             puzzleGroups[metaIndexByKey[p.parent]].push(p);
                             return;
@@ -106,7 +113,14 @@ port.onMessage.addListener(function(event) {
                 metaIndexByKey[pg[0].key] = i;
             });
             event.puzzles.forEach(function(p) {
-                if (p.parent) {
+                if (p.parents != null && p.parents.length > 0) {
+                    p.parents.forEach(function(parentKey) {
+                        if (metaIndexByKey.hasOwnProperty(parentKey)) {
+                            puzzleGroups[metaIndexByKey[parentKey]].push(p);
+                        }
+                    });
+                    return;
+                } else if (p.parent) {
                     if (metaIndexByKey.hasOwnProperty(p.parent)) {
                         puzzleGroups[metaIndexByKey[p.parent]].push(p);
                         return;
