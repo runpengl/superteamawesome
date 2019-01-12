@@ -38,7 +38,11 @@ export class MetaSelector extends React.PureComponent<IMetaSelectorProps, IMetaS
                     <select onChange={this.handleMetaSelect} className="meta-selector-select">
                         <option>Add meta...</option>
                         {this.props.allPuzzles
-                            .filter(potentialMeta => this.state.selectedMetas.indexOf(potentialMeta.key) < 0)
+                            .filter(
+                                potentialMeta =>
+                                    this.state.selectedMetas.indexOf(potentialMeta.key) < 0 && potentialMeta.isMeta,
+                            )
+                            .sort((puzzleA, puzzleB) => puzzleA.name.localeCompare(puzzleB.name))
                             .map(potentialMeta => (
                                 <option key={potentialMeta.key} value={potentialMeta.key}>
                                     {potentialMeta.name}
