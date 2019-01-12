@@ -9,11 +9,12 @@ import { MetaSelector } from "./metaSelector";
 export interface IPuzzleHierarchyProps {
     hierarchy: IPuzzleHierarchy;
     lifecycle: IAppLifecycle;
-    onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
-    onPuzzleDelete: (puzzle: IPuzzle) => void;
     puzzles: IPuzzle[];
     slackTeamId: string;
+    onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
+    onPuzzleDelete: (puzzle: IPuzzle) => void;
     onAssignMeta: (puzzle: IPuzzle, metaPuzzleKeys: string[]) => void;
+    onRemoveMeta: (meta: IPuzzle, existingChildren: IPuzzle[]) => void;
 }
 
 interface IPuzzleHierarchyState {
@@ -44,7 +45,10 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
 
     private renderPuzzleGroup(group: IPuzzleGroup) {
         const { groupUncollapsed } = this.state;
-        const numSolvedPuzzles = group.children.filter(puzzle => puzzle.status === PuzzleStatus.SOLVED).length;
+        let numSolvedPuzzles = group.children.filter(puzzle => puzzle.status === PuzzleStatus.SOLVED).length;
+        if (group.parent.status === PuzzleStatus.SOLVED) {
+            numSolvedPuzzles += 1;
+        }
         return (
             <div className="puzzle-group" key={`parent-${group.parent.key}`}>
                 <div className="puzzle-group-header" onClick={this.toggleCollapsed(group)}>
@@ -141,8 +145,6 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         <button disabled={isDeleting} onClick={this.handleDelete(puzzle)}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
-                    </td>
-                    <td>
                         <button onClick={this.getSelectorOpenHandler(puzzle)}>Assign to meta</button>
                         {this.maybeRenderMetaSelector(puzzle)}
                     </td>
@@ -181,6 +183,9 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         <td>
                             <input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(meta.host, meta.path)} />
                         </td>
+                        <td>
+                            <button onClick={this.removeMetaHandler(meta, puzzles)}>Remove meta</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -212,6 +217,10 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
         this.props.onAssignMeta(puzzle, metas);
         this.handleMetaSelectorClose();
     };
+
+    private removeMetaHandler(meta: IPuzzle, existingChildren: IPuzzle[]) {
+        return () => this.props.onRemoveMeta(meta, existingChildren);
+    }
 
     private handleMetaSelectorClose = () => {
         if (this.state.portalElement !== undefined) {

@@ -7,6 +7,7 @@ import {
     isAsyncSucceeded,
 } from "../actions/loading";
 import {
+    ADD_META_ACTION,
     ASSIGN_TO_META,
     CREATE_PUZZLE_ACTION,
     ICreatePuzzleActionPayload,
@@ -15,8 +16,8 @@ import {
     LOAD_IGNORED_PAGES_ACTION,
     LOAD_PUZZLES_ACTION,
     SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
-    TOGGLE_META_ACTION,
 } from "../actions/puzzleActions";
+import { REMOVE_META_ACTION } from "../actions/puzzleActions";
 import { IDiscoveredPage, IPuzzle } from "../state";
 
 const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
@@ -31,7 +32,7 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
             if (isAsyncSucceeded(action)) {
                 return puzzlesInitialState;
             }
-        case TOGGLE_META_ACTION:
+        case ADD_META_ACTION:
             if (isAsyncSucceeded(action)) {
                 const index = state.value.findIndex(puzzle => puzzle.key === action.payload.key);
                 return {
@@ -40,10 +41,36 @@ export function puzzlesReducer(state: IAsyncLoaded<IPuzzle[]> = puzzlesInitialSt
                         ...state.value.slice(0, index),
                         {
                             ...state.value[index],
-                            isMeta: action.payload.isMeta,
+                            isMeta: true,
                         },
                         ...state.value.slice(index + 1),
                     ],
+                };
+            }
+        case REMOVE_META_ACTION:
+            if (isAsyncSucceeded(action)) {
+                const existingPuzzles: IPuzzle[] = action.payload.existingPuzzles;
+                return {
+                    ...state,
+                    value: state.value.map(puzzle => {
+                        if (puzzle.key === action.payload.metaKey) {
+                            return {
+                                ...puzzle,
+                                isMeta: false,
+                            };
+                        } else if (existingPuzzles.some(existingPuzzle => existingPuzzle.key === puzzle.key)) {
+                            return {
+                                ...puzzle,
+                                parent: null,
+                                parents:
+                                    puzzle.parents != null
+                                        ? puzzle.parents.filter(parentKey => parentKey !== action.payload.metaKey)
+                                        : [],
+                            };
+                        } else {
+                            return puzzle;
+                        }
+                    }),
                 };
             }
         case ASSIGN_TO_META:

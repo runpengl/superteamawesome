@@ -198,26 +198,52 @@ export function deletePuzzleAction(puzzle: IPuzzle) {
     };
 }
 
-export const TOGGLE_META_ACTION = "TOGGLE_META_PUZZLE";
-export function toggleMetaAction(puzzle: IPuzzle, isMeta: boolean) {
+export const ADD_META_ACTION = "ADD_META_PUZZLE";
+export function addMetaAction(puzzle: IPuzzle) {
     return (dispatch: Dispatch<IAppState>) => {
-        dispatch(asyncActionInProgressPayload<void>(TOGGLE_META_ACTION, { key: puzzle.key, isMeta }));
+        dispatch(asyncActionInProgressPayload<void>(ADD_META_ACTION, { key: puzzle.key }));
         firebaseDatabase
-            .ref(`puzzles/${puzzle.key}`)
-            .set({
-                ...puzzle,
-                isMeta,
-            })
+            .ref(`puzzles/${puzzle.key}/isMeta`)
+            .set(true)
             .then(
                 () => {
-                    dispatch(
-                        asyncActionSucceededPayload<void>(TOGGLE_META_ACTION, undefined, { key: puzzle.key, isMeta }),
-                    );
+                    dispatch(asyncActionSucceededPayload<void>(ADD_META_ACTION, undefined, { key: puzzle.key }));
                 },
                 error => {
-                    dispatch(asyncActionFailedPayload<void>(TOGGLE_META_ACTION, error, { key: puzzle.key, isMeta }));
+                    dispatch(asyncActionFailedPayload<void>(ADD_META_ACTION, error, { key: puzzle.key }));
                 },
             );
+    };
+}
+
+export const REMOVE_META_ACTION = "REMOVE_META_PUZZLE";
+export function removeMetaAction(meta: IPuzzle, existingPuzzles: IPuzzle[]) {
+    return (dispatch: Dispatch<IAppState>) => {
+        dispatch(asyncActionInProgressPayload<void>(REMOVE_META_ACTION, { metaKey: meta.key, existingPuzzles }));
+        const firebaseUpdates: { [key: string]: any } = {};
+        firebaseUpdates[`puzzles/${meta.key}/isMeta`] = false;
+        for (const childPuzzle of existingPuzzles) {
+            firebaseUpdates[`puzzles/${childPuzzle.key}/parent`] = null;
+            if (childPuzzle.parents != null) {
+                firebaseUpdates[`puzzles/${childPuzzle.key}/parents`] = childPuzzle.parents.filter(
+                    parentKey => parentKey !== meta.key,
+                );
+            }
+        }
+        firebaseDatabase.ref().update(firebaseUpdates, (error: Error | null) => {
+            if (error == null) {
+                dispatch(
+                    asyncActionSucceededPayload<void>(REMOVE_META_ACTION, undefined, {
+                        metaKey: meta.key,
+                        existingPuzzles,
+                    }),
+                );
+            } else {
+                dispatch(
+                    asyncActionFailedPayload<void>(REMOVE_META_ACTION, error, { metaKey: meta.key, existingPuzzles }),
+                );
+            }
+        });
     };
 }
 

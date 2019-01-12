@@ -8,12 +8,13 @@ import { bindActionCreators, Dispatch } from "redux";
 
 import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
 import {
+    addMetaAction,
     assignToMetaAction,
     createManualPuzzleAction,
     deletePuzzleAction,
     IPuzzleInfoChanges,
     loadPuzzlesAction,
-    toggleMetaAction,
+    removeMetaAction,
 } from "../store/actions/puzzleActions";
 import { IAppLifecycle, IAppState, IPuzzle, IPuzzleHierarchy } from "../store/state";
 import { MetaSelector } from "./metaSelector";
@@ -28,7 +29,8 @@ interface IDispatchProps {
     createManualPuzzle?: (puzzleName: string, puzzleLink: string) => void;
     deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
-    toggleMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
+    addMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
+    removeMeta: (meta: IPuzzle, existingPuzzles: IPuzzle[]) => void;
     assignToMeta?: (puzzle: IPuzzle, metaParentKeys: string[]) => void;
 }
 
@@ -87,7 +89,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             // puzzles have changed, reevaluate hierarchy
             const hierarchy: IPuzzleHierarchy = {};
             const sortedPuzzles = puzzles.value.filter(
-                puzzle => puzzle.parent !== undefined || (puzzle.parents !== undefined && puzzle.parents.length > 0),
+                puzzle => puzzle.parent != null || (puzzle.parents != null && puzzle.parents.length > 0),
             );
             sortedPuzzles.forEach(puzzle => {
                 if (puzzle.parents !== undefined && puzzle.parents.length > 0) {
@@ -101,7 +103,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
                         hierarchy[parentKey].children.push(puzzle);
                     }
-                } else if (puzzle.parent !== undefined) {
+                } else if (puzzle.parent != null) {
                     const parentKey = puzzle.parent;
                     if (hierarchy[parentKey] === undefined) {
                         hierarchy[parentKey] = {
@@ -119,8 +121,8 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 isHierarchyLoaded: true,
                 unsortedPuzzles: puzzles.value.filter(
                     puzzle =>
-                        puzzle.parent === undefined &&
-                        (puzzle.parents === undefined || puzzle.parents.length === 0) &&
+                        puzzle.parent == null &&
+                        (puzzle.parents == null || puzzle.parents.length === 0) &&
                         !puzzle.isMeta,
                 ),
             });
@@ -176,11 +178,12 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                     <PuzzleHierarchy
                         hierarchy={hierarchy}
                         lifecycle={lifecycle}
+                        slackTeamId={slackTeamId}
+                        puzzles={puzzles.value}
+                        onRemoveMeta={this.props.removeMeta}
                         onPuzzleDelete={this.onPuzzleDelete}
                         onPuzzleNameChange={this.onPuzzleNameChange}
-                        slackTeamId={slackTeamId}
                         onAssignMeta={this.props.assignToMeta}
-                        puzzles={puzzles.value}
                     />
                 </div>
             </div>
@@ -301,7 +304,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     private toggleMeta = (puzzle: IPuzzle) => {
         return () => {
-            this.props.toggleMeta(puzzle, !puzzle.isMeta);
+            this.props.addMeta(puzzle, !puzzle.isMeta);
         };
     };
 
@@ -383,7 +386,8 @@ function mapDispatchToProps(dispatch: Dispatch<IAppState>): IDispatchProps {
             createManualPuzzle: createManualPuzzleAction,
             deletePuzzle: deletePuzzleAction,
             loadPuzzles: loadPuzzlesAction,
-            toggleMeta: toggleMetaAction,
+            addMeta: addMetaAction,
+            removeMeta: removeMetaAction,
             assignToMeta: assignToMetaAction,
         },
         dispatch,
