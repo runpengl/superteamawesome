@@ -234,9 +234,16 @@ export function assignToMetaAction(puzzle: IPuzzle, metaPuzzleKeys: string[]) {
             .then(
                 async () => {
                     // Remove deprecate parent field
-                    await new Promise(resolve =>
-                        firebaseDatabase.ref(`puzzles/${puzzle.key}/parent`).remove(() => resolve()),
+                    const deprecatedParent = await new Promise(resolve =>
+                        firebaseDatabase
+                            .ref(`puzzles/${puzzle.key}/parent`)
+                            .once("value", snapshot => resolve(snapshot.val())),
                     );
+                    if (deprecatedParent != null) {
+                        await new Promise(resolve =>
+                            firebaseDatabase.ref(`puzzles/${puzzle.key}/parent`).remove(() => resolve()),
+                        );
+                    }
                     dispatch(
                         asyncActionSucceededPayload<void>(ASSIGN_TO_META, undefined, {
                             key: puzzle.key,

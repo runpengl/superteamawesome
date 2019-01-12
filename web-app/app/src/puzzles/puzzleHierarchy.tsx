@@ -1,7 +1,7 @@
-import * as classnames from "classnames";
+import * as classNames from "classnames";
 import * as React from "react";
-
 import * as ReactDOM from "react-dom";
+
 import { IPuzzleInfoChanges } from "../store/actions/puzzleActions";
 import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
 import { MetaSelector } from "./metaSelector";
@@ -49,7 +49,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
             <div className="puzzle-group" key={`parent-${group.parent.key}`}>
                 <div className="puzzle-group-header" onClick={this.toggleCollapsed(group)}>
                     <span
-                        className={classnames({
+                        className={classNames({
                             collapsed: !groupUncollapsed[group.parent.key],
                             uncollapsed: groupUncollapsed[group.parent.key],
                         })}
@@ -117,11 +117,15 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                     : puzzle.name;
             return (
                 <tr key={puzzle.key}>
+                    <td />
                     <td className="puzzle-name">
-                        <span className="puzzle-index">{puzzle.index}</span>{" "}
                         <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
                     </td>
-                    <td>{puzzle.status.toUpperCase()}</td>
+                    <td>
+                        <span className={classNames(puzzle.status, "puzzle-status")}>
+                            {puzzle.status.toUpperCase()}
+                        </span>
+                    </td>
                     <td>
                         <a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a>
                     </td>
@@ -156,10 +160,16 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                     {puzzleRows}
                     <tr>
                         <td>
-                            <span className="puzzle-index">{meta.index}</span>{" "}
-                            <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} /> Meta
+                            <span className="puzzle-status meta">META</span>
                         </td>
-                        <td>{meta.status.toUpperCase()}</td>
+                        <td>
+                            <input type="text" value={metaName} onChange={this.handlePuzzleNameChange(meta)} />
+                        </td>
+                        <td>
+                            <span className={classNames("puzzle-status", meta.status)}>
+                                {meta.status.toUpperCase()}
+                            </span>
+                        </td>
                         <td>
                             <a href={`slack://channel?id=${meta.slackChannelId}&team=${slackTeamId}`}>SLACK</a>
                         </td>

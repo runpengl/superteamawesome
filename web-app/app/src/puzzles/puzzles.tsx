@@ -1,10 +1,11 @@
+import * as classNames from "classnames";
 import { isEqual } from "lodash-es";
 import * as moment from "moment";
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
-import * as ReactDOM from "react-dom";
 import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
 import {
     assignToMetaAction,
@@ -118,7 +119,9 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 isHierarchyLoaded: true,
                 unsortedPuzzles: puzzles.value.filter(
                     puzzle =>
-                        puzzle.parent === undefined && (puzzle.parents === undefined || puzzle.parents.length === 0),
+                        puzzle.parent === undefined &&
+                        (puzzle.parents === undefined || puzzle.parents.length === 0) &&
+                        !puzzle.isMeta,
                 ),
             });
         }
@@ -315,10 +318,13 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
             return (
                 <tr key={puzzle.key}>
                     <td className="puzzle-name">
-                        {puzzle.index}{" "}
                         <input type="text" value={puzzleName} onChange={this.handlePuzzleNameChange(puzzle)} />
                     </td>
-                    <td>{puzzle.status.toUpperCase()}</td>
+                    <td>
+                        <span className={classNames(puzzle.status, "puzzle-status")}>
+                            {puzzle.status.toUpperCase()}
+                        </span>
+                    </td>
                     <td>{date}</td>
                     <td>
                         <a href={`slack://channel?id=${puzzle.slackChannelId}&team=${slackTeamId}`}>SLACK</a>
@@ -327,6 +333,9 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         <a href={this.getGoogleSheetUrl(puzzle.spreadsheetId)} target="_blank">
                             DOC
                         </a>
+                    </td>
+                    <td>
+                        <a href={this.getPuzzleUrl(puzzle.host, puzzle.path)}>SITE</a>
                     </td>
                     <td>
                         <input type="text" readOnly={true} defaultValue={this.getPuzzleUrl(puzzle.host, puzzle.path)} />

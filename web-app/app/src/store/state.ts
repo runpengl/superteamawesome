@@ -31,12 +31,13 @@ export interface IDiscoveredPage {
     title: string;
 }
 
-export type PuzzleStatus = "inProgress" | "solved" | "new" | "stuck";
+export type PuzzleStatus = "inProgress" | "solved" | "new" | "stuck" | "backsolved";
 export const PuzzleStatus = {
     IN_PROGRESS: "inProgress" as PuzzleStatus,
     NEW: "new" as PuzzleStatus,
     SOLVED: "solved" as PuzzleStatus,
     STUCK: "stuck" as PuzzleStatus,
+    BACKSOLVED: "backsolved" as PuzzleStatus,
 };
 
 export interface IPuzzleGroup {

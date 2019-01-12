@@ -1,6 +1,7 @@
 @import "fonts";
 @import "login";
 @import "views/huntDashboard";
+@import "puzzles/puzzles";
 @import "puzzles/metaSelector";
 
 body,
@@ -272,12 +273,12 @@ $triangle-size: 6px;
 .collapsed,
 .uncollapsed {
   display: inline-block;
-  width: 0; 
+  width: 0;
   height: 0;
-  margin-right: 10px; 
+  margin-right: 10px;
 }
 
-.collapsed { 
+.collapsed {
   border-top: $triangle-size solid transparent;
   border-bottom: $triangle-size solid transparent;
   border-left: $triangle-size solid black;
