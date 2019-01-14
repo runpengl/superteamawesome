@@ -14,7 +14,7 @@
     "default_icon": "popup/popup.png"
   },
 
-  "content_security_policy": "script-src 'self' https://*.firebaseio.com https://www.gstatic.com; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://*.firebaseio.com https://www.gstatic.com https://unpkg.com; object-src 'self'",
 
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjAnCKpXYqXb6iioTS6kIo8gC7Cozl8iubaqvaKscVvJc+CgaEZmqewkYDBxnENiiUoAouBBwmXZyuTf97nPK7aBFQUPgFmeCZj7CJDjYis3rga0ZUDt2peWge3XJCc3cf6KStVba1TY1F72HXaRhPEPMvjh/JxN4PJufYlENcbId+N91/eCqITRDRb9G0SJN6XEHNBEVJqEFv05PPEJMXFpJDR/fLr3qBaDVubRQJkA1WyMSTSXLt7O81zjgj3RXMJr/T8DTj5E6RP/AbDK9+6+AN2UJjSL3VTILnpdkCYuEmUgRm6QFn/N8piuXhWaKb79KZ2rIrC60tZy+GxWRwIDAQAB",
 
