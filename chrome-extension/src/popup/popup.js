@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import PuzzleList from "./PuzzleList";
 
 initApp();
 
@@ -410,102 +411,6 @@ class AllPuzzles extends React.Component {
     }
 };
 
-class PuzzleList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isCollapsed: false
-        };
-    }
-
-    render() {
-        var props = this.props;
-        if (props.puzzles.filter(this.filterBySearchInputValue, this).length === 0) {
-            return null;
-        }
-        return r.div({
-            className: "PuzzleList" + (this.state.isCollapsed ? " isCollapsed" : "")
-        },
-            r.div({
-                className: "PuzzleList-groupHeader",
-                onClick: this.handleHeaderClick.bind(this)
-            },
-                props.groupName,
-                this.props.groupType === "round"
-                    ? r.span({ className: "PuzzleList-numSolved" },
-                        props.puzzles.filter(function(p) {
-                            return p.status === "solved"
-                        }).length,
-                        "/",
-                        props.puzzles.length
-                    )
-                    : null
-            ),
-            this.renderPuzzles()
-        );
-    }
-
-    renderPuzzles() {
-        var props = this.props;
-        return r.ul({ className: "PuzzleList-list" },
-            props.puzzles.map(function(puzzle, i) {
-                var numActiveViewers = props.puzzleViewers &&
-                    props.puzzleViewers[puzzle.key];
-
-                if (!this.filterBySearchInputValue(puzzle)) {
-                    return null;
-                }
-                return r.li({ key: puzzle.key },
-                    r.a({
-                        className: "PuzzleList-puzzle " + puzzle.status,
-                        href: "http://" + props.huntDomain + puzzle.path,
-                        onClick: function(event) {
-                            if (event.shiftKey || event.metaKey) {
-                                return;
-                            }
-                            chrome.tabs.update({
-                                url: "http://" + props.huntDomain + puzzle.path
-                            });
-                        }
-                    },
-                        r.div({ className: "PuzzleList-puzzleLabel" },
-                            r.span({ className: "PuzzleList-puzzleName" },
-                                puzzle.name),
-                            (props.groupType === "round" && i === 0 && puzzle.isMeta) ||
-                            (props.groupType === "status" && puzzle.isMeta)
-                                ? r.span({ className: "PuzzleList-metaBadge" }, "Meta")
-                                : null
-                        ),
-                        r.div({ className: "PuzzleList-puzzleMetadata" },
-                            numActiveViewers
-                                ? r.div({
-                                    className: "PuzzleList-puzzleViewerCount"
-                                },
-                                    React.createElement(PersonIcon),
-                                    numActiveViewers
-                                )
-                                : null,
-                            puzzle.status === "solved"
-                                ? r.span({
-                                    className: "PuzzleList-puzzleSolution"
-                                }, puzzle.solution)
-                                : null
-                        )
-                    )
-                );
-            }, this)
-        );
-    }
-
-    filterBySearchInputValue(puzzle) {
-        return puzzle.name.toLowerCase().indexOf(this.props.searchInputValue.toLowerCase()) !== -1;
-    }
-
-    handleHeaderClick() {
-        this.setState({ isCollapsed: !this.state.isCollapsed });
-    }
-}
-
 function KeyIcon(props) {
     return r.svg({
         className: "KeyIcon" + (props.className ? " " + props.className : ""),
@@ -513,15 +418,6 @@ function KeyIcon(props) {
     },
         r.path({
             d: "M14.5,4C11.5,4,9,6.5,9,9.5c0,1,0.3,1.9,0.7,2.8L4,18v2h4v-2h2v-2h2l1.2-1.2c0.4,0.1,0.9,0.2,1.3,0.2c3,0,5.5-2.5,5.5-5.5  S17.5,4,14.5,4z M16,9c-0.8,0-1.5-0.7-1.5-1.5S15.2,6,16,6c0.8,0,1.5,0.7,1.5,1.5S16.8,9,16,9z"
-        })
-    );
-}
-
-function PersonIcon() {
-    return r.svg({ className: "PersonIcon", viewBox: "0 0 24 24" },
-        r.circle({ cx: 12, cy: 8, r: 4 }),
-        r.path({
-            d: "M12,14c-6.1,0-8,4-8,4v2h16v-2C20,18,18.1,14,12,14z"
         })
     );
 }
