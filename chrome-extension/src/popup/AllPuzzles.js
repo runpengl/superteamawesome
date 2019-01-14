@@ -7,13 +7,27 @@ export default class AllPuzzles extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            searchInputValue: ""
+            searchInputValue: "",
+            // { groupKey, puzzleKey }
+            highlightedGroupPuzzle: null,
         };
     }
 
     componentDidMount() {
         if (this.searchInputNode) {
             this.searchInputNode.focus();
+        }
+    }
+
+    componentDidUpdate() {
+        if (
+            // IF: We filtered out the highlighted puzzle,
+            (this.state.highlightedGroupPuzzle && this.indexOfHighlightedGroupPuzzle() === -1) ||
+            // OR: There's nothing highlighted, but we're still searching
+            (!this.state.highlightedGroupPuzzle && this.state.searchInputValue.trim() !== "")
+        ) {
+            // THEN: try to highlight something new
+            this.highlightGroupPuzzle(this.firstGroupPuzzleOrNull());
         }
     }
 
@@ -42,45 +56,159 @@ export default class AllPuzzles extends React.Component {
                 placeholder="Search Puzzles"
                 value={this.state.searchInputValue}
                 onChange={this.handleSearchInputChange.bind(this)}
+                onKeyDown={this.handleSearchKeyDown.bind(this)}
             />
         </div>;
     }
 
     renderPuzzles() {
+        return this.groupedPuzzles().map(group => {
+            return <PuzzleList
+                key={group.key}
+                groupKey={group.key}
+                groupName={group.groupName}
+                groupType={group.groupType}
+                puzzles={group.puzzles}
+                puzzleViewers={this.props.puzzleViewers}
+                huntDomain={this.props.huntDomain}
+                highlightedPuzzleKey={
+                    this.state.highlightedGroupPuzzle &&
+                    this.state.highlightedGroupPuzzle.groupKey === group.key
+                        ? this.state.highlightedGroupPuzzle.puzzleKey
+                        : null
+                }
+                highlightGroupPuzzle={this.highlightGroupPuzzle.bind(this)}
+            />;
+        });
+    }
+
+    groupedPuzzles() {
         switch (this.props.sortBy) {
             case "rounds":
                 return this.props.puzzleGroups.map(function(pg) {
-                    return <PuzzleList
-                        key={pg[0].isMeta ? pg[0].key : "other"}
-                        groupName={pg[0].isMeta ? pg[0].name : "Other Puzzles"}
-                        groupType="round"
-                        huntDomain={this.props.huntDomain}
-                        puzzles={pg}
-                        puzzleViewers={this.props.puzzleViewers}
-                        searchInputValue={this.state.searchInputValue}
-                    />;
-                }, this);
+                    const puzzles = pg.filter(this.filterBySearchInputValue, this);
+                    if (puzzles.length === 0) {
+                        return null;
+                    }
+                    return {
+                        key: pg[0].isMeta ? pg[0].key : "other",
+                        groupName: pg[0].isMeta ? pg[0].name : "Other Puzzles",
+                        groupType: "round",
+                        puzzles
+                    };
+                }, this).filter(group => group !== null);
             case "status":
                 return PUZZLE_STATUSES.map(function(status) {
-                    var puzzles = this.props.puzzlesByStatus[status];
+                    var puzzles = this.props.puzzlesByStatus[status]
+                        .filter(this.filterBySearchInputValue, this);
                     if (puzzles.length === 0) {
-                        return;
+                        return null;
                     }
                     var readableStatus = status.replace(/([A-Z])/g, " $1");
-                    return <PuzzleList
-                        key={status}
-                        groupName={readableStatus.charAt(0).toUpperCase() + readableStatus.slice(1)}
-                        groupType={"status"}
-                        huntDomain={this.props.huntDomain}
-                        puzzles={puzzles}
-                        puzzleViewers={this.props.puzzleViewers}
-                        searchInputValue={this.state.searchInputValue}
-                    />;
-                }, this);
+                    return {
+                        key: status,
+                        groupName: readableStatus.charAt(0).toUpperCase() + readableStatus.slice(1),
+                        groupType: "status",
+                        puzzles
+                    };
+                }, this).filter(group => group !== null);
         }
     }
 
+    filterBySearchInputValue(puzzle) {
+        return puzzle.name.toLowerCase().indexOf(this.state.searchInputValue.toLowerCase()) !== -1;
+    }
+
+    allGroupPuzzles() {
+        const puzzles = this.groupedPuzzles().map(group => {
+            return group.puzzles.map(puzzle => ({
+                groupKey: group.key,
+                puzzle,
+            }));
+        })
+
+        // Flatten the list
+        return [].concat.apply([], puzzles);
+    }
+
+    firstGroupPuzzleOrNull() {
+        const allGroupPuzzles = this.allGroupPuzzles();
+        return allGroupPuzzles.length ? allGroupPuzzles[0] : null;
+    }
+
+    indexOfHighlightedGroupPuzzle() {
+        if (this.state.highlightedGroupPuzzle === null) {
+            return -1;
+        }
+        return this.allGroupPuzzles().findIndex(({ groupKey, puzzle }) => {
+            return groupKey === this.state.highlightedGroupPuzzle.groupKey &&
+                puzzle.key === this.state.highlightedGroupPuzzle.puzzleKey;
+        });
+    }
+
     handleSearchInputChange(event) {
-        this.setState({ searchInputValue: event.target.value });
+        const searchInputValue = event.target.value;
+        this.setState({ searchInputValue });
+
+        if (searchInputValue.trim() === "") {
+            // User is no longer searching; clear the highlight
+            this.setState({
+                highlightedGroupPuzzle: null
+            });
+        }
+    }
+
+    handleSearchKeyDown(event) {
+        switch (event.key) {
+            case "ArrowDown":
+                this.shiftHighlight(/*down*/ true);
+                break;
+
+            case "ArrowUp":
+                this.shiftHighlight(/*down*/ false);
+                break;
+
+            case "Enter":
+                const highlightedGroupPuzzle = this.state.highlightedGroupPuzzle;
+                if (highlightedGroupPuzzle) {
+                    const { puzzleKey } = highlightedGroupPuzzle;
+                    const puzzle = this.props.puzzles.find(({ key }) => key === puzzleKey);
+                    const url = `http://${this.props.huntDomain + puzzle.path}`;
+                    if (event.shiftKey) {
+                        chrome.windows.create({ url });
+                    } else if (event.metaKey) {
+                        chrome.tabs.create({ url });
+                    } else {
+                        chrome.tabs.update({ url });
+                    }
+                }
+                break;
+        }
+    }
+
+    highlightGroupPuzzle(maybeGroupPuzzle) {
+        if (!maybeGroupPuzzle && !this.state.highlightedGroupPuzzle) {
+            // Nothing to do
+            return;
+        }
+        this.setState({
+            highlightedGroupPuzzle: maybeGroupPuzzle && {
+                groupKey: maybeGroupPuzzle.groupKey,
+                puzzleKey: maybeGroupPuzzle.puzzle.key,
+            },
+        });
+    }
+
+    shiftHighlight(down) {
+        if (!this.state.highlightedGroupPuzzle) {
+            // Nothing highlighted; highlighted first puzzle (if it exists)
+            this.highlightGroupPuzzle(this.firstGroupPuzzleOrNull());
+        } else {
+            const index = this.indexOfHighlightedGroupPuzzle();
+            const allGroupPuzzles = this.allGroupPuzzles();
+            const indexToHighlight =
+                (index + (down ? 1 : -1) + allGroupPuzzles.length) % allGroupPuzzles.length;
+            this.highlightGroupPuzzle(allGroupPuzzles[indexToHighlight]);
+        }
     }
 }

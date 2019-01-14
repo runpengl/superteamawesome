@@ -14,8 +14,8 @@ a:hover {
 }
 
 #popup {
-  height: 367px;
-  width: 300px;
+  height: 500px;
+  width: 350px;
 }
 
 /**
@@ -293,13 +293,16 @@ a:hover {
   opacity: 1;
   overflow: hidden;
   padding-left: 10px;
-  transition: .2s margin, .2s max-height, .2s opacity;
+  transition: .2s margin, .2s max-height, .2s opacity, .2s box-shadow;
   white-space: nowrap;
 }
-.PuzzleList-puzzle:hover {
+.PuzzleList-puzzle:hover,
+.PuzzleList-puzzle--highlighted {
+  box-shadow: 0 0 5px 0 #0af, inset 0 0 0 1px #0af;
   color: #1c71b9;
   fill: #1c71b9;
   text-decoration: none;
+  transition: none;
 }
 .PuzzleList-puzzle.new {
   border-color: #9050d4;

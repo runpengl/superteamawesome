@@ -1,3 +1,4 @@
+import cx from "classnames";
 import * as React from "react";
 
 /**
@@ -5,6 +6,14 @@ import * as React from "react";
  * to a set of puzzles with the same solve status.
  */
 export default class PuzzleList extends React.Component {
+    static getDerivedStateFromProps(props) {
+        if (props.highlightedPuzzleKey) {
+            // Something is highlighted; uncollapse to show it!
+            return { isCollapsed: false };
+        }
+        return null;
+    }
+
     constructor(props) {
         super(props);
         this.state = {
@@ -14,9 +23,6 @@ export default class PuzzleList extends React.Component {
 
     render() {
         var props = this.props;
-        if (props.puzzles.filter(this.filterBySearchInputValue, this).length === 0) {
-            return null;
-        }
         return <div
             className={`PuzzleList${this.state.isCollapsed ? " isCollapsed" : ""}`}
         >
@@ -46,12 +52,13 @@ export default class PuzzleList extends React.Component {
                 var numActiveViewers = props.puzzleViewers &&
                     props.puzzleViewers[puzzle.key];
 
-                if (!this.filterBySearchInputValue(puzzle)) {
-                    return null;
-                }
                 return <li key={puzzle.key}>
                     <a
-                        className={`PuzzleList-puzzle ${puzzle.status}`}
+                        className={cx({
+                            "PuzzleList-puzzle": true,
+                            [puzzle.status]: true,
+                            "PuzzleList-puzzle--highlighted": this.props.highlightedPuzzleKey === puzzle.key,
+                        })}
                         href={`http://${props.huntDomain + puzzle.path}`}
                         onClick={function(event) {
                             if (event.shiftKey || event.metaKey) {
@@ -61,6 +68,10 @@ export default class PuzzleList extends React.Component {
                                 url: "http://" + props.huntDomain + puzzle.path
                             });
                         }}
+                        onMouseEnter={() => this.props.highlightGroupPuzzle({
+                            groupKey: this.props.groupKey,
+                            puzzle,
+                        })}
                     >
                         <div className="PuzzleList-puzzleLabel">
                             <div className="PuzzleList-puzzleName">
@@ -88,10 +99,6 @@ export default class PuzzleList extends React.Component {
                 </li>;
             }, this)}
         </ul>;
-    }
-
-    filterBySearchInputValue(puzzle) {
-        return puzzle.name.toLowerCase().indexOf(this.props.searchInputValue.toLowerCase()) !== -1;
     }
 
     handleHeaderClick() {
