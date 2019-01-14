@@ -44,6 +44,7 @@ function isSystemMessage(props) {
         case "channel_topic":
         case "channel_unarchive":
         case "reminder_add":
+        case "STA_channel_joinleave":
             return true;
     }
     return false;
