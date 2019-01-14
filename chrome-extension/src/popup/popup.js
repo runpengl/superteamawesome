@@ -1,11 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import PopupLogin from "./PopupLogin";
-import PuzzleList from "./PuzzleList";
+import AllPuzzles from "./AllPuzzles";
 
 initApp();
-
-var PUZZLE_STATUSES = ["new", "stuck", "inProgress", "solved"];
 
 /**
  * initApp handles setting up the Firebase context and registering
@@ -238,88 +236,6 @@ class Popup extends React.Component {
         }
     }
 }
-
-class AllPuzzles extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            searchInputValue: ""
-        };
-    }
-
-    componentDidMount() {
-        if (this.searchInputNode) {
-            this.searchInputNode.focus();
-        }
-    }
-
-    render() {
-        return r.div({ className: "AllPuzzles" },
-            this.props.puzzles.length === 0
-                ? [
-                    r.div({ className: "AllPuzzles-emptyImage" }),
-                    r.div({
-                        key: "emptyMsg",
-                        className: "AllPuzzles-empty"
-                    }, "No puzzles yet. Check back later!")
-                ]
-                : [
-                    this.renderSearchInput(),
-                    this.renderPuzzles()
-                ]
-        );
-    }
-
-    renderSearchInput() {
-        return r.div({ className: "AllPuzzles-search" },
-            r.input({
-                ref: n => this.searchInputNode = n, // autofocus
-                className: "AllPuzzles-searchInput",
-                placeholder: "Search Puzzles",
-                value: this.state.searchInputValue,
-                onChange: this.handleSearchInputChange.bind(this)
-            })
-        );
-    }
-
-    renderPuzzles() {
-        switch (this.props.sortBy) {
-            case "rounds":
-                return this.props.puzzleGroups.map(function(pg) {
-                    return React.createElement(PuzzleList, {
-                        key: pg[0].isMeta ? pg[0].key : "other",
-                        groupName: pg[0].isMeta ? pg[0].name : "Other Puzzles",
-                        groupType: "round",
-                        huntDomain: this.props.huntDomain,
-                        puzzles: pg,
-                        puzzleViewers: this.props.puzzleViewers,
-                        searchInputValue: this.state.searchInputValue
-                    });
-                }, this);
-            case "status":
-                return PUZZLE_STATUSES.map(function(status) {
-                    var puzzles = this.props.puzzlesByStatus[status];
-                    if (puzzles.length === 0) {
-                        return;
-                    }
-                    var readableStatus = status.replace(/([A-Z])/g, " $1");
-                    return React.createElement(PuzzleList, {
-                        key: status,
-                        groupName: readableStatus.charAt(0).toUpperCase() + readableStatus.slice(1),
-                        groupType: "status",
-                        huntDomain: this.props.huntDomain,
-                        puzzles: puzzles,
-                        puzzleViewers: this.props.puzzleViewers,
-                        searchInputValue: this.state.searchInputValue
-                    });
-                }, this);
-        }
-    }
-
-    handleSearchInputChange(event) {
-        this.setState({ searchInputValue: event.target.value });
-    }
-};
 
 function KeyIcon(props) {
     return r.svg({
