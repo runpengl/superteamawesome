@@ -69,7 +69,7 @@ export default class MessageList extends React.Component {
     }
 
     render() {
-        const allMessages = this.props.messages.concat(this.props.pendingMessages);
+        const allMessages = cleanupMessages(this.props.messages.concat(this.props.pendingMessages));
 
         return <div className="MessageList">
             {this.maybeRenderUnreadBanner()}
@@ -78,22 +78,12 @@ export default class MessageList extends React.Component {
                 ref={n => this.messagesNode = n}
             >
                 {allMessages.map((message, i) => {
-                    let collapsed = false;
-                    if (i > 0 && allMessages[i-1].user === message.user) {
-                        const currentTs = parseInt(message.ts.split(".")[0], 10);
-                        const prevTs = parseInt(allMessages[i-1].ts.split(".")[0], 10);
-                        if (prevTs >= currentTs - 60 * 5) {
-                            // last message was by the same user within 5 minutes; collapse
-                            collapsed = true
-                        }
-                    }
                     return <Message
                         key={message.ts}
                         ref={message.ts}
                         {...message}
                         unread={!this.state.suppressUnread &&
                             message.ts > this.props.channel.last_read}
-                        collapsed={collapsed}
                         connectionInfo={this.props.connectionInfo}
                     />;
                 })}
@@ -142,4 +132,74 @@ export default class MessageList extends React.Component {
             visible: this.props.channel && this.props.channel.user_typing
         })}>Someone is typing…</div>;
     }
+}
+
+function shouldMessageCollapse(messages, i) {
+    if (i > 0 && messages[i-1].user === messages[i].user) {
+        const currentTs = parseInt(messages[i].ts.split(".")[0], 10);
+        const prevTs = parseInt(messages[i-1].ts.split(".")[0], 10);
+        if (prevTs >= currentTs - 60 * 5) {
+            // last message was by the same user within 5 minutes; collapse
+            return true;
+        }
+    }
+    return false;
+}
+
+function cleanupMessages(messages) {
+    return messages.reduce((acc, _, i) => {
+        if (["channel_join", "channel_leave"].includes(messages[i].subtype)) {
+            let consolidatedMsg;
+            if (i > 0 && acc[acc.length-1].subtype === "STA_channel_joinleave") {
+                // if the previous message was also about a leave/join,
+                // then combine with it
+                consolidatedMsg = acc[acc.length-1];
+                if (messages[i].subtype === "channel_join") {
+                    consolidatedMsg.joined.push(messages[i].user);
+                } else {
+                    consolidatedMsg.left.push(messages[i].user);
+                }
+            } else {
+                // add joined and left fields to the message.
+                const { subtype, user } = messages[i];
+                const joined = subtype === "channel_join" ? [user] : [];
+                const left = subtype === "channel_leave" ? [user] : [];
+                consolidatedMsg = {
+                    ...messages[i],
+                    subtype: "STA_channel_joinleave",
+                    joined,
+                    left,
+                    collapsed: true,
+                };
+                acc.push(consolidatedMsg);
+            }
+            // rewrite the message text.
+            const { joined, left } = consolidatedMsg;
+            const usersToTextList = users => {
+                const n = users.length;
+                const richUsers = users.map(user => `<@${user}>`);
+                if (n > 2) {
+                    return richUsers.slice(0, n-1).join(", ") + ", and " + richUsers[n-1];
+                } else if (n === 2) {
+                    return `${richUsers[0]} and ${richUsers[1]}`;
+                } else {
+                    return richUsers[0];
+                }
+            }
+            let text = '';
+            if (joined.length > 0) {
+                text += usersToTextList(joined) + " joined. ";
+            }
+            if (left.length > 0) {
+                text += usersToTextList(left) + " left.";
+            }
+            consolidatedMsg.text = text;
+        } else {
+            acc.push({
+                collapsed: shouldMessageCollapse(messages, i),
+                ...messages[i]
+            });
+        }
+        return acc;
+    }, []);
 }
