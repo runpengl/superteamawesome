@@ -61,7 +61,7 @@ export default class PuzzleList extends React.Component {
                         })}
                         href={`http://${props.huntDomain + puzzle.path}`}
                         onClick={function(event) {
-                            if (event.shiftKey || event.metaKey) {
+                            if (event.shiftKey || event.metaKey || event.ctrlKey) {
                                 return;
                             }
                             chrome.tabs.update({

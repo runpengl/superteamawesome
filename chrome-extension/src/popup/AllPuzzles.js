@@ -176,7 +176,7 @@ export default class AllPuzzles extends React.Component {
                     const url = `http://${this.props.huntDomain + puzzle.path}`;
                     if (event.shiftKey) {
                         chrome.windows.create({ url });
-                    } else if (event.metaKey) {
+                    } else if (event.metaKey || event.ctrlKey) {
                         chrome.tabs.create({ url });
                     } else {
                         chrome.tabs.update({ url });
