@@ -102,6 +102,10 @@ export default class PuzzleList extends React.Component {
     }
 
     handleHeaderClick() {
+        if (this.props.highlightedPuzzleKey) {
+            // Clear the highlighted puzzle so we can collapse
+            this.props.highlightGroupPuzzle(null);
+        }
         this.setState({ isCollapsed: !this.state.isCollapsed });
     }
 }
