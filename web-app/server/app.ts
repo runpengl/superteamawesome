@@ -4,6 +4,7 @@ import * as express from "express";
 import * as path from "path";
 
 import { router } from "./routes/index";
+import "./slackBot";
 
 const app = express();
 

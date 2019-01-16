@@ -1,3 +1,4 @@
+import { IDiscoveredPage, IPuzzle } from "../../../../server/api/puzzleApi";
 import { LOGOUT_ACTION } from "../actions/authActions";
 import {
     AsyncActionStatus,
@@ -15,10 +16,9 @@ import {
     LOAD_DISCOVERED_PUZZLES_ACTION,
     LOAD_IGNORED_PAGES_ACTION,
     LOAD_PUZZLES_ACTION,
+    REMOVE_META_ACTION,
     SAVE_DISCOVERED_PAGE_CHANGES_ACTION,
 } from "../actions/puzzleActions";
-import { REMOVE_META_ACTION } from "../actions/puzzleActions";
-import { IDiscoveredPage, IPuzzle } from "../state";
 
 const puzzlesInitialState: IAsyncLoaded<IPuzzle[]> = {
     status: AsyncActionStatus.NONE,

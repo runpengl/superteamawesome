@@ -1,5 +1,5 @@
 import * as React from "react";
-import { IPuzzle } from "../store/state";
+import { IPuzzle } from "../../../server/api/puzzleApi";
 
 export interface IMetaSelectorProps {
     allPuzzles: IPuzzle[];

@@ -4,10 +4,11 @@ import * as firebase from "firebase";
 import { IGoogleDriveFile, IGoogleShortUrl } from "gapi";
 import { Dispatch } from "redux";
 
+import { IDiscoveredPage, IPuzzle, PuzzleStatus } from "../../../../server/api/puzzleApi";
 import { firebaseDatabase } from "../../auth";
 import { createSheet, deleteSheet, getShortUrl, setSheetLinks } from "../../services/googleService";
 import { ISlackChannel, slack } from "../../services/slackService";
-import { IAppState, IDiscoveredPage, IPuzzle, PuzzleStatus } from "../state";
+import { IAppState } from "../state";
 import { asyncActionFailedPayload, asyncActionInProgressPayload, asyncActionSucceededPayload } from "./loading";
 
 export const LOAD_PUZZLES_ACTION = "LOAD_PUZZLES";

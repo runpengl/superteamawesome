@@ -3,6 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
+import { IDiscoveredPage } from "../../../server/api/puzzleApi";
 import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
 import {
     createPuzzleAction,
@@ -10,7 +11,7 @@ import {
     IPuzzleInfoChanges,
     saveDiscoveredPageChangesAction,
 } from "../store/actions/puzzleActions";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "../store/state";
+import { IAppLifecycle, IAppState, IHuntState } from "../store/state";
 
 interface IOwnProps {
     hunt: IHuntState;

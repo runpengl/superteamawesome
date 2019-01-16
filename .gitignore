@@ -15,10 +15,13 @@ web-app/app/build
 web-app/server/**/*.js
 web-app/server/**/*.js.map
 
+# Config
+web-app/server/config/
+config.ts
+config.js
+
 # Editor cruft
 .vscode/
 .idea/
-config.ts
-config.js
 *.swp
 *slackbot_auth.json

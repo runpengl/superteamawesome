@@ -6,6 +6,7 @@ import * as ReactDOM from "react-dom";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
+import { IPuzzle } from "../../../server/api/puzzleApi";
 import { IAsyncLoaded, isAsyncLoaded } from "../store/actions/loading";
 import {
     addMetaAction,
@@ -16,7 +17,7 @@ import {
     loadPuzzlesAction,
     removeMetaAction,
 } from "../store/actions/puzzleActions";
-import { IAppLifecycle, IAppState, IPuzzle, IPuzzleHierarchy } from "../store/state";
+import { IAppLifecycle, IAppState, IPuzzleHierarchy } from "../store/state";
 import { MetaSelector } from "./metaSelector";
 import { PuzzleHierarchy } from "./puzzleHierarchy";
 

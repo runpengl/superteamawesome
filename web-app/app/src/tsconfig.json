@@ -23,7 +23,6 @@
     "noUnusedParameters": true,
     "outDir": "build",
     "removeComments": false,
-    "rootDir": ".",
     "sourceMap": true,
     "stripInternal": true,
     "target": "es5",

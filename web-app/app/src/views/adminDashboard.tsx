@@ -5,6 +5,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import { bindActionCreators, Dispatch } from "redux";
+import { IDiscoveredPage } from "../../../server/api/puzzleApi";
 import { DiscoveredPages } from "../puzzles/discoveredPages";
 import { Puzzles } from "../puzzles/puzzles";
 import { getSlackAuthUrl } from "../services/slackService";
@@ -12,7 +13,7 @@ import { logoutAction } from "../store/actions/authActions";
 import { loadHuntAndUserInfoAction } from "../store/actions/huntActions";
 import { IAsyncLoaded, isAsyncFailed, isAsyncInProgress, isAsyncLoaded } from "../store/actions/loading";
 import { loadDiscoveredPagesAction, loadIgnoredPagesAction } from "../store/actions/puzzleActions";
-import { IAppLifecycle, IAppState, IDiscoveredPage, IHuntState } from "../store/state";
+import { IAppLifecycle, IAppState, IHuntState } from "../store/state";
 import { ViewContainer } from "./common/viewContainer";
 
 interface IAdminDashboardState {

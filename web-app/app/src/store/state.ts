@@ -4,6 +4,7 @@ import * as firebase from "firebase";
 import { IGoogleDriveFile } from "gapi";
 
 import { RouterState } from "connected-react-router";
+import { IDiscoveredPage, IPuzzle } from "../../../server/api/puzzleApi";
 import { IAsyncLoaded } from "./actions/loading";
 
 export interface IAuthState {
@@ -23,23 +24,6 @@ export interface IHuntState {
     isCurrent: boolean;
 }
 
-export interface IDiscoveredPage {
-    host: string;
-    key: string;
-    ignored?: boolean;
-    path: string;
-    title: string;
-}
-
-export type PuzzleStatus = "inProgress" | "solved" | "new" | "stuck" | "backsolved";
-export const PuzzleStatus = {
-    IN_PROGRESS: "inProgress" as PuzzleStatus,
-    NEW: "new" as PuzzleStatus,
-    SOLVED: "solved" as PuzzleStatus,
-    STUCK: "stuck" as PuzzleStatus,
-    BACKSOLVED: "backsolved" as PuzzleStatus,
-};
-
 export interface IPuzzleGroup {
     parent: IPuzzle;
     children: IPuzzle[];
@@ -47,28 +31,6 @@ export interface IPuzzleGroup {
 
 export interface IPuzzleHierarchy {
     [key: string]: IPuzzleGroup;
-}
-
-export interface IPuzzle {
-    createdAt: string;
-    host: string;
-    hunt: string;
-    ignoreLink?: boolean;
-    index?: number;
-    isMeta?: boolean;
-    key?: string;
-    name: string;
-    /**
-     * @deprecated use parents instead
-     */
-    parent?: string;
-    parents?: string[];
-    path: string;
-    slackChannel: string;
-    slackChannelId: string;
-    solution?: string;
-    spreadsheetId: string;
-    status: PuzzleStatus;
 }
 
 export interface IUser {

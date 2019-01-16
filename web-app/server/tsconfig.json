@@ -11,7 +11,8 @@
       "es2015.promise",
       "es2015.reflect",
       "es2015.symbol",
-      "es5"
+      "es5",
+      "esnext.asynciterable"
     ],
     "module": "commonjs",
     "moduleResolution": "node",

@@ -2,8 +2,9 @@ import * as classNames from "classnames";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
+import { IPuzzle, PuzzleStatus } from "../../../server/api/puzzleApi";
 import { IPuzzleInfoChanges } from "../store/actions/puzzleActions";
-import { IAppLifecycle, IPuzzle, IPuzzleGroup, IPuzzleHierarchy, PuzzleStatus } from "../store/state";
+import { IAppLifecycle, IPuzzleGroup, IPuzzleHierarchy } from "../store/state";
 import { MetaSelector } from "./metaSelector";
 
 export interface IPuzzleHierarchyProps {
