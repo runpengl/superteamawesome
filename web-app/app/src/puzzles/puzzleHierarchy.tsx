@@ -13,6 +13,7 @@ export interface IPuzzleHierarchyProps {
     slackTeamId: string;
     onPuzzleNameChange: (puzzle: IPuzzle, newName: string) => void;
     onPuzzleDelete: (puzzle: IPuzzle) => void;
+    onMarkAsMeta: (puzzle: IPuzzle) => void;
     onAssignMeta: (puzzle: IPuzzle, metaPuzzleKeys: string[]) => void;
     onRemoveMeta: (meta: IPuzzle, existingChildren: IPuzzle[]) => void;
 }
@@ -159,6 +160,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         <button disabled={isDeleting} onClick={this.handleDelete(puzzle)}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
+                        {!puzzle.isMeta && <button onClick={this.markAsMeta(puzzle)}>Mark as Meta</button>}
                         <button onClick={this.getSelectorOpenHandler(puzzle)}>Assign to meta</button>
                     </td>
                 </tr>
@@ -215,7 +217,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
 
     private getNumMetas(puzzle: IPuzzle, level: number): number {
         if (this.props.hierarchy[puzzle.key] === undefined || this.props.hierarchy[puzzle.key].children.length === 0) {
-            return level;
+            return puzzle.isMeta ? level + 1 : level;
         }
 
         const children = this.props.hierarchy[puzzle.key].children;
@@ -236,6 +238,10 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
             );
         }
         return undefined;
+    }
+
+    private markAsMeta(puzzle: IPuzzle) {
+        return () => this.props.onMarkAsMeta(puzzle);
     }
 
     private handleAssignToMeta = (puzzle: IPuzzle, metas: string[]) => {

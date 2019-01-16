@@ -29,7 +29,7 @@ interface IDispatchProps {
     createManualPuzzle?: (puzzleName: string, puzzleLink: string) => void;
     deletePuzzle?: (puzzle: IPuzzle) => void;
     loadPuzzles?: (huntKey: string) => void;
-    addMeta?: (puzzle: IPuzzle, isMeta: boolean) => void;
+    addMeta?: (puzzle: IPuzzle) => void;
     removeMeta: (meta: IPuzzle, existingPuzzles: IPuzzle[]) => void;
     assignToMeta?: (puzzle: IPuzzle, metaParentKeys: string[]) => void;
 }
@@ -116,6 +116,18 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                 }
             });
 
+            // next we need to add any metas that don't have children yet
+            puzzles.value
+                .filter(puzzle => puzzle.isMeta)
+                .forEach(metaPuzzle => {
+                    if (hierarchy[metaPuzzle.key] === undefined) {
+                        hierarchy[metaPuzzle.key] = {
+                            parent: metaPuzzle,
+                            children: [],
+                        };
+                    }
+                });
+
             this.setState({
                 hierarchy,
                 isHierarchyLoaded: true,
@@ -181,6 +193,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
                         slackTeamId={slackTeamId}
                         puzzles={puzzles.value}
                         onRemoveMeta={this.props.removeMeta}
+                        onMarkAsMeta={this.props.addMeta}
                         onPuzzleDelete={this.onPuzzleDelete}
                         onPuzzleNameChange={this.onPuzzleNameChange}
                         onAssignMeta={this.props.assignToMeta}
@@ -304,7 +317,7 @@ class UnconnectedPuzzles extends React.Component<IPuzzlesProps, IPuzzlesState> {
 
     private toggleMeta = (puzzle: IPuzzle) => {
         return () => {
-            this.props.addMeta(puzzle, !puzzle.isMeta);
+            this.props.addMeta(puzzle);
         };
     };
 
