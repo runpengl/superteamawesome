@@ -40,7 +40,12 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
             const bDate = new Date(hierarchy[b].parent.createdAt);
             return aDate.valueOf() - bDate.valueOf();
         });
-        return <div className="hierarchy">{hierarchyKeys.map(key => this.renderPuzzleGroup(hierarchy[key]))}</div>;
+        return (
+            <div className="hierarchy">
+                {hierarchyKeys.map(key => this.renderPuzzleGroup(hierarchy[key]))}
+                {this.maybeRenderMetaSelector()}
+            </div>
+        );
     }
 
     private renderPuzzleGroup(group: IPuzzleGroup) {
@@ -155,7 +160,6 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                         <button onClick={this.getSelectorOpenHandler(puzzle)}>Assign to meta</button>
-                        {this.maybeRenderMetaSelector(puzzle)}
                     </td>
                 </tr>
             );
@@ -201,6 +205,7 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
                         </td>
                         <td>
                             <button onClick={this.removeMetaHandler(meta, puzzles)}>Remove meta</button>
+                            <button onClick={this.getSelectorOpenHandler(meta)}>Assign to meta</button>
                         </td>
                     </tr>
                 </tbody>
@@ -217,14 +222,9 @@ export class PuzzleHierarchy extends React.Component<IPuzzleHierarchyProps, IPuz
         return Math.max(...children.map(childPuzzle => this.getNumMetas(childPuzzle, level + 1)));
     }
 
-    private maybeRenderMetaSelector(puzzle: IPuzzle) {
+    private maybeRenderMetaSelector() {
         const { isSelectingMeta, portalElement, currentlyEditingPuzzle } = this.state;
-        if (
-            isSelectingMeta &&
-            portalElement !== undefined &&
-            currentlyEditingPuzzle !== undefined &&
-            currentlyEditingPuzzle.key === puzzle.key
-        ) {
+        if (isSelectingMeta && portalElement !== undefined && currentlyEditingPuzzle !== undefined) {
             return ReactDOM.createPortal(
                 <MetaSelector
                     allPuzzles={this.props.puzzles}
