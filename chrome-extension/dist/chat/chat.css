@@ -11,6 +11,8 @@ body {
 }
 
 #chat {
+  background: #fff;
+  border-radius: 3px 3px 0 0;
   height: 100vh;
 }
 
@@ -128,7 +130,6 @@ body {
 }
 
 .ChatWidget-composer {
-  background: #fff;
   border: 1px solid #ddd;
   border-width: 0 1px;
   display: flex;
@@ -185,7 +186,6 @@ body {
  * MessageList
  */
 .MessageList {
-  background: #fff;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -280,7 +280,7 @@ body {
 }
 
 .Message-selfMention {
-  background: #fff6d1;
+  background: none;
   border-radius: 3px;
   color: #2c2d30;
   padding: 0 2px 1px;
