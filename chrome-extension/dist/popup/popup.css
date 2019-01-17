@@ -14,7 +14,10 @@ a:hover {
 }
 
 #popup {
-  height: 500px;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  min-height: 300px;
   width: 350px;
 }
 
@@ -22,7 +25,7 @@ a:hover {
  * PopupLogin
  */
 .PopupLogin {
-  padding: 45px 0;
+  padding: 50px 0;
 }
 
 .PopupLogin-background {
@@ -77,13 +80,10 @@ a:hover {
  * Popup
  */
 .Popup {
-  bottom: 0;
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
+  min-height: 1px;
 }
 
 .Popup-toolbar {
