@@ -10,10 +10,12 @@ export default function Avatar(props) {
         })}
     >
         <div className="Avatar-imageFrame">
-            <img className="Avatar-image" src={props.photoUrl} />
+            {props.imgText
+                ? <div className="Avatar-image Avatar-text">{props.imgText}</div>
+                : <img className="Avatar-image" src={props.photoUrl} />}
         </div>
         <div className="Avatar-tooltip">
-            {props.displayName}
+            {props.tooltip}
             {props.isIdle
                 ? " (idle)"
                 : (props.isInvisible ? " (tab hidden)" : "")}

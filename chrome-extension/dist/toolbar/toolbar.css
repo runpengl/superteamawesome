@@ -338,6 +338,14 @@ body {
   top: 0;
 }
 
+.Avatar-text {
+  align-items: center;
+  color: #fff;
+  background: #333;
+  display: flex;
+  justify-content: center;
+}
+
 .Avatar-tooltip {
   background: #333;
   border-radius: 2px;

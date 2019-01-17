@@ -64,21 +64,39 @@ export default function PuzzleToolbar(props) {
                       : null}
               </div>}
 
-        <CSSTransitionGroup
-            className="Toolbar-right"
-            transitionName="Avatar"
-            transitionEnterTimeout={500}
-            transitionLeaveTimeout={300}
-        >
-            {props.viewers && props.viewers.map(function(user) {
-                return <Avatar
-                    key={user.id}
-                    displayName={user.displayName}
-                    photoUrl={user.photoUrl}
-                    isIdle={user.isIdle}
-                    isInvisible={!user.isPuzzleVisible}
-                />;
-            })}
-        </CSSTransitionGroup>
+        {_renderViewers(props)}
     </div>;
 }
+
+const MAX_AVATARS = 10;
+const _renderViewers = (props) => {
+    const viewersToRender = props.viewers
+        ? props.viewers.slice(0, MAX_AVATARS)
+        : [];
+    const numOverflow = props.viewers
+        ? props.viewers.length - viewersToRender
+        : 0;
+    return <CSSTransitionGroup
+        className="Toolbar-right"
+        transitionName="Avatar"
+        transitionEnterTimeout={500}
+        transitionLeaveTimeout={300}
+    >
+        {viewersToRender.map(function(user) {
+            return <Avatar
+                key={user.id}
+                tooltip={user.displayName}
+                photoUrl={user.photoUrl}
+                isIdle={user.isIdle}
+                isInvisible={!user.isPuzzleVisible}
+            />;
+        })}
+        {numOverflow
+            ? <Avatar
+                key="overflow"
+                imgText={`+${numOverflow}`}
+                tooltip={"so many people!"}
+            />
+            : null}
+    </CSSTransitionGroup>;
+};
