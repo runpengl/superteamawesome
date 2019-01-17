@@ -24,6 +24,10 @@ export default class ChatComposer extends React.Component {
 
     handleKeyDown(event) {
         if (event.key === "Enter") {
+            if (event.shiftKey) {
+                // multi-line message! go right ahead.
+                return;
+            }
             const inputValue = this.state.inputValue;
             this.setState({ inputValue: "" });
 

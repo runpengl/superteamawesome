@@ -264,6 +264,18 @@ body {
   color: #717274;
 }
 
+.Message-fileName {
+  color: #aaa;
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.Message-thumb {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+  max-width: 300px;
+}
+
 .Message-channelMention {
   color: #0576b9;
 }

@@ -100,7 +100,7 @@ function injectChatWidget(chatWidgetState) {
         iframe.style.right = "30px";
         iframe.style.position = "fixed";
         iframe.style.bottom = "0";
-        iframe.style.width = "300px";
+        iframe.style.width = "322px";
         iframe.style.zIndex = "99999"; // match .docs-chat-pane
         document.documentElement.appendChild(iframe);
     }

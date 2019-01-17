@@ -27,7 +27,9 @@ export default class Message extends React.Component {
                 {renderTime(props.ts)}
             </span>}
             <div className="Message-message">
-                {renderRichText(props.text, props.connectionInfo)}
+                {props.files
+                    ? renderFiles(props)
+                    : renderRichText(props.text, props.connectionInfo)}
                 {props.edited ? <span className="Message-edited">(edited)</span> : null}
             </div>
         </div>;
@@ -73,6 +75,22 @@ function renderTime(ts) {
     const ampm = hours >= 12 ? "pm" : "am";
 
     return `${hours % 12 ? hours % 12 : 12}:${minutes.substr(-2, 2)} ${ampm}`;
+}
+
+function renderFiles(props) {
+    return props.files.map(file => {
+        return <>
+            <div className="Message-fileName">{file.title}</div>
+            {file.thumb_160
+                ? <img
+                    className="Message-thumb"
+                    src={file.thumb_360_gif ? file.thumb_360_gif : file.thumb_360}
+                    width={Math.min(file.thumb_360_w, 300)}
+                    height={file.thumb_360_h * 300 / Math.max(300, file.thumb_360_w)}
+                />
+                : null}
+        </>;
+    });
 }
 
 // https://api.slack.com/docs/message-formatting#how_to_display_formatted_messages
