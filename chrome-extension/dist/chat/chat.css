@@ -220,6 +220,17 @@ body {
   padding: 5px 0 0;
 }
 
+.MessageList-uploadingFile {
+  align-items: center;
+  color: #666;
+  display: flex;
+  margin: 10px 10px 0;
+}
+.MessageList-uploadingIndicator {
+  height: 24px;
+  margin-right: 5px;
+}
+
 .MessageList-typingIndicator {
   color: #aaa;
   font-size: 9px;

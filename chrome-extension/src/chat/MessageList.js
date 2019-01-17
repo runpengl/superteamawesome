@@ -46,6 +46,8 @@ export default class MessageList extends React.Component {
             // Increase in # pendingMessages means the user just sent a message.
             // Scroll to the bottom so we can see the new message.
             prevProps.pendingMessages.length < this.props.pendingMessages.length ||
+            // Scroll to bottom so we can see that a file upload is in progress
+            !prevProps.isUploadingFile && this.props.isUploadingFile ||
             this.state.shouldStickToBottom
         ) {
             this.messagesNode.scrollTop = this.messagesNode.scrollHeight;
@@ -87,6 +89,12 @@ export default class MessageList extends React.Component {
                         connectionInfo={this.props.connectionInfo}
                     />;
                 })}
+                {this.props.isUploadingFile
+                    ? <div className="MessageList-uploadingFile">
+                        <img className="MessageList-uploadingIndicator" src="../ripple.svg" />
+                        uploading...
+                    </div>
+                    : null}
                 {this.maybeRenderTypingIndicator()}
             </div>
         </div>;

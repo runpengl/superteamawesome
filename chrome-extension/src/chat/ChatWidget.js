@@ -8,7 +8,8 @@ export default class ChatWidget extends React.Component {
         super(props);
         this.state = {
             pendingMessages: [],
-            isFocused: false
+            isFocused: false,
+            isUploadingFile: false,
         };
         this.composerRef = React.createRef();
     }
@@ -63,6 +64,7 @@ export default class ChatWidget extends React.Component {
                       messages={this.props.messages}
                       channel={this.props.channel}
                       pendingMessages={this.state.pendingMessages}
+                      isUploadingFile={this.state.isUploadingFile}
                       connectionInfo={this.props.connectionInfo}
                       isComposerFocused={this.state.isFocused}
                   />}
@@ -103,6 +105,8 @@ export default class ChatWidget extends React.Component {
                       onFocus={this.handleComposerFocus.bind(this)}
                       onBlur={this.handleComposerBlur.bind(this)}
                       onNewMessage={this.handleNewMessage.bind(this)}
+                      onNewFileUpload={this.handleNewFileUpload.bind(this)}
+                      onFileUploadComplete={this.handleFileUploadComplete.bind(this)}
                       channel={this.props.channel}
                       connectionInfo={this.props.connectionInfo}
                   />
@@ -168,5 +172,13 @@ export default class ChatWidget extends React.Component {
                 });
             }
         });
+    }
+
+    handleNewFileUpload(file) {
+        this.setState({ isUploadingFile: true });
+    }
+
+    handleFileUploadComplete() {
+        this.setState({ isUploadingFile: false });
     }
 }

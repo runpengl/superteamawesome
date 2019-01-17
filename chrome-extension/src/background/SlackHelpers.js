@@ -159,7 +159,10 @@ function initSlackRtm() {
             slackChannelById[channel.id] = channel;
             notifySubscribers({ type: "sta_rtm_start" }, channel);
         });
-        connectionInfo = response;
+        connectionInfo = {
+            ...response,
+            accessToken,
+        };
 
         const userInfoRef = firebase.database().ref("users")
             .child(firebase.auth().currentUser.uid);
@@ -350,10 +353,14 @@ function xhrGet(url, params, callback) {
             return k + "=" + params[k];
         }).join("&");
 
+    xhr("GET", fullUrl, null, callback);
+}
+
+function xhr(method, url, data, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = handleReadyStateChange;
-    xhr.open("GET", fullUrl, /*async=*/true);
-    xhr.send();
+    xhr.open(method, url, /*async=*/true);
+    xhr.send(data);
 
     function handleReadyStateChange() {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {

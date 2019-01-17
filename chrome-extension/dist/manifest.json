@@ -3,7 +3,7 @@
 
   "name": "SuperTeamAwesome Puzzle Helper",
   "description": "Mystery Hunt Helper",
-  "version": "0.9.8",
+  "version": "0.9.9",
 
   "background": {
     "page": "background/background.html"
