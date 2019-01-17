@@ -10,6 +10,13 @@ export default class ChatWidget extends React.Component {
             pendingMessages: [],
             isFocused: false
         };
+        this.composerRef = React.createRef();
+    }
+
+    focus() {
+        if (this.composerRef.current) {
+            this.composerRef.current.focus();
+        }
     }
 
     render() {
@@ -91,6 +98,7 @@ export default class ChatWidget extends React.Component {
         return this.props.channel.is_member
             ? <div className="ChatWidget-composer">
                   <ChatComposer
+                      ref={this.composerRef}
                       placeholder={`Message #${this.props.channel.name}`}
                       onFocus={this.handleComposerFocus.bind(this)}
                       onBlur={this.handleComposerBlur.bind(this)}

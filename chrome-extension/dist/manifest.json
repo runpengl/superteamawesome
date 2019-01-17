@@ -20,6 +20,13 @@
         "default": "Ctrl+Shift+P",
         "mac": "Command+Shift+P"
       }
+    },
+    "toggle-chat": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "Toggle collapse state of the chat widget"
     }
   },
 

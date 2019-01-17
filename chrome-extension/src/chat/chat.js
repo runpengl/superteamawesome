@@ -10,8 +10,9 @@ let data = {
     connectionStatus: "disconnected",
     messages: []
 };
+let chatWidget;
 
-renderSidebar(data);
+renderChatWidget(data);
 refreshConnection();
 
 function refreshConnection() {
@@ -26,18 +27,18 @@ function refreshConnection() {
         switch (event.msg) {
             case "slackConnectionStatus":
                 data.connectionStatus = event.status;
-                renderSidebar(data);
+                renderChatWidget(data);
                 break;
 
             case "slackChannelInfo":
                 data = Object.assign({}, data, event.data);
-                renderSidebar(data);
+                renderChatWidget(data);
                 break;
 
             case "slackMessage":
                 data.messages = data.messages.slice();
                 data.messages.push(event.data);
-                renderSidebar(data);
+                renderChatWidget(data);
                 break;
         }
     });
@@ -47,13 +48,23 @@ function refreshConnection() {
     });
 }
 
-function renderSidebar({
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    switch (request.msg) {
+        case "injectChatWidget":
+            if (request.chatWidgetState === "expanded") {
+                chatWidget.focus();
+            }
+            break;
+    }
+});
+
+function renderChatWidget({
     channel,
     connectionInfo,
     connectionStatus,
     messages
 }) {
-    ReactDOM.render(
+    chatWidget = ReactDOM.render(
         <ChatWidget
             channel={channel}
             connectionInfo={connectionInfo}
@@ -62,7 +73,7 @@ function renderSidebar({
             onConfirmMessage={msg => {
                 data.messages = data.messages.slice();
                 data.messages.push(msg);
-                renderSidebar(data);
+                renderChatWidget(data);
             }}
         />,
         document.getElementById("chat")

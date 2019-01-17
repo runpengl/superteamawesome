@@ -1,5 +1,6 @@
 import * as firebase from "firebase";
 
+import * as ChatWidgetState from "./ChatWidgetState";
 import { onValue2 } from "./FirebaseHelpers";
 import { logEvent } from "./Logger";
 import * as Slack from "./SlackHelpers";

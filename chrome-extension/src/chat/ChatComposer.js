@@ -4,10 +4,18 @@ export default class ChatComposer extends React.Component {
     constructor(props) {
         super(props);
         this.state = { inputValue: "" };
+        this.inputRef = React.createRef();
+    }
+
+    focus() {
+        if (this.inputRef.current) {
+            this.inputRef.current.focus();
+        }
     }
 
     render() {
        return <textarea
+           ref={this.inputRef}
            className="ChatWidget-composerInput"
            placeholder={this.props.placeholder}
            value={this.state.inputValue}
@@ -23,7 +31,11 @@ export default class ChatComposer extends React.Component {
     }
 
     handleKeyDown(event) {
-        if (event.key === "Enter") {
+        if (event.key === "Escape") {
+            chrome.runtime.sendMessage({
+                msg: "closeChatWidget"
+            });
+        } else if (event.key === "Enter") {
             if (event.shiftKey) {
                 // multi-line message! go right ahead.
                 return;

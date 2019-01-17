@@ -5,6 +5,14 @@ import { logEvent } from "./Logger";
 import * as Slack from "./SlackHelpers";
 import toolbarInfoByTabId from "./toolbarInfoByTabId";
 
+chrome.commands.onCommand.addListener(function(command) {
+    if (command === "toggle-chat"){
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            tabs.forEach(tab => ChatWidgetState.toggle(tab.id));
+        });
+    }
+});
+
 /**
  * Handles chrome.runtime onMessage events. These messages are generally sent from
  * the popup or toolbar to perform auth steps or write to firebase.
@@ -65,11 +73,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "openChatWidget":
-            ChatWidgetState.setState("expanded");
-            chrome.tabs.sendMessage(sender.tab.id, {
-                msg: "injectChatWidget",
-                chatWidgetState: "expanded"
-            });
+            ChatWidgetState.open(tabId);
             break;
 
         case "pageVisibilityChange":
@@ -118,16 +122,7 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             break;
 
         case "toggleChatWidget":
-            ChatWidgetState.setState(
-                ChatWidgetState.state() === "closed" ||
-                ChatWidgetState.state() === "collapsed"
-                    ? "expanded"
-                    : "collapsed"
-            );
-            chrome.tabs.sendMessage(sender.tab.id, {
-                msg: "injectChatWidget",
-                chatWidgetState: ChatWidgetState.state()
-            });
+            ChatWidgetState.toggle(sender.tab.id);
             break;
 
         case "userTyping":
