@@ -162,10 +162,12 @@ export default class AllPuzzles extends React.Component {
         switch (event.key) {
             case "ArrowDown":
                 this.shiftHighlight(/*down*/ true);
+                event.preventDefault();
                 break;
 
             case "ArrowUp":
                 this.shiftHighlight(/*down*/ false);
+                event.preventDefault();
                 break;
 
             case "Enter":
@@ -182,6 +184,7 @@ export default class AllPuzzles extends React.Component {
                         chrome.tabs.update({ url });
                     }
                 }
+                event.preventDefault();
                 break;
         }
     }
