@@ -8,10 +8,16 @@ import {
     isAsyncInProgress,
     isAsyncSucceeded,
 } from "../actions/loading";
-import { CREATE_MANUAL_PUZZLE_ACTION, CREATE_PUZZLE_ACTION, DELETE_PUZZLE_ACTION } from "../actions/puzzleActions";
+import {
+    CREATE_MANUAL_PUZZLE_ACTION,
+    CREATE_PUZZLE_ACTION,
+    CREATED_SINGLE_PUZZLE,
+    DELETE_PUZZLE_ACTION,
+} from "../actions/puzzleActions";
 import { IAppLifecycle, LoginStatus } from "../state";
 
 const initialState: IAppLifecycle = {
+    createdSinglePuzzle: asyncNotStarted(),
     createPuzzleFailure: undefined,
     creatingManualPuzzle: false,
     createManualPuzzleFailure: undefined,
@@ -41,6 +47,11 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
             } else {
                 return state;
             }
+        case CREATED_SINGLE_PUZZLE:
+            return {
+                ...state,
+                createdSinglePuzzle: getAsyncLoadedValue({ ...action, value: undefined }),
+            };
         case CREATE_MANUAL_PUZZLE_ACTION:
             if (isAsyncInProgress(action)) {
                 return { ...state, creatingManualPuzzle: true, createManualPuzzleFailure: undefined };
@@ -71,7 +82,7 @@ export function lifecycleReducer(state: IAppLifecycle = initialState, action: IA
             if (isAsyncInProgress(action)) {
                 return { ...state, loginStatus: LoginStatus.LOGGING_IN, loginError: undefined };
             } else if (isAsyncFailed(action)) {
-                return { ...state, loginStatus: LoginStatus.NONE, loginError: action.error };
+                return { ...state, loginStatus: LoginStatus.LOGGED_OUT, loginError: action.error };
             } else if (isAsyncSucceeded(action)) {
                 return { ...state, loginStatus: LoginStatus.LOGGED_IN, loginError: undefined };
             }

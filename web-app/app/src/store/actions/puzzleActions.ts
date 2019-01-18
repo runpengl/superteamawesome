@@ -167,6 +167,15 @@ export function ignoreDiscoveredPageAction(discoveredPage: IDiscoveredPage) {
     };
 }
 
+export function ignoreDiscoveredPageFromKey(discoveredPageKey: string, huntKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        firebaseDatabase.ref(`discoveredPages/${huntKey}/${discoveredPageKey}`).once("value", snapshot => {
+            const page: IDiscoveredPage = snapshot.val();
+            dispatch(ignoreDiscoveredPageAction({ ...page, key: discoveredPageKey }));
+        });
+    };
+}
+
 export const DELETE_PUZZLE_ACTION = "DELETE_PUZZLE";
 export function deletePuzzleAction(puzzle: IPuzzle) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
@@ -455,6 +464,18 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
     };
 }
 
+export const CREATED_SINGLE_PUZZLE = "CREATED_SINGLE_PUZZLE";
+export function createPuzzleFromKeyAction(discoveredPageKey: string, huntKey: string) {
+    return (dispatch: Dispatch<IAppState>) => {
+        firebaseDatabase.ref(`discoveredPages/${huntKey}/${discoveredPageKey}`).once("value", pageSnapshot => {
+            const page: IDiscoveredPage = pageSnapshot.val();
+            dispatch(createPuzzleAction(page.title, { ...page, key: discoveredPageKey })).then(() => {
+                dispatch(asyncActionSucceededPayload<void>(CREATED_SINGLE_PUZZLE));
+            });
+        });
+    };
+}
+
 export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscoveredPage) {
     return (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         const { auth, activeHunt: asyncHunt } = getState();
@@ -485,7 +506,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
         let slackChannel: ISlackChannel;
         const puzzleLink = `http://${discoveredPage.host}${discoveredPage.path}`;
         let shortPuzzleUrl: string;
-        checkPuzzleExists
+        return checkPuzzleExists
             .then((exists: boolean) => {
                 if (exists) {
                     throw new Error("Puzzle exists already. Consider changing the name");
@@ -531,7 +552,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                     spreadsheetId: spreadsheet.id,
                     status: PuzzleStatus.NEW,
                 };
-                firebaseDatabase
+                return firebaseDatabase
                     .ref(`puzzles/${puzzleKey}`)
                     .set(newPuzzle)
                     .then(
@@ -556,7 +577,7 @@ export function createPuzzleAction(puzzleName: string, discoveredPage: IDiscover
                                 userId: auth.user.uid,
                             });
                             newPuzzle.key = puzzleKey;
-                            removeFirebasePromise.then(() => {
+                            return removeFirebasePromise.then(() => {
                                 dispatch(
                                     asyncActionSucceededPayload<ICreatePuzzleActionPayload>(CREATE_PUZZLE_ACTION, {
                                         changedPages: [discoveredPage],

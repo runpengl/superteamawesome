@@ -12,6 +12,7 @@ import { reducers } from "./store/reducers";
 import { AdminDashboard } from "./views/adminDashboard";
 import { AllHuntsDashboard } from "./views/huntDashboard";
 import { Login } from "./views/login";
+import { PuzzleActionDashboard } from "./views/puzzleActionDashboard";
 import { SlackAuth } from "./views/slackAuth";
 import { UserDashboard } from "./views/userDashboard";
 
@@ -32,6 +33,7 @@ ReactDOM.render(
         <ConnectedRouter history={history}>
             <Switch>
                 <Route exact={true} path="/" render={() => <Redirect to="/admin" />} />
+                <Route path="/admin/puzzle/:discoveredPageKey/:actionType" component={PuzzleActionDashboard} />
                 <Route path="/admin/users" component={UserDashboard} />
                 <Route path="/admin/hunts" component={AllHuntsDashboard} />
                 <Route path="/admin" component={AdminDashboard} />

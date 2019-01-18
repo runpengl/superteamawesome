@@ -3,7 +3,7 @@
 import { ChatPostMessageArguments, WebClient } from "@slack/client";
 import * as admin from "firebase-admin";
 
-import { IPuzzle, PuzzleStatus } from "./api/puzzleApi";
+import { IDiscoveredPage, IPuzzle, PuzzleStatus } from "./api/puzzleApi";
 import { config } from "./config/config";
 
 // tslint:disable-next-line:no-var-requires
@@ -36,16 +36,47 @@ firebaseDatabase.ref("currentHunt").on("value", huntSnapshot => {
     // Start listening to the hunt
 
     // todo: figure out how to listen for reactions
-    // firebaseDatabase.ref(`discoveredPages/${currentHuntKey}`).on("child_added", newPageSnapshot => {
-    //     const newPage: IDiscoveredPage = newPageSnapshot.val();
-    //     if (!newPage.ignored) {
-    //         slackClient.chat.postMessage({
-    //             channel: config.puzzleAlertChannel,
-    //             text: `New puzzle page discovered: "${newPage.title}" (${newPage.host}${newPage.path})`,
-    //         });
-    //     }
-    // });
-    // console.log("[slack-bot] Started listening for new discovered pages for ", currentHuntKey);
+    firebaseDatabase.ref(`discoveredPages/${currentHuntKey}`).on("child_added", async newPageSnapshot => {
+        const newPage: IDiscoveredPage = newPageSnapshot.val();
+        if (!newPage.ignored && !newPage.slackAnnounced) {
+            const transactionResult = await firebaseDatabase
+                .ref(`discoveredPages/${currentHuntKey}/${newPageSnapshot.key}/slackAnnounced`)
+                .transaction(currentAnnounced => {
+                    if (currentAnnounced == null || !currentAnnounced) {
+                        console.log(`[slack-bot] Announcing new discovered page ${newPageSnapshot.key} on slack`);
+                        return true;
+                    }
+                    // It's already done, fail the transaction
+                    return currentAnnounced;
+                });
+            if (transactionResult.committed) {
+                slackClient.chat.postMessage({
+                    channel: config.puzzleAlertChannel,
+                    text: `New puzzle page discovered: "${newPage.title}" (${newPage.host}${newPage.path})`,
+                    attachments: [
+                        {
+                            fallback: `Make new puzzle or ignore it at ${config.webAppUrl}/admin`,
+                            actions: [
+                                {
+                                    type: "button",
+                                    text: "Make slack & sheet in admin site",
+                                    style: "primary",
+                                    url: `${config.webAppUrl}/admin`,
+                                },
+                                {
+                                    type: "button",
+                                    text: "Ignore page",
+                                    style: "danger",
+                                    url: `${config.webAppUrl}/admin/puzzle/${newPageSnapshot.key}/ignore`,
+                                },
+                            ],
+                        },
+                    ],
+                });
+            }
+        }
+    });
+    console.log("[slack-bot] Started listening for new discovered pages for ", currentHuntKey);
 
     firebaseDatabase.ref("puzzles").on("child_added", newPuzzleSnapshot => {
         const puzzle: IPuzzle = newPuzzleSnapshot.val();

@@ -124,11 +124,14 @@ export function ignoredPagesReducer(state: IAsyncLoaded<IDiscoveredPage[]> = ini
             return { ...state, ...getAsyncLoadedValue(action) };
         case IGNORE_DISCOVERED_PAGE_ACTION:
             if (isAsyncSucceeded(action)) {
-                return { ...state, value: state.value.concat(action.value) };
+                return {
+                    ...state,
+                    value: state.value !== undefined ? state.value.concat(action.value) : [action.value],
+                };
             }
         case CREATE_PUZZLE_ACTION:
             if (isAsyncSucceeded(action)) {
-                let ignoredPages = state.value;
+                let ignoredPages = state.value || [];
                 // for now only create one puzzle at a time
                 const changedPages = action.value as ICreatePuzzleActionPayload;
                 if (changedPages.changedPages.length > 0) {
