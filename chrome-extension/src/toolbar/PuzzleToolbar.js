@@ -74,7 +74,7 @@ const _renderViewers = (props) => {
         ? props.viewers.slice(0, MAX_AVATARS)
         : [];
     const numOverflow = props.viewers
-        ? props.viewers.length - viewersToRender
+        ? props.viewers.length - viewersToRender.length
         : 0;
     return <CSSTransitionGroup
         className="Toolbar-right"
