@@ -44,8 +44,8 @@ const port = normalizePort(process.env.PORT || "3000");
 https
     .createServer(
         {
-            key: fs.readFileSync("./config/server.key"),
-            cert: fs.readFileSync("./config/server.cert"),
+            key: fs.readFileSync(path.join(__dirname, "./config/server.key")),
+            cert: fs.readFileSync(path.join(__dirname, "./config/server.cert")),
         },
         app,
     )
