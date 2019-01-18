@@ -93,7 +93,7 @@ firebaseDatabase.ref("currentHunt").on("value", huntSnapshot => {
                 .postMessage({
                     channel: config.puzzleAnnounceChannel,
                     text:
-                        `@here ${puzzle.name}${puzzle.isMeta ? " Meta" : ""} has been unlocked!\n` +
+                        `<!here|here> ${puzzle.name}${puzzle.isMeta ? " Meta" : ""} has been unlocked!\n` +
                         `Join slack channel: <#${puzzle.slackChannelId}|${puzzle.slackChannel}>`,
                     attachments: [
                         {
@@ -160,7 +160,7 @@ firebaseDatabase.ref("currentHunt").on("value", huntSnapshot => {
                     ChatPostMessageArguments,
                     Exclude<keyof ChatPostMessageArguments, "channel">
                 > = {
-                    text: `@here ${puzzle.name}${puzzle.isMeta ? " Meta" : ""} has been ${
+                    text: `<!here|here> ${puzzle.name}${puzzle.isMeta ? " Meta" : ""} has been ${
                         puzzle.status === PuzzleStatus.SOLVED ? "solved" : "backsolved"
                     }!${puzzle.solution != null ? ` The answer was \`${puzzle.solution}\`` : ""}\n`,
                     attachments: [
@@ -207,7 +207,7 @@ firebaseDatabase.ref("currentHunt").on("value", huntSnapshot => {
                             childPuzzles.map(childPuzzle =>
                                 slackClient.chat.postMessage({
                                     ...slackMessage,
-                                    text: `@here The meta for this puzzle (${puzzle.name} Meta) has been ${
+                                    text: `<!here|here> The meta for this puzzle (${puzzle.name} Meta) has been ${
                                         puzzle.status === PuzzleStatus.SOLVED ? "solved" : "backsolved"
                                     }!${puzzle.solution != null ? ` The answer was \`${puzzle.solution}\`.` : ""}${
                                         childPuzzle.status !== PuzzleStatus.SOLVED &&
