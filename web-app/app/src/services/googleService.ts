@@ -187,7 +187,7 @@ export function reloadGoogleAuth() {
     scriptElement.id = "google-platform-api";
     scriptElement.src = "//apis.google.com/js/client:platform.js";
     element.parentNode.insertBefore(scriptElement, element);
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         scriptElement.onload = () => {
             const gapi = (window as any).gapi as IGooglePlatformApi;
             gapi.load("auth2", () => {
@@ -203,7 +203,8 @@ export function reloadGoogleAuth() {
                         .reloadAuthResponse()
                         .then(response => {
                             resolve(response.access_token);
-                        });
+                        })
+                        .catch(error => reject(error));
                 });
             });
         };

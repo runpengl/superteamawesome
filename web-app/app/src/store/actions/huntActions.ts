@@ -5,7 +5,6 @@ import { slack } from "../../services/slackService";
 import { IAppState, IAuthState, IHuntState } from "../state";
 import { loadUserInfo, LOGIN_ACTION } from "./authActions";
 import { loadFolder } from "./googleActions";
-
 import {
     asyncActionFailedPayload,
     asyncActionInProgressPayload,
@@ -26,9 +25,10 @@ export interface ILoadHuntActionPayload extends IHunt {
     slackTeamId?: string;
 }
 
-export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () => IAppState) {
+export async function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () => IAppState) {
     dispatch(asyncActionInProgressPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION));
-    return loadUserInfo(dispatch, getState().auth, getState().lifecycle).then((slackAccessToken: string) => {
+    try {
+        const slackAccessToken = await loadUserInfo(dispatch, getState().auth, getState().lifecycle);
         return new Promise((resolve, reject) => {
             firebaseDatabase.ref("currentHunt").once(
                 "value",
@@ -70,7 +70,11 @@ export function loadHuntAndUserInfo(dispatch: Dispatch<IAppState>, getState: () 
                 },
             );
         });
-    });
+    } catch (error) {
+        dispatch(asyncActionFailedPayload<ILoadHuntActionPayload>(LOAD_HUNT_ACTION, error));
+        dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, error));
+        return undefined;
+    }
 }
 
 export const LOAD_ALL_HUNTS_ACTION = "LOAD_ALL_HUNTS";
@@ -81,20 +85,25 @@ export interface ILoadAllHuntsPayload {
 export function loadAllHuntsAndUserInfo() {
     return async (dispatch: Dispatch<IAppState>, getState: () => IAppState) => {
         dispatch(asyncActionInProgressPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION));
-        await loadUserInfo(dispatch, getState().auth, getState().lifecycle);
-        const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
-            firebaseDatabase.ref("hunts").once(
-                "value",
-                allHuntsSnapshot => {
-                    resolve(allHuntsSnapshot.val());
-                },
-                (error: Error) => {
-                    dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
-                    reject(error);
-                },
-            );
-        });
-        dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
+        try {
+            await loadUserInfo(dispatch, getState().auth, getState().lifecycle);
+            const hunts = await new Promise<ILoadAllHuntsPayload>((resolve, reject) => {
+                firebaseDatabase.ref("hunts").once(
+                    "value",
+                    allHuntsSnapshot => {
+                        resolve(allHuntsSnapshot.val());
+                    },
+                    (error: Error) => {
+                        dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
+                        reject(error);
+                    },
+                );
+            });
+            dispatch(asyncActionSucceededPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, hunts));
+        } catch (error) {
+            dispatch(asyncActionFailedPayload<ILoadAllHuntsPayload>(LOAD_ALL_HUNTS_ACTION, error));
+            dispatch(asyncActionFailedPayload<IAuthState>(LOGIN_ACTION, error));
+        }
     };
 }
 

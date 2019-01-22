@@ -42,6 +42,7 @@ export interface IUser {
 }
 
 export interface IAppLifecycle {
+    createdSinglePuzzle: IAsyncLoaded<void>;
     createPuzzleFailure?: Error;
     creatingManualPuzzle?: boolean;
     createManualPuzzleFailure?: Error;
@@ -57,6 +58,7 @@ export enum LoginStatus {
     NONE,
     LOGGING_IN,
     LOGGED_IN,
+    LOGGED_OUT,
 }
 
 export interface IAppState {

@@ -4,6 +4,7 @@ export interface IDiscoveredPage {
     ignored?: boolean;
     path: string;
     title: string;
+    slackAnnounced?: boolean;
 }
 
 export interface IPuzzle {
@@ -28,7 +29,10 @@ export interface IPuzzle {
     status: PuzzleStatus;
 
     // Whether or not this has been announced on slack
-    announced?: boolean;
+    slackAnnounceStatus?: {
+        createdAnnounced?: boolean;
+        solvedAnnounced?: boolean;
+    };
 }
 
 export type PuzzleStatus = "inProgress" | "solved" | "new" | "stuck" | "backsolved";

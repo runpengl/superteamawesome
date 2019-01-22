@@ -1,6 +1,8 @@
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as express from "express";
+import * as fs from "fs";
+import * as https from "https";
 import * as path from "path";
 
 import { router } from "./routes/index";
@@ -38,7 +40,18 @@ app.use((err: any, req: express.Request, res: express.Response) => {
 });
 
 const port = normalizePort(process.env.PORT || "3000");
-app.listen(port);
+// app.listen(port);
+https
+    .createServer(
+        {
+            key: fs.readFileSync(path.join(__dirname, "./config/server.key")),
+            cert: fs.readFileSync(path.join(__dirname, "./config/server.cert")),
+        },
+        app,
+    )
+    .listen(port, () => {
+        console.warn("Listening on port 3000!");
+    });
 
 /**
  * Normalize a port into a number, string, or false.

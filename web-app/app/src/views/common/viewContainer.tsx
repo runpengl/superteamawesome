@@ -74,6 +74,10 @@ class UnconnectedViewContainer extends React.PureComponent<IViewContainerProps, 
                 loggedIn: true,
             });
         }
+
+        if (this.props.loginStatus === LoginStatus.NONE && nextProps.loginStatus === LoginStatus.LOGGED_OUT) {
+            this.setState({ isFirebaseLoaded: true, isFirebaseLoggedIn: false });
+        }
     }
 
     public render() {
