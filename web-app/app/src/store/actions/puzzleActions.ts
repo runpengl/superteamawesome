@@ -319,11 +319,13 @@ export function createManualPuzzleAction(puzzleName: string, puzzleLink: string)
         const lowerCasePuzzleName = puzzleName.replace(/\ /g, "").toLowerCase();
         const puzzleKey = lowerCasePuzzleName + "-" + hunt.year;
 
-        let slackChannelName = "x-" + lowerCasePuzzleName.substring(0, 19);    
-        // replace diacritics with pure ASCII ("über crèmebrulée" => "uber cremebrulee");
-        slackChannelName = slackChannelName.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+        let cleanPuzzleName = lowerCasePuzzleName;
+        // replace diacritics with pure ASCII ("über crèmebrulée" => "uber cremebrulee")
+        cleanPuzzleName = cleanPuzzleName.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
         // strip special chars ("#secretlivesofπ" => "secretlivesof")
-        slackChannelName = slackChannelName.replace(/[^\w]/g, "")
+        cleanPuzzleName = cleanPuzzleName.replace(/[^\w]/g, "");
+
+        const slackChannelName = "x-" + cleanPuzzleName.substring(0, 19);
 
         const checkPuzzleExists = new Promise(resolve => {
             firebaseDatabase.ref(`puzzles/${puzzleKey}`).once(
