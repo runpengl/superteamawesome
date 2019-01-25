@@ -76,7 +76,7 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
     function tryFindPuzzle(huntKey, pathSearch, callback) {
         selectAllWhereChildEquals("puzzles",
             "hunt", huntKey, function(puzzlesSnapshot) {
-                var didFindPuzzle = puzzlesSnapshot.find(function(p) {
+                var didFindPuzzle = puzzlesSnapshot.forEach(function(p) {
                     const puzzlePath = p.val().path;
                     if (!puzzlePath) {
                         return false;
@@ -126,19 +126,19 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
                     }
                 });
         }
-    } else if ((hostname + pathname).test(MIT_PUZZLE_ARCHIVE)) {
+    } else if (MIT_PUZZLE_ARCHIVE_PATTERN.test(hostname + pathname)) {
         // Archive: web.mit.edu/puzzle/www/{year}
-        var yearMatch = (location + pathname).match(MIT_PUZZLE_ARCHIVE);
+        var yearMatch = (hostname + pathname).match(MIT_PUZZLE_ARCHIVE_PATTERN);
         if (yearMatch && yearMatch[1]) {
             // Find hunt that matches archive location's year
             var year = yearMatch[1];
-            selectOnlyWhereChildEquals("huntHostNames",
-            "year", year, function(huntHostName) {
-                if (!huntHostName) {
+            selectOnlyWhereChildEquals("hunts",
+            "year", year, function(hunt) {
+                if (!hunt) {
                     callback({ toolbarType: "none" });
                     return;
                 }
-                var huntKey = huntHostName.val().hunt;
+                var huntKey = hunt.key;
 
                 // See if any puzzles in this hunt match the current path
                 var trimPathname = pathname.replace(/\/puzzle\/www\/\d{4}\//i, "");
