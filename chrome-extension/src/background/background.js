@@ -128,20 +128,20 @@ function fetchTabInfoForLocation(hostname, pathname, callback) {
         }
     } else if (MIT_PUZZLE_ARCHIVE_PATTERN.test(hostname + pathname)) {
         // Archive: web.mit.edu/puzzle/www/{year}
-        var yearMatch = (hostname + pathname).match(MIT_PUZZLE_ARCHIVE_PATTERN);
+        const yearMatch = (hostname + pathname).match(MIT_PUZZLE_ARCHIVE_PATTERN);
         if (yearMatch && yearMatch[1]) {
             // Find hunt that matches archive location's year
-            var year = yearMatch[1];
-            selectOnlyWhereChildEquals("hunts",
-            "year", year, function(hunt) {
-                if (!hunt) {
+            const year = yearMatch[1];
+            selectOnlyWhereChildEquals("huntHostNames",
+            "hunt", year, function(huntHostName) {
+                if (!huntHostName) {
                     callback({ toolbarType: "none" });
                     return;
                 }
-                var huntKey = hunt.key;
+                const huntKey = huntHostName.val().hunt;
 
                 // See if any puzzles in this hunt match the current path
-                var trimPathname = pathname.replace(/\/puzzle\/www\/\d{4}\//i, "");
+                const trimPathname = pathname.replace(/\/puzzle\/www\/\d{4}\//i, "");
                 tryFindPuzzle(huntKey, trimPathname, callback);
             });
         }
