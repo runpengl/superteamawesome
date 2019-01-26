@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import promptsList from "./promptList.js";
+import SolveProgressChart from "./charts/SolveProgressChart.js";
 
 initApp();
 
@@ -137,6 +138,7 @@ port.onMessage.addListener(function(event) {
                 React.createElement(DashboardRounds, { puzzleGroups: puzzleGroups, huntDomain: event.huntDomain }),
                 document.getElementById("puzzles")
             );
+            renderSolveProgressChart(Object.assign({}, { puzzleData: event.puzzles }));
             break;
     }
 });
@@ -156,6 +158,13 @@ function renderDashboard(dashboardData) {
         React.createElement(BackronymPrompt, {prompts: promptsList}),
         document.getElementById("subheader")
     );
+}
+
+function renderSolveProgressChart(puzzleData) {
+    ReactDOM.render(
+        React.createElement(SolveProgressChart, puzzleData),
+        document.getElementById("charts")
+    )
 }
 
 var r = {};

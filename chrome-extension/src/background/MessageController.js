@@ -65,6 +65,15 @@ export function handleRuntimeMessage(request, sender, sendResponse) {
             firebase.database()
                 .ref("puzzles/" + puzzleKey + "/wasBacksolved")
                 .set(false);
+            if (request.status === "solved") {
+                firebase.database()
+                .ref("puzzles/" + puzzleKey + "/solvedAt")
+                .set((new Date()).toUTCString())
+            } else {
+                firebase.database()
+                .ref("puzzles/" + puzzleKey + "/solvedAt")
+                .set(null)
+            }
             logEvent({
                 name: "PuzzleStatusChanged",
                 puzzleId: puzzleKey,

@@ -1,0 +1,79 @@
+.solveprogress-tooltip {
+    text-align: center;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 3px;
+    box-shadow: 2px 3px 10px #eee;
+    background: none;
+    z-index: 2;
+    transition: left 0.3s ease-in-out, top 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.solveprogress-tooltip .date-label {
+    font-weight: bold;
+}
+
+.solveprogress-tooltip div p {
+    line-height: 0;
+    margin-top: 12px;
+}
+
+.solveprogress-tooltip .series-label {
+    text-transform: uppercase;
+    margin-top: 12px;
+    display: inline-flex;
+    margin: 0 10px;
+}
+
+.solveprogress-tooltip .row {
+    display: inline-flex;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.solveprogress-tooltip .row div {
+    padding: 15px;
+}
+
+.solveprogress-tooltip .row .before {
+    border-right: solid 1px #aaa;
+}
+
+.solveprogress-tooltip .row .statnum {
+    font-size: 1.5em;
+}
+
+.solveprogress-tooltip .row p small {
+    color: #aaa;
+}
+
+.solveprogress-tooltip .row.border-bottom {
+    border-bottom: solid 1px #aaa;
+}
+
+.solveprogress-tooltip.with-tip:after {
+    content: "";
+    position: absolute;
+    bottom: -25px;
+    left: 40%;
+    border-style: solid;
+    border-width: 25px 25px 0;
+    border-color: #fff transparent;
+    display: block;
+    width: 0;
+    z-index: 2;
+}
+
+.solveprogress-tooltip.with-tip:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 40%;
+    border-style: solid;
+    border-width: 26px 26px 0;
+    border-color: #aaa transparent;
+    display: block;
+    width: 0;
+    z-index: 1;
+}

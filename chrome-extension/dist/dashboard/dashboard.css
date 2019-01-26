@@ -36,7 +36,15 @@ body {
   background: #003541;
   display: inline-block;
   padding: 25px;
-  width: 60%;
+  width: 55%;
+}
+
+#charts {
+  background: rgba(0, 53, 65, 0.7);
+  display: inline-block;
+  width: 40%;
+  position: absolute;
+  margin-left: 20px;
 }
 
 .Dashboard-round {
