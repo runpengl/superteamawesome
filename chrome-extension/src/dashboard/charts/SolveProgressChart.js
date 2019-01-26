@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import ReactEchartsCore from 'echarts-for-react/lib/core'
 import echarts from 'echarts/lib/echarts'
 import 'echarts/lib/chart/line'
@@ -12,20 +13,24 @@ import 'echarts/lib/chart/effectScatter'
 
 import moment from 'moment'
 
+import SolveProgressChartTooltip from "./SolveProgressChartTooltip";
+
 const PUZZLES_SOLVED = "Puzzles Solved";
 const PUZZLES_UNLOCKED = "Puzzles Unlocked";
 const META_SOLVED = "META Solve";
 const META_UNLOCK = "META Unlock";
 const colorMap = {
-  PURPLE: '#6c6ec6',
-  RED: '#dc322f',
-  ORANGE: '#b58901',
-  GREEN: '#859901'
+    PURPLE: '#6c6ec6',
+    RED: '#dc322f',
+    ORANGE: '#b58901',
+    GREEN: '#859901'
 }
 
 export default class SolveProgressChart extends Component {
-    getOption = ({ puzzleData }) => {
+
+    getPlottedTimestamps = (puzzleData) => {
         const plottedTimestamps = [];
+
         // Accumulate x-axis timestamps.
         puzzleData.forEach((puzzle) => {
             if (puzzle.solvedAt) {
@@ -38,9 +43,11 @@ export default class SolveProgressChart extends Component {
                 plottedTimestamps.push(new Date(puzzle.createdAt));
             }
         });
+
         plottedTimestamps.sort((a, b) => {
             return a.getTime() - b.getTime();
         });
+
         const startTime = plottedTimestamps[0];
         const endTime = plottedTimestamps[plottedTimestamps.length - 1];
         var nextTime = moment(plottedTimestamps[0]).startOf('hour').toDate();
@@ -51,14 +58,23 @@ export default class SolveProgressChart extends Component {
         plottedTimestamps.sort((a, b) => {
             return a.getTime() - b.getTime();
         });
+
+        return plottedTimestamps;
+    }
+
+    getOption = ({ puzzleData }) => {
+        const plottedTimestamps = this.getPlottedTimestamps(puzzleData);
+        const startTime = plottedTimestamps[0];
+
         const cummulativeSolveData = plottedTimestamps
             .map((date) => {
                 var numSolved = 0;
                 var numUnlocked = 0;
                 var metaSolved = 0;
                 var metaUnlocked = 0;
+                var solveTimeAccum = 0;
                 const elapsedMins = moment.duration(moment(date).diff(moment(startTime))).asMinutes();
-                const puzzleObj = {};
+                const dataObj = {};
                 puzzleData.forEach((puzzle) => {
                     if (puzzle.createdAt &&
                         new Date(puzzle.createdAt).getTime() <= date.getTime()) {
@@ -72,19 +88,24 @@ export default class SolveProgressChart extends Component {
                             if (puzzle.isMeta) {
                                 metaSolved += 1;
                             }
+                            if (!puzzle.solveTime) {
+                                puzzle.solveTime = moment.duration(moment(puzzle.solvedAt).diff(moment(puzzle.createdAt))).asMinutes();
+                            }
+                            solveTimeAccum += puzzle.solveTime;
                         }
                     }
                     const solved = puzzle.solvedAt || 0;
                     const unlocked = puzzle.createdAt || 0;
                     if (date.getTime() === new Date(solved).getTime()) {
-                        Object.assign(puzzleObj, { puzzle: puzzle, solved: true });
+                        Object.assign(dataObj, { puzzle: puzzle, solved: true });
                     } else if (date.getTime() === new Date(unlocked).getTime()) {
-                        Object.assign(puzzleObj, { puzzle: puzzle });
+                        Object.assign(dataObj, { puzzle: puzzle });
                     }
                 });
-                Object.assign(puzzleObj, { numUnlocked, numSolved, metaSolved, metaUnlocked, elapsedMins });
-                puzzleObj.timestamp = date;
-                return puzzleObj;
+                const avgSolveTimeMins = Math.round(solveTimeAccum / (numSolved || 1));
+                Object.assign(dataObj, { numUnlocked, numSolved, metaSolved, metaUnlocked, elapsedMins, avgSolveTimeMins });
+                dataObj.timestamp = date;
+                return dataObj;
             });
 
         function getMarkPoint(item, index) {
@@ -122,10 +143,10 @@ export default class SolveProgressChart extends Component {
                         const shortLabel = moment(date).format('hA');
                         const longLabel = moment(date).format('ddd. hA');
                         if (idx === 0) {
-                          return longLabel;
+                            return longLabel;
                         }
                         if (date.getHours() % 12 <= 1 && idx > 10) {
-                          return longLabel;
+                            return longLabel;
                         }
                         return shortLabel;
                     },
@@ -192,51 +213,20 @@ export default class SolveProgressChart extends Component {
                     var numSolved = (params.find((param) => {
                         return param.seriesName === PUZZLES_SOLVED;
                     }) || {}).data;
-                    var item = cummulativeSolveData.find(item => {
+                    var hoveredItem = cummulativeSolveData.find(item => {
                         return item.numSolved === numSolved && item.numUnlocked === numUnlocked;
                     });
-                    if (!item) return;
-                    var ret = "<div class='solveprogress-tooltip'>";
-                    ret += "<span class='date-label'>" + moment(item.timestamp).format('ddd, MMM D h:mm A') + "</span>";
-                    ret += "<small> (" + (item.elapsedMins / 60).toPrecision(3) + " hrs) </small> <br><br>";
+                    if (!hoveredItem) return;
+                    var mask = document.createElement('div');
 
-                    ret += "<div class='col'>" +
-                        "<div><div class='series-label'>Puzzles</div></div>" +
-                        "<div class='row'>" +
-                          "<div class='before'>" +
-                            "<span class='statnum' style='color:#6c6ec6'>%0</span><p>Total unlocked</p>" +
-                          "</div>" +
-                          "<div class='before'>" +
-                            "<span class='statnum' style='color:#859901'>%1</span><p>Total solves</p><small>(%p%)</small>" +
-                          "</div>" +
-                          "<div class='before'>" +
-                            "<span class='statnum' style='color:#dc322f'>%2</span><p>META unlocked</p>" +
-                          "</div>" +
-                          "<div class='after'>" +
-                            "<span class='statnum' style='color:#b58901'>%3</span><p>META solves</p>" +
-                          "</div>" +
-                        "</div><hr>" +
-                        "<div><span class='pre series-label'>Velocity</span></div>" +
-                        "<div class='row'>" +
-                          "<div class='before'>" +
-                            "<span class='statnum' style='color:#6c6ec6'>%4</span><p>solves / hr</p>" +
-                          "</div>" +
-                          "<div class='after'>" +
-                            "<span class='statnum' style='color:#859901'>%5</span><p>Solved</p>" +
-                          "</div>" +
-                        "</div>" +
-                        "</div>"
+                    ReactDOM.render(
+                        <SolveProgressChartTooltip
+                                dataItem={hoveredItem}
+                                solveData={cummulativeSolveData}
+                                colorMap={colorMap}
+                            />, mask);
 
-                    ret = ret.replace("%0", item.numUnlocked)
-                        .replace("%1", item.numSolved || '&mdash;')
-                        .replace("%2", item.metaUnlocked || '&mdash;')
-                        .replace("%p", (item.numSolved * 100 / (item.numUnlocked || 1)).toPrecision(2))
-                        .replace("%3", item.metaSolved || '&mdash;')
-                        .replace("%4", (60 * item.numSolved / (item.elapsedMins || 1)).toPrecision(2))
-                        .replace("%c", params.color);
-
-                    ret += "</div>"
-                    return ret;
+                    return mask.innerHTML;
                 }
             },
             series: [{
@@ -333,13 +323,13 @@ export default class SolveProgressChart extends Component {
     render() {
         return (
             <div className="solve-progress-chart">
-        <ReactEchartsCore
-          echarts={echarts}
-          option={this.getOption(this.props)}
-          style={{ height: '600px' }}
-          className="react-for-echarts"
-        />
-      </div>
+                    <ReactEchartsCore
+                      echarts={echarts}
+                      option={this.getOption(this.props)}
+                      style={{ height: '600px' }}
+                      className="react-for-echarts"
+                    />
+                </div>
         )
     }
 }
