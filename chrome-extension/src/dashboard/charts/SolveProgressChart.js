@@ -50,9 +50,9 @@ export default class SolveProgressChart extends Component {
 
         const startTime = plottedTimestamps[0];
         const endTime = plottedTimestamps[plottedTimestamps.length - 1];
-        var nextTime = moment(plottedTimestamps[0]).startOf('hour').toDate();
+        let nextTime = moment(plottedTimestamps[0]).startOf('hour').toDate();
         while (nextTime.getTime() < endTime.getTime()) {
-            nextTime = moment(nextTime).add(15, 'm').toDate();
+            nextTime = moment(nextTime).add(15, 'minutes').toDate();
             plottedTimestamps.push(nextTime);
         }
         plottedTimestamps.sort((a, b) => {
@@ -68,11 +68,11 @@ export default class SolveProgressChart extends Component {
 
         const cummulativeSolveData = plottedTimestamps
             .map((date) => {
-                var numSolved = 0;
-                var numUnlocked = 0;
-                var metaSolved = 0;
-                var metaUnlocked = 0;
-                var solveTimeAccum = 0;
+                let numSolved = 0;
+                let numUnlocked = 0;
+                let metaSolved = 0;
+                let metaUnlocked = 0;
+                let solveTimeAccum = 0;
                 const elapsedMins = moment.duration(moment(date).diff(moment(startTime))).asMinutes();
                 const dataObj = {};
                 puzzleData.forEach((puzzle) => {
@@ -145,7 +145,7 @@ export default class SolveProgressChart extends Component {
                         if (idx === 0) {
                             return longLabel;
                         }
-                        if (date.getHours() % 12 <= 1 && idx > 10) {
+                        if (date.getHours() % 12 <= 1) {
                             return longLabel;
                         }
                         return shortLabel;
@@ -207,17 +207,17 @@ export default class SolveProgressChart extends Component {
                     color: 'black'
                 },
                 formatter: (params) => {
-                    var numUnlocked = (params.find((param) => {
+                    const numUnlocked = (params.find((param) => {
                         return param.seriesName === PUZZLES_UNLOCKED
                     }) || {}).data;
-                    var numSolved = (params.find((param) => {
+                    const numSolved = (params.find((param) => {
                         return param.seriesName === PUZZLES_SOLVED;
                     }) || {}).data;
-                    var hoveredItem = cummulativeSolveData.find(item => {
+                    const hoveredItem = cummulativeSolveData.find(item => {
                         return item.numSolved === numSolved && item.numUnlocked === numUnlocked;
                     });
                     if (!hoveredItem) return;
-                    var mask = document.createElement('div');
+                    const mask = document.createElement('div');
 
                     ReactDOM.render(
                         <SolveProgressChartTooltip
