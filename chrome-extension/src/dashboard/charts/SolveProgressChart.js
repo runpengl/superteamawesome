@@ -37,7 +37,7 @@ export default class SolveProgressChart extends Component {
                 plottedTimestamps.push(new Date(puzzle.solvedAt));
             }
             if (puzzle.createdAt) {
-                if (puzzle.status === "solved" && !puzzle.solvedAt) {
+                if ((puzzle.status === "solved" || puzzle.wasBacksolved === true) && !puzzle.solvedAt) {
                     console.warn(`${puzzle.key} has no official solve time.`);
                 }
                 plottedTimestamps.push(new Date(puzzle.createdAt));
